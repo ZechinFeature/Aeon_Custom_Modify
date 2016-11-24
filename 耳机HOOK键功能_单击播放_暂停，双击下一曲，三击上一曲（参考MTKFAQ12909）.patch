@@ -1,0 +1,120 @@
+From 29ccc49990ce6cab8084a6409c4109f3439c08e7 Mon Sep 17 00:00:00 2001
+From: "Xia.Fei" <xia.fei@eastaeon.com>
+Date: Fri, 18 Mar 2016 10:03:23 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=E8=80=B3=E6=9C=BAHOOK=E9=94=AE?=
+ =?UTF-8?q?=E5=8A=9F=E8=83=BD=EF=BC=8C=E5=8D=95=E5=87=BB=E6=92=AD=E6=94=BE/=E6?=
+ =?UTF-8?q?=9A=82=E5=81=9C=EF=BC=8C=E5=8F=8C=E5=87=BB=E4=B8=8B=E4=B8=80=E6=9B?=
+ =?UTF-8?q?=B2=EF=BC=8C=E4=B8=89=E5=87=BB=E4=B8=8A=E4=B8=80=E6=9B=B2=EF=BC=88?=
+ =?UTF-8?q?=E5=8F=82=E8=80=83MTK=20FAQ12909=EF=BC=89?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+注：
+1、本记录仅对 Music App 有效，上下曲切换仅以当前的播放列表顺序为准，曲库或者其他排序不能作为上下曲切换依据！
+2、测试上下曲切换时，应先关闭随机播放功能！！！
+2、旧版 M 平台上有一条同样描述，修改了 framework/.../PhoneWindowManager.java 的记录有问题，
+   具体表现在通话中仍旧会优先响应音乐服务，与常理不符。
+---
+ .../android/music/MediaButtonIntentReceiver.java   |   63 +++++++++++++++++++-
+ 1 file changed, 62 insertions(+), 1 deletion(-)
+ mode change 100644 => 100755 alps/packages/apps/Music/src/com/android/music/MediaButtonIntentReceiver.java
+
+diff --git a/alps/packages/apps/Music/src/com/android/music/MediaButtonIntentReceiver.java b/alps/packages/apps/Music/src/com/android/music/MediaButtonIntentReceiver.java
+old mode 100644
+new mode 100755
+index 40abdeb..642a2b4
+--- a/alps/packages/apps/Music/src/com/android/music/MediaButtonIntentReceiver.java
++++ b/alps/packages/apps/Music/src/com/android/music/MediaButtonIntentReceiver.java
+@@ -81,7 +81,7 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
+     };
+     
+     @Override
+-    public void onReceive(Context context, Intent intent) {
++    public void onReceive(final Context context, Intent intent) {
+         String intentAction = intent.getAction();
+         MusicLogUtils.d("MediaButtonIntentReceiver", "intentAction " + intentAction);
+         if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intentAction)) {
+@@ -179,6 +179,32 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
+                         // a command.
+                         Intent i = new Intent(context, MediaPlaybackService.class);
+                         i.setAction(MediaPlaybackService.SERVICECMD);
++
++                        //START. By Xia.Fei. 20160314. For Headsethook function. Based on MTK FAQ12909.
++                        if (keycode == KeyEvent.KEYCODE_HEADSETHOOK){
++                            preLastHeadsethookDownTime = lastHeadsethookDownTime;
++                            lastHeadsethookDownTime = thisHeadsethookDownTime;
++                            thisHeadsethookDownTime = eventtime;
++                            if(thisHeadsethookDownTime - lastHeadsethookDownTime > QUICK_PRESS_DELAY){
++                                logXF("new click serial detected");
++                                clickCount = 1;
++                                headsetHandler.postDelayed(new Runnable(){
++                                    public void run() {
++                                        logXF("call sendHeadsetBroadcast clickCount="+clickCount);
++                                        handleHeadsetMutiplePress(context, clickCount);
++                                    }
++                                }, 2*QUICK_PRESS_DELAY);
++                            } else{
++                                logXF("click serial runing");
++                                if(thisHeadsethookDownTime - preLastHeadsethookDownTime > 2*QUICK_PRESS_DELAY){
++                                    logXF("double click detect");
++                                    clickCount = 2;
++                                } else {
++                                    logXF("triple click detect");
++                                    clickCount = 3;
++                                }
++                            }
++                        /*}
+                         if (keycode == KeyEvent.KEYCODE_HEADSETHOOK &&
+                                 eventtime - mLastClickTime < 300) {
+                             i.putExtra(MediaPlaybackService.CMDNAME, MediaPlaybackService.CMDNEXT);
+@@ -186,6 +212,8 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
+                             //should start service match current user
+                             context.startServiceAsUser(i, UserHandle.CURRENT);
+                             mLastClickTime = 0;
++                        *///END. By Xia.Fei. 20160314. For Headsethook function. Based on MTK FAQ12909.
++
+                         /// M: AVRCP and Android Music AP supports the FF/REWIND @{
+                         } else if (MediaPlaybackService.CMDFORWARD.equals(command)
+                                 || MediaPlaybackService.CMDREWIND.equals(command)) {
+@@ -270,4 +298,37 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
+         + isServiceRuning + ", Runing service num is " + list.size());
+         return isServiceRuning;
+     }
++
++    //START. By Xia.Fei. 20160314. For Headsethook function. Based on MTK FAQ12909.
++    private static final long QUICK_PRESS_DELAY = 500;
++    private static long preLastHeadsethookDownTime = 0;
++    private static long lastHeadsethookDownTime = 0;
++    private static long thisHeadsethookDownTime = 0;
++    private static int clickCount = 0;
++    private Handler headsetHandler = new Handler();
++    private void handleHeadsetMutiplePress(Context context, int clickCount){
++        logXF("clickCount = " + clickCount);
++        Intent i = new Intent(context, MediaPlaybackService.class);
++        i.setAction(MediaPlaybackService.SERVICECMD);
++        switch(clickCount){
++        case 3: // triple press, preview track
++            i.putExtra(MediaPlaybackService.CMDNAME, MediaPlaybackService.CMDPREVIOUS);
++            break;
++        case 2: // double press, next track
++            i.putExtra(MediaPlaybackService.CMDNAME, MediaPlaybackService.CMDNEXT);
++            break;
++        case 1: //  single quick press: pause/resume.
++        default:
++            i.putExtra(MediaPlaybackService.CMDNAME, MediaPlaybackService.CMDTOGGLEPAUSE);
++            break;
++        }
++        //for multi user,when use BT play music,
++        //should start service match current user
++        context.startServiceAsUser(i, UserHandle.CURRENT);
++    }
++
++    private void logXF(String msg){
++        android.util.Log.e("XIAFEI1", "MBIR >>> "+msg);
++    }
++    //END. By Xia.Fei. 20160314. For Headsethook function. Based on MTK FAQ12909.
+ }
+-- 
+1.7.9.5
+

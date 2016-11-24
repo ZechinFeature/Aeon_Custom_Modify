@@ -1,0 +1,75 @@
+From 8315069d725da49ff4cf0ccfe91026d3ed246bea Mon Sep 17 00:00:00 2001
+From: "li.chao1" <li.chao1@eastaeon.com>
+Date: Fri, 25 Mar 2016 19:55:00 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=20Makefile=E9=87=8C=E5=A2=9E?=
+ =?UTF-8?q?=E5=8A=A0autoCopy=EF=BC=8C=E6=8A=8ABUILD=5FDISPLAY=5FID=E8=B5=8B=E5?=
+ =?UTF-8?q?=80=BC=E4=B8=BA=E5=A4=96=E9=83=A8=E7=89=88=E6=9C=AC=E5=8F=B7=EF=BC?=
+ =?UTF-8?q?=88MTK=5FBUILD=5FVERNO=EF=BC=89?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ alps/build/core/Makefile |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/alps/build/core/Makefile b/alps/build/core/Makefile
+index bcc81bc..1d830ec 100755
+--- a/alps/build/core/Makefile
++++ b/alps/build/core/Makefile
+@@ -119,7 +119,7 @@ BUILD_VERSION_TAGS += $(BUILD_KEYS)
+ BUILD_VERSION_TAGS := $(subst $(space),$(comma),$(sort $(BUILD_VERSION_TAGS)))
+ 
+ # A human-readable string that descibes this build in detail.
+-build_desc := $(PRODUCT_BRAND)-$(TARGET_BUILD_VARIANT) $(PLATFORM_VERSION) $(BUILD_ID) $(BUILD_NUMBER) $(BUILD_VERSION_TAGS)
++build_desc := $(TARGET_PRODUCT)-$(TARGET_BUILD_VARIANT) $(PLATFORM_VERSION) $(BUILD_ID) $(BUILD_NUMBER) $(BUILD_VERSION_TAGS)
+ $(intermediate_system_build_prop): PRIVATE_BUILD_DESC := $(build_desc)
+ 
+ # The string used to uniquely identify the combined build and product; used by the OTA server.
+@@ -131,7 +131,7 @@ ifeq (,$(strip $(BUILD_FINGERPRINT)))
+   else
+     BF_BUILD_NUMBER := $(BUILD_NUMBER)
+   endif
+-  BUILD_FINGERPRINT := $(PRODUCT_BRAND)/$(PRODUCT_BRAND)/$(TARGET_DEVICE):$(PLATFORM_VERSION)/$(BUILD_ID)/$(BF_BUILD_NUMBER):$(TARGET_BUILD_VARIANT)/$(BUILD_VERSION_TAGS)
++  BUILD_FINGERPRINT := $(PRODUCT_BRAND)/$(TARGET_PRODUCT)/$(TARGET_DEVICE):$(PLATFORM_VERSION)/$(BUILD_ID)/$(BF_BUILD_NUMBER):$(TARGET_BUILD_VARIANT)/$(BUILD_VERSION_TAGS)
+ endif
+ ifneq ($(words $(BUILD_FINGERPRINT)),1)
+   $(error BUILD_FINGERPRINT cannot contain spaces: "$(BUILD_FINGERPRINT)")
+@@ -168,6 +168,7 @@ else
+   # Non-user builds should show detailed build information
+   BUILD_DISPLAY_ID := $(build_desc)
+ endif
++BUILD_DISPLAY_ID := $(MTK_BUILD_VERNO)
+ 
+ # Accepts a whitespace separated list of product locales such as
+ # (en_US en_AU en_GB...) and returns the first locale in the list with
+@@ -1210,6 +1211,16 @@ $(INSTALLED_SYSTEMIMAGE): $(BUILT_SYSTEMIMAGE) $(RECOVERY_FROM_BOOT_PATCH) | $(A
+ 	$(copy-file-to-target)
+ 	$(hide) $(call assert-max-image-size,$@ $(RECOVERY_FROM_BOOT_PATCH),$(BOARD_SYSTEMIMAGE_PARTITION_SIZE))
+ 
++########add autoCopy##########
++ifeq ($(ACTION), )
++ifeq ($(TARGET_BUILD_VARIANT),user)
++	$(hide) /$(MKTOPDIR)/autoCopy "user"
++else
++	$(hide) /$(MKTOPDIR)/autoCopy "eng"
++endif
++endif
++#############################
++
+ systemimage: $(INSTALLED_SYSTEMIMAGE)
+ 
+ .PHONY: systemimage-nodeps snod
+@@ -1824,6 +1835,9 @@ $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) $(DISTTOOLS)
+ 	   -s ./device/mediatek/build/releasetools/mt_ota_from_target_files \
+ 	   $(if $(OEM_OTA_CONFIG), -o $(OEM_OTA_CONFIG)) \
+ 	   $(BUILT_TARGET_FILES_PACKAGE) $@
++##########Add autoCopy###########
++	$(hide) /$(MKTOPDIR)/autoCopy "ota"
++################################
+ 
+ .PHONY: otapackage
+ otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
+-- 
+1.7.9.5
+

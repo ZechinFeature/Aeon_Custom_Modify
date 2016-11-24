@@ -1,0 +1,291 @@
+From c932a232bd4baa7dc13497248343e3130a24e9f9 Mon Sep 17 00:00:00 2001
+From: wangjian <wang.jian@eastaeon.com>
+Date: Mon, 14 Mar 2016 17:18:42 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=20sim=E5=8D=A1=E7=AE=A1=E7=90?=
+ =?UTF-8?q?=86=E7=95=8C=E9=9D=A2=E5=AE=9A=E5=88=B6?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../apps/Settings/res/xml/sim_settings.xml         |    2 +-
+ .../android/settings/sim/DataSwitchPreference.java |   87 ++++++++++++++++++++
+ .../src/com/android/settings/sim/SimSettings.java  |   66 +++++++++++++--
+ 3 files changed, 146 insertions(+), 9 deletions(-)
+ create mode 100755 alps/packages/apps/Settings/src/com/android/settings/sim/DataSwitchPreference.java
+
+diff --git a/alps/packages/apps/Settings/res/xml/sim_settings.xml b/alps/packages/apps/Settings/res/xml/sim_settings.xml
+index 63e4ba4..781d2ca 100755
+--- a/alps/packages/apps/Settings/res/xml/sim_settings.xml
++++ b/alps/packages/apps/Settings/res/xml/sim_settings.xml
+@@ -22,7 +22,7 @@
+             android:key="sim_activities"
+             android:title="@string/sim_pref_divider" >
+ 
+-        <Preference android:key="sim_cellular_data"
++        <com.android.settings.sim.DataSwitchPreference android:key="sim_cellular_data"
+             android:title="@string/cellular_data_title" />
+ 
+         <Preference android:key="sim_calls"
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/sim/DataSwitchPreference.java b/alps/packages/apps/Settings/src/com/android/settings/sim/DataSwitchPreference.java
+new file mode 100755
+index 0000000..69a7469
+--- /dev/null
++++ b/alps/packages/apps/Settings/src/com/android/settings/sim/DataSwitchPreference.java
+@@ -0,0 +1,87 @@
++package com.android.settings.sim;
++
++import android.content.Context;
++import android.preference.Preference;
++import android.telephony.SubscriptionInfo;
++import android.util.AttributeSet;
++import android.view.View;
++import android.widget.CompoundButton;
++import android.widget.CompoundButton.OnCheckedChangeListener;
++import android.widget.Switch;
++import com.android.settings.R;
++public class DataSwitchPreference extends Preference {
++
++	private Switch mSwitch;
++	private boolean mSwitchState;
++	private boolean mSwitchEnabled = true;
++	private boolean mPrefrenceEnabled;
++	private SubscriptionInfo info;
++	private OnSwitchButtonCheckedListener mOnRadioButtonCheckedListener;
++	//callback interface
++	public interface OnSwitchButtonCheckedListener {
++		public void OnSwitchButtonChecked(boolean isChecked,SubscriptionInfo info);
++	}
++	public void setOnRadioButtonCheckedListener(OnSwitchButtonCheckedListener listener){
++		mOnRadioButtonCheckedListener = listener;
++	}
++
++	public DataSwitchPreference(Context context, AttributeSet attrs, int defStyle) {
++		super(context, attrs, defStyle);
++	}
++
++	public DataSwitchPreference(Context context, AttributeSet attrs) {
++		super(context, attrs);
++		setWidgetLayoutResource(R.layout.radio_power_switch);
++	}
++
++	public DataSwitchPreference(Context context) {
++		super(context);
++		setWidgetLayoutResource(R.layout.radio_power_switch);
++	}
++
++	
++	@Override
++	protected void onBindView(View view) {
++		mSwitch = (Switch) view.findViewById(R.id.radio_state);
++		mSwitch.setChecked(mSwitchState);
++		mSwitch.setClickable(mSwitchEnabled);
++		if (mSwitch != null) {
++			mSwitch.setOnCheckedChangeListener(new OnCheckedChangeListener() {
++
++				@Override
++				public void onCheckedChanged(CompoundButton button, boolean checked) {
++					mSwitchState = checked;
++					mOnRadioButtonCheckedListener.OnSwitchButtonChecked(checked,info);
++				}
++			});
++		}
++		super.onBindView(view);
++	}
++	@Override
++    public void setEnabled(boolean enabled) {
++        mPrefrenceEnabled = enabled;
++        super.setEnabled(enabled);
++    }
++	 
++	public boolean isChecked() {
++		return mSwitchState;
++	}
++	
++	public void setSwitchOn(boolean bChecked) {
++		mSwitchState = bChecked;
++		if (mSwitch != null) {
++			mSwitch.setChecked(bChecked);
++		}
++	}
++	public void setSwitchEnabled(SubscriptionInfo info){
++		mSwitchEnabled = (info != null);
++		if(mSwitch != null){
++			mSwitch.setClickable(mSwitchEnabled);
++		}
++	}
++	//First be bound data
++	public void bindSubscriptionInfoState(SubscriptionInfo info){
++		this.info = info;
++		setSwitchEnabled(info);
++	}
++}
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/sim/SimSettings.java b/alps/packages/apps/Settings/src/com/android/settings/sim/SimSettings.java
+index d00f552..0396edb 100755
+--- a/alps/packages/apps/Settings/src/com/android/settings/sim/SimSettings.java
++++ b/alps/packages/apps/Settings/src/com/android/settings/sim/SimSettings.java
+@@ -67,7 +67,7 @@ import java.util.ArrayList;
+ import java.util.List;
+ 
+ public class SimSettings extends RestrictedSettingsFragment implements Indexable,
+-        PhoneServiceStateHandler.Listener {
++        PhoneServiceStateHandler.Listener,DataSwitchPreference.OnSwitchButtonCheckedListener {
+     private static final String TAG = "SimSettings";
+     private static final boolean DBG = true;
+ 
+@@ -91,7 +91,10 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
+     private SubscriptionManager mSubscriptionManager;
+     private int mNumSlots;
+     private Context mContext;
+-
++	private int default_call_subid = -10;
++	private int default_sms_subid = -10;
++	private int default_data_subid = -10;
++	private boolean binding;
+     public SimSettings() {
+         super(DISALLOW_CONFIG_SIM);
+     }
+@@ -107,11 +110,12 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
+         mContext = getActivity();
+ 
+         mSubscriptionManager = SubscriptionManager.from(getActivity());
+-        final TelephonyManager tm =
++        final TelephonyManager mTelephonyManager =
+                 (TelephonyManager) getActivity().getSystemService(Context.TELEPHONY_SERVICE);
+         addPreferencesFromResource(R.xml.sim_settings);
+-
+-        mNumSlots = tm.getSimCount();
++		((DataSwitchPreference) findPreference(KEY_CELLULAR_DATA))
++				.setOnRadioButtonCheckedListener(this);
++        mNumSlots = mTelephonyManager.getSimCount();
+         mSimCards = (PreferenceScreen)findPreference(SIM_CARD_CATEGORY);
+         mAvailableSubInfos = new ArrayList<SubscriptionInfo>(mNumSlots);
+         mSelectableSubInfos = new ArrayList<SubscriptionInfo>();
+@@ -198,14 +202,16 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
+ 
+             if (sir != null) {
+                 simPref.setSummary(sir.getDisplayName());
++				default_sms_subid = sir.getSubscriptionId();
+             } else if (sir == null) {
+                 /// M: for [Always Ask]
+                 // simPref.setSummary(R.string.sim_selection_required_pref);
+                 simPref.setSummary(R.string.sim_calls_ask_first_prefs_title);
+                 /// M: for plug-in
+                 mSimManagementExt.updateDefaultSmsSummary(simPref);
++				default_sms_subid = -10;
+             }
+-
++			Log.d(TAG, "default_sms_subid = " + default_sms_subid);
+             /// M: [C2K solution 2 enhancement] [C2K solution 1.5] @{
+             if (!shouldDisableActivitesCategory(getActivity())) {
+             /// @}
+@@ -218,9 +224,11 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
+     }
+ 
+     private void updateCellularDataValues() {
+-        final Preference simPref = findPreference(KEY_CELLULAR_DATA);
++		binding = true;
++        final DataSwitchPreference simPref = (DataSwitchPreference)findPreference(KEY_CELLULAR_DATA);
+         if (simPref != null) {
+             SubscriptionInfo sir = mSubscriptionManager.getDefaultDataSubscriptionInfo();
++			simPref.bindSubscriptionInfoState(sir);
+             simPref.setTitle(R.string.cellular_data_title);
+             if (DBG) log("[updateCellularDataValues] mSubInfoList=" + mSubInfoList);
+ 
+@@ -229,15 +237,20 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
+ 
+             if (sir != null) {
+                 simPref.setSummary(sir.getDisplayName());
++				default_data_subid = sir.getSubscriptionId();
+             } else if (sir == null) {
+                 simPref.setSummary(R.string.sim_selection_required_pref);
++				default_data_subid = -10;
+             }
++			Log.d(TAG, "default_data_subid = " + default_data_subid);
+             /// M: [SIM Capability Switch] to prevent continuous click when SIM switch @{
+             // simPref.setEnabled(mSelectableSubInfos.size() >= 1);
+             simPref.setEnabled(isDataPrefEnable());
+             mSimManagementExt.configSimPreferenceScreen(simPref, KEY_CELLULAR_DATA, -1);
+             /// @}
++			simPref.setSwitchOn(isMobileDataEnabled(default_data_subid));
+         }
++		binding = false;
+     }
+ 
+     private void updateCallValues() {
+@@ -246,6 +259,7 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
+             final TelecomManager telecomManager = TelecomManager.from(mContext);
+             PhoneAccountHandle phoneAccount =
+                 telecomManager.getUserSelectedOutgoingPhoneAccount();
++		    TelephonyManager mTelephonyManager = TelephonyManager.from(getActivity());
+             final List<PhoneAccountHandle> allPhoneAccounts =
+                 telecomManager.getCallCapablePhoneAccounts();
+ 
+@@ -261,6 +275,12 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
+              */
+             PhoneAccount defaultAccount = phoneAccount == null ? null : telecomManager
+                     .getPhoneAccount(phoneAccount);
++			if(defaultAccount ==null){
++				 default_call_subid = -10;
++			}else{
++				default_call_subid = mTelephonyManager.getSubIdForPhoneAccount(defaultAccount);
++			}
++			Log.d(TAG, "default_call_subid = " + default_call_subid);
+             simPref.setSummary(defaultAccount == null
+                     ? mContext.getResources().getString(R.string.sim_calls_ask_first_prefs_title)
+                     : (String)defaultAccount.getLabel());
+@@ -350,12 +370,15 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
+             startActivity(newIntent);
+         } else if (findPreference(KEY_CELLULAR_DATA) == preference) {
+             intent.putExtra(SimDialogActivity.DIALOG_TYPE_KEY, SimDialogActivity.DATA_PICK);
++			intent.putExtra(SimDialogActivity.DEFAULT_DATAID, default_data_subid);
+             context.startActivity(intent);
+         } else if (findPreference(KEY_CALLS) == preference) {
+             intent.putExtra(SimDialogActivity.DIALOG_TYPE_KEY, SimDialogActivity.CALLS_PICK);
++			intent.putExtra(SimDialogActivity.DEFAULT_CALLID, default_call_subid);
+             context.startActivity(intent);
+         } else if (findPreference(KEY_SMS) == preference) {
+             intent.putExtra(SimDialogActivity.DIALOG_TYPE_KEY, SimDialogActivity.SMS_PICK);
++			intent.putExtra(SimDialogActivity.DEFAULT_SMSID,default_sms_subid);
+             context.startActivity(intent);
+         }
+ 
+@@ -702,7 +725,34 @@ public class SimSettings extends RestrictedSettingsFragment implements Indexable
+                 && !TelecomManager.from(mContext).isInCall()
+                 && !ecbMode;
+     }
+-
++	private boolean isMobileDataEnabled(int subId) {
++       log("isMobileDataEnabled:+ subId=" + subId);
++	   TelephonyManager mTelephonyManager = TelephonyManager.from(getActivity());
++        boolean isEnable = false;
++        // SUB SELECT
++        isEnable = mTelephonyManager.getDataEnabled(subId);
++        log("isMobileDataEnabled: == null, subId=" + subId
++                + " isEnable=" + isEnable);
++        return isEnable;
++    }
++	@Override
++	public void OnSwitchButtonChecked(boolean isChecked, SubscriptionInfo info) {
++		// TODO Auto-generated method stub
++		if(binding){
++			((DataSwitchPreference) findPreference(KEY_CELLULAR_DATA))
++					.setSwitchOn(false);
++			return;
++		} 
++		TelephonyManager mTelephonyManager = TelephonyManager.from(getActivity());
++		if(info != null){
++			int subId = info.getSubscriptionId();
++			mTelephonyManager.setDataEnabled(subId, isChecked);
++		}else{
++			((DataSwitchPreference) findPreference(KEY_CELLULAR_DATA))
++					.setSwitchOn(false);
++		}
++		
++	}
+     private static boolean shouldDisableActivitesCategory(Context context) {
+         boolean shouldDisable = false;
+         shouldDisable = CdmaUtils.isCdmaCardCompetion(context)
+-- 
+1.7.9.5
+

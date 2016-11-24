@@ -1,0 +1,1172 @@
+From 459ef4d9f931e542a0afee46105c12eea67432c2 Mon Sep 17 00:00:00 2001
+From: liuyuanchang <liu.yuanchang@eastaeon.com>
+Date: Mon, 26 Sep 2016 15:19:06 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=E5=9C=A8=E4=B8=8B=E6=8B=89=E7?=
+ =?UTF-8?q?=8A=B6=E6=80=81=E6=A0=8F=E4=B8=AD=EF=BC=8C=E6=B7=BB=E5=8A=A0=E5=B1?=
+ =?UTF-8?q?=8F=E5=B9=95=E5=BD=95=E5=88=B6=E5=8A=9F=E8=83=BD?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../base/packages/SystemUI/AndroidManifest.xml     |   16 +-
+ .../res/drawable-hdpi/qs_screen_record.png         |  Bin 0 -> 3126 bytes
+ .../SystemUI/res/layout/screen_recorder.xml        |   11 +
+ .../SystemUI/res/values-zh-rCN/strings.xml         |    8 +
+ .../base/packages/SystemUI/res/values/config.xml   |    2 +-
+ .../base/packages/SystemUI/res/values/strings.xml  |    8 +
+ .../base/packages/SystemUI/res/values/styles.xml   |   10 +
+ .../src/com/aeon/recorder/RecordActivity.java      |  350 ++++++++++++++
+ .../src/com/aeon/recorder/RecordService.java       |  480 ++++++++++++++++++++
+ .../systemui/qs/tiles/ScreenRecorderTile.java      |   74 +++
+ .../systemui/statusbar/phone/QSTileHost.java       |    7 +
+ 11 files changed, 964 insertions(+), 2 deletions(-)
+ create mode 100755 alps/frameworks/base/packages/SystemUI/res/drawable-hdpi/qs_screen_record.png
+ create mode 100755 alps/frameworks/base/packages/SystemUI/res/layout/screen_recorder.xml
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/res/values/styles.xml
+ create mode 100755 alps/frameworks/base/packages/SystemUI/src/com/aeon/recorder/RecordActivity.java
+ create mode 100755 alps/frameworks/base/packages/SystemUI/src/com/aeon/recorder/RecordService.java
+ create mode 100755 alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/ScreenRecorderTile.java
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/QSTileHost.java
+
+diff --git a/alps/frameworks/base/packages/SystemUI/AndroidManifest.xml b/alps/frameworks/base/packages/SystemUI/AndroidManifest.xml
+index a157179..b7b0fb8 100755
+--- a/alps/frameworks/base/packages/SystemUI/AndroidManifest.xml
++++ b/alps/frameworks/base/packages/SystemUI/AndroidManifest.xml
+@@ -143,7 +143,9 @@
+     <uses-permission android:name="android.permission.WRITE_APN_SETTINGS"/>
+ 	<!-- By Xia.Fei, for kill background process -->
+     <uses-permission android:name="android.permission.FORCE_STOP_PACKAGES"/>
+-	
++
++	<uses-permission android:name="android.permission.RECORD_AUDIO"/>
++
+     <application
+         android:name=".SystemUIApplication"
+         android:persistent="true"
+@@ -437,5 +439,17 @@
+                 <action android:name="com.android.systemui.action.CLEAR_TUNER" />
+             </intent-filter>
+         </receiver>
++
++        <activity
++            android:name="com.aeon.recorder.RecordActivity"
++            android:configChanges="orientation|keyboardHidden|screenSize|mcc|mnc"
++            android:theme="@style/Theme.HideDialog"
++            android:launchMode="singleInstance"
++            android:excludeFromRecents="true">
++            <intent-filter>
++                <action android:name="com.aeon.recorder.SCREEN_RECORD" />
++            </intent-filter>
++        </activity>
++        <service android:name="com.aeon.recorder.RecordService"/>
+     </application>
+ </manifest>
+diff --git a/alps/frameworks/base/packages/SystemUI/res/drawable-hdpi/qs_screen_record.png b/alps/frameworks/base/packages/SystemUI/res/drawable-hdpi/qs_screen_record.png
+new file mode 100755
+index 0000000000000000000000000000000000000000..31cb0f545c371f4d2998411a6452935edb4dc32c
+GIT binary patch
+literal 3126
+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
+Q<^TWy07*qoM6N<$f^YA(VgLXD
+
+literal 0
+HcmV?d00001
+
+diff --git a/alps/frameworks/base/packages/SystemUI/res/layout/screen_recorder.xml b/alps/frameworks/base/packages/SystemUI/res/layout/screen_recorder.xml
+new file mode 100755
+index 0000000..1601478
+--- /dev/null
++++ b/alps/frameworks/base/packages/SystemUI/res/layout/screen_recorder.xml
+@@ -0,0 +1,11 @@
++<?xml version="1.0" encoding="utf-8"?>
++<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
++        android:layout_width="match_parent"
++        android:layout_height="match_parent">
++        <TextView android:id="@+id/remaining_seconds"
++            android:layout_width="match_parent"
++            android:layout_height="match_parent"
++            android:textSize="64sp"
++            android:textColor="@android:color/white"
++            android:gravity="center" />
++</FrameLayout>
+diff --git a/alps/frameworks/base/packages/SystemUI/res/values-zh-rCN/strings.xml b/alps/frameworks/base/packages/SystemUI/res/values-zh-rCN/strings.xml
+index 200beee..02a475d 100755
+--- a/alps/frameworks/base/packages/SystemUI/res/values-zh-rCN/strings.xml
++++ b/alps/frameworks/base/packages/SystemUI/res/values-zh-rCN/strings.xml
+@@ -434,4 +434,12 @@
+     <string name="title_smart_gesture">智能手势</string>
+     <string name="message_smart_gesture">触摸可进入手势设置</string>
+ 
++    <string name="quick_settings_screen_recorder">屏幕录制</string>
++    <string name="screen_recorder_dialog_title">录制屏幕</string>
++    <string name="screen_recorder_dialog_message">确定开始录制屏幕 ?</string>
++    <string name="screen_recorder_notifi_message">触摸停止录制.</string>
++    <string name="toast_sdcard_missing">找不到您的 SD 卡！</string>
++    <string name="toast_sdcard_insufficient_space">SD 卡存储空间不足！</string>
++    <string name="toast_recorder_internal_error">录音器发生内部错误！</string>
++
+ </resources>
+diff --git a/alps/frameworks/base/packages/SystemUI/res/values/config.xml b/alps/frameworks/base/packages/SystemUI/res/values/config.xml
+index f681185..0e2f4ed 100755
+--- a/alps/frameworks/base/packages/SystemUI/res/values/config.xml
++++ b/alps/frameworks/base/packages/SystemUI/res/values/config.xml
+@@ -119,7 +119,7 @@
+ 
+     <!-- The default tiles to display in QuickSettings -->
+     <string name="quick_settings_tiles_default" translatable="false">
+-        wifi,bt,dnd,flashlight,dataconnection,airplane,rotation,hotspot,audioprofile
++        wifi,bt,dnd,flashlight,dataconnection,airplane,rotation,hotspot,audioprofile,screenrecorder
+     </string>
+ 
+     <!-- The tiles to display in QuickSettings -->
+diff --git a/alps/frameworks/base/packages/SystemUI/res/values/strings.xml b/alps/frameworks/base/packages/SystemUI/res/values/strings.xml
+index 9d2e372..db25f49 100755
+--- a/alps/frameworks/base/packages/SystemUI/res/values/strings.xml
++++ b/alps/frameworks/base/packages/SystemUI/res/values/strings.xml
+@@ -1129,4 +1129,12 @@
+     <string name="title_smart_gesture">Smart Gesture</string>
+     <string name="message_smart_gesture">Touch to gesture settings</string>
+ 
++    <string name="quick_settings_screen_recorder">Screen Record</string>
++    <string name="screen_recorder_dialog_title">Record the screen</string>
++    <string name="screen_recorder_dialog_message">Are you sure to start record ?</string>
++    <string name="screen_recorder_notifi_message">Touch to stop the record.</string>
++    <string name="toast_sdcard_missing">Your SD card is missing!</string>
++    <string name="toast_sdcard_insufficient_space">Insufficient SD card space!</string>
++    <string name="toast_recorder_internal_error">An internal error occured in recorder!</string>
++
+ </resources>
+diff --git a/alps/frameworks/base/packages/SystemUI/res/values/styles.xml b/alps/frameworks/base/packages/SystemUI/res/values/styles.xml
+old mode 100644
+new mode 100755
+index 8241ddf..9a2dbc2
+--- a/alps/frameworks/base/packages/SystemUI/res/values/styles.xml
++++ b/alps/frameworks/base/packages/SystemUI/res/values/styles.xml
+@@ -300,4 +300,14 @@
+         <item name="android:background">@drawable/btn_borderless_rect</item>
+     </style>
+ 
++    <style name="Theme.HideDialog" parent="@android:style/Theme.Dialog">
++    <item name="android:windowFrame">@null</item>
++    <item name="android:windowIsFloating">true</item>
++    <item name="android:windowIsTranslucent">false</item>
++    <item name="android:windowNoTitle">true</item>
++    <item name="android:background">@android:color/black</item>
++    <item name="android:windowBackground">@null</item>
++    <item name="android:backgroundDimEnabled">false</item>
++    </style>
++
+ </resources>
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/aeon/recorder/RecordActivity.java b/alps/frameworks/base/packages/SystemUI/src/com/aeon/recorder/RecordActivity.java
+new file mode 100755
+index 0000000..603303b
+--- /dev/null
++++ b/alps/frameworks/base/packages/SystemUI/src/com/aeon/recorder/RecordActivity.java
+@@ -0,0 +1,350 @@
++package com.aeon.recorder;
++
++import android.Manifest;
++import android.content.ComponentName;
++import android.content.Intent;
++import android.content.ServiceConnection;
++import android.content.pm.PackageManager;
++import android.media.projection.MediaProjection;
++import android.media.projection.MediaProjectionManager;
++import android.media.projection.MediaProjectionInfo;
++import android.os.IBinder;
++import android.os.Build;
++import android.os.Bundle;
++import android.util.DisplayMetrics;
++import android.view.View;
++import android.app.Activity;
++import com.android.systemui.R;
++import android.content.Context;
++import android.util.Log;
++import android.app.AlertDialog;
++import android.content.DialogInterface;
++import android.view.WindowManager;
++import android.os.Handler;
++import android.os.Message;
++import android.view.Gravity;
++import android.view.LayoutInflater;
++import android.graphics.PixelFormat;
++import android.view.WindowManager.LayoutParams;
++import android.graphics.Color;
++import android.widget.TextView;
++
++public class RecordActivity extends Activity {
++    
++    private static final String STOP_RECORDING = "aeon.stop.recording";
++    public static final String INTENT_ACTION="com.aeon.recorder.SCREEN_RECORD";
++    
++    private static final int RECORD_REQUEST_CODE  = 101;
++    private static final int STORAGE_REQUEST_CODE = 102;
++    private static final int AUDIO_REQUEST_CODE   = 103;
++
++    private MediaProjectionManager projectionManager;
++    private MediaProjection mediaProjection;
++    private RecordService mService;
++    private Context mContext;
++
++    private AlertDialog mDialog;
++    private WindowManager wm;
++	private View view;// 浮动按钮
++    private TextView mTextView;
++
++    private boolean isRealFinish=false;
++    // State variables
++    private boolean mIsServiceStarted = false;
++    private boolean mIsServiceBinded = false;
++    private boolean mIsServiceConnected = false;
++
++    public static final int MSG_RECORD_REQUEST = 11;
++    public static final int MSG_RECORD_START = 12;
++    public static final int MSG_RECORD_STOP = 13;
++    public static final int MSG_RECORD_RELEASE = 14;
++    public static final int MSG_START_COUNT_DOWN = 15;
++    public static final int MSG_UPDATE_NOTIFICATION = 16;
++    private static final int DEFAULT_COUNT_TIME=3;
++
++    private Handler mHandler = new Handler(){
++        @Override
++        public void handleMessage(Message msg) {
++            Log.d("lych","RecordActivity, handleMessage msg.what="+msg.what);
++            switch (msg.what) {
++                case MSG_RECORD_REQUEST:
++                    Intent captureIntent = projectionManager.createScreenCaptureIntent();
++                    startActivityForResult(captureIntent, RECORD_REQUEST_CODE);
++                    break;
++                case MSG_RECORD_START:
++                    if(mService!=null){
++                        mService.startRecord();
++                        mHandler.sendEmptyMessage(MSG_UPDATE_NOTIFICATION);
++                    }
++                    break;
++                case MSG_RECORD_STOP:
++                    realFinish();
++                    break;
++                case MSG_RECORD_RELEASE:
++                    mHandler.removeMessages(MSG_UPDATE_NOTIFICATION);
++                    realFinish();
++                    break;
++                case MSG_START_COUNT_DOWN:
++                    int num = (int) msg.obj;
++                    num--;
++                    if(num==0){
++                        removeFloatCountdownView();
++                        mHandler.obtainMessage(MSG_RECORD_START).sendToTarget();
++                    }else{
++                        handleCountDown(num);
++                        mTextView.setText(num+"");
++                    }
++                    break;
++                case MSG_UPDATE_NOTIFICATION:
++                    if (mService != null) {
++                        mService.updateRecordingNotification(mService.getRecordTime());
++                    }
++                    mHandler.sendEmptyMessageDelayed(MSG_UPDATE_NOTIFICATION, 1000);
++                    break;
++                default:
++                    break;
++            }
++        }
++    };
++
++    private void requestPermissions(){
++        if(Build.VERSION.SDK_INT<Build.VERSION_CODES.M) return;
++
++        if (mContext.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
++                    != PackageManager.PERMISSION_GRANTED) {
++            requestPermissions(
++                    new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_REQUEST_CODE);
++        }
++        if (mContext.checkSelfPermission(Manifest.permission.RECORD_AUDIO)
++                != PackageManager.PERMISSION_GRANTED) {
++            requestPermissions(
++                  new String[] {Manifest.permission.RECORD_AUDIO}, AUDIO_REQUEST_CODE);
++        }
++    }
++    	@Override
++	public void onAttachedToWindow() {
++		// TODO Auto-generated method stub
++		super.onAttachedToWindow();
++        Log.d("lych","RecordActivity>>onAttachedToWindow!");
++        
++	}
++    @Override
++    protected void onCreate(Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++        projectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
++        projectionManager.addCallback(mpmScreenRecordCallback,new Handler());
++
++        //setContentView(R.layout.screen_recorder);
++        mContext=this;
++        Log.d("lych","RecordActivity>>onCreate!");
++
++        requestPermissions();
++
++        connectionService();
++        showDialog();
++    }
++
++    private void showDialog(){
++        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
++       
++        builder.setTitle(mContext.getString(R.string.screen_recorder_dialog_title))
++               .setMessage(mContext.getString(R.string.screen_recorder_dialog_message))
++               .setPositiveButton(R.string.media_projection_action_text, dialogClickListener)
++               .setNegativeButton(android.R.string.cancel, dialogClickListener)
++               .setOnCancelListener(new DialogInterface.OnCancelListener() {
++                    @Override
++                    public void onCancel(DialogInterface dialog) {
++                        Log.d("lych","RecordActivity,onCancel click!");
++                        dialog.dismiss();
++                        realFinish();
++                        //mHandler.sendEmptyMessageDelayed(MSG_RECORD_RELEASE, 1000);
++                    }
++                });
++
++        mDialog=builder.create();
++        //mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
++        mDialog.show();
++    }
++    private DialogInterface.OnClickListener dialogClickListener=new DialogInterface.OnClickListener(){
++        @Override
++        public void onClick(DialogInterface dialog, int which) {
++            if (which == AlertDialog.BUTTON_POSITIVE) {
++                //createFloatCountdownView();
++                mHandler.obtainMessage(MSG_RECORD_REQUEST).sendToTarget();
++                if(mDialog!=null) mDialog.dismiss();
++            }else if(which == AlertDialog.BUTTON_NEGATIVE){
++                realFinish();
++                if(mDialog!=null) mDialog.dismiss();
++                //mHandler.sendEmptyMessageDelayed(MSG_RECORD_RELEASE, 1000);
++            }
++        }
++    };
++    protected void createFloatCountdownView() {
++		int w = 200;//
++		wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
++		// LayoutInflater.from(this).inflate(R.layout.floatview, null);
++		view = LayoutInflater.from(this).inflate(R.layout.screen_recorder, null);
++        mTextView = (TextView)view.findViewById(R.id.remaining_seconds);
++        mTextView.setText(DEFAULT_COUNT_TIME+"");
++		final WindowManager.LayoutParams params = new WindowManager.LayoutParams();
++		params.type = LayoutParams.TYPE_SYSTEM_ALERT;
++		params.flags = LayoutParams.FLAG_NOT_TOUCH_MODAL
++				| LayoutParams.FLAG_NOT_FOCUSABLE;
++		params.format = PixelFormat.TRANSLUCENT;
++		params.width = w;
++		params.height = w;
++		params.gravity = Gravity.CENTER;
++		int screenWidth = getResources().getDisplayMetrics().widthPixels;
++		int screenHeight = getResources().getDisplayMetrics().heightPixels;
++		params.x = screenWidth - w;
++		params.y = screenHeight - w;
++		view.setBackgroundColor(Color.TRANSPARENT);
++		view.setVisibility(View.VISIBLE);
++		wm.addView(view, params);
++        handleCountDown(DEFAULT_COUNT_TIME);
++	}
++    private void removeFloatCountdownView(){
++        if (wm != null && view != null) {
++			wm.removeViewImmediate(view);
++			// wm.removeView(view);//不要调用这个，WindowLeaked
++			view = null;
++			wm = null;
++		}
++    }
++    private void handleCountDown(int num){
++		Message msg = mHandler.obtainMessage(MSG_START_COUNT_DOWN);
++		msg.what=num;
++		mHandler.sendMessageDelayed(msg, 1000);
++	}
++
++    @Override
++	protected void onNewIntent(Intent intent) {
++		// TODO Auto-generated method stub
++		super.onNewIntent(intent);
++        Log.d("lych","RecordActivity>>onNewIntent!");
++        startService(new Intent(RecordActivity.this, RecordService.class));//maybe stop the service
++	}
++
++    @Override
++    public void onStart() {
++        super.onStart();
++        Log.d("lych","RecordActivity>>onStart!");
++
++    }
++
++    @Override
++    public void onStop() {
++            Log.d("lych", "RecordActivity>>onStop");
++        super.onStop();
++    }
++
++    @Override
++    protected void onDestroy() {
++        super.onDestroy();
++        Log.d("lych", "RecordActivity>>onDestroy");
++        projectionManager.removeCallback(mpmScreenRecordCallback);
++        unbindService(mServiceConnection);
++        if (mDialog != null) {
++            mDialog.dismiss();
++            mDialog=null;
++        }
++    }
++
++    @Override
++    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
++        if (requestCode == RECORD_REQUEST_CODE && resultCode == RESULT_OK) {
++            Log.d("lych", "RecordActivity>>onActivityResult");
++            mediaProjection = projectionManager.getMediaProjection(resultCode, data);
++            mService.setMediaProject(mediaProjection);
++            mService.setHandler(mHandler);
++            mHandler.obtainMessage(MSG_RECORD_START).sendToTarget();
++        }
++    }
++
++    @Override
++    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
++        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
++        if (requestCode == STORAGE_REQUEST_CODE || requestCode == AUDIO_REQUEST_CODE) {
++            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
++                Log.d("lych", "RecordActivity>>onRequestPermissionsResult");
++                realFinish();
++            }
++        }
++    }
++
++    private void connectionService(){
++        if (null == startService(new Intent(RecordActivity.this, RecordService.class))) {
++            Log.e("lych", "onStart, cannot start screen recorder service");
++            realFinish();
++            return;
++        }
++        if (!mIsServiceStarted || mService == null) {
++            Log.d("lych", "onStart, begin to bind screen recorder service");
++            mIsServiceStarted = true;
++            mIsServiceConnected = false;
++            mIsServiceBinded = bindService(new Intent(RecordActivity.this, RecordService.class),
++                mServiceConnection, Context.BIND_AUTO_CREATE);
++        }
++
++        if (!mIsServiceBinded && mService == null) {
++            Log.e("lych", "onStart, cannot bind screen recorder service");
++            realFinish();
++            return;
++        }
++    }
++    private final ServiceConnection mServiceConnection = new ServiceConnection() {
++        @Override
++        public void onServiceConnected(ComponentName className, IBinder service) {
++            Log.d("lych","RecordActivity>>onServiceConnected!");
++            DisplayMetrics metrics = new DisplayMetrics();
++            getWindowManager().getDefaultDisplay().getMetrics(metrics);
++            RecordService.RecordBinder binder = (RecordService.RecordBinder) service;
++            mService = binder.getRecordService();
++            if (null == mService) {
++                Log.e("lych", "onServiceConnected, mService is null");
++                realFinish();
++                return;
++            }
++            mService.setConfig(metrics.widthPixels, metrics.heightPixels, metrics.densityDpi);
++        }
++
++        @Override
++        public void onServiceDisconnected(ComponentName arg0) {
++            Log.d("lych","RecordActivity>>onServiceDisconnected!");
++            realFinish();
++            mService = null;
++        }
++    };
++
++    private final MediaProjectionManager.Callback mpmScreenRecordCallback
++            = new MediaProjectionManager.Callback() {
++        @Override
++        public void onStart(MediaProjectionInfo info) {
++            Log.d("lych","RecordActivity, mpmScreenRecordCallback>>onStart!");
++            
++        }
++
++        @Override
++        public void onStop(MediaProjectionInfo info) {
++             Log.d("lych","RecordActivity, mpmScreenRecordCallback>>onStop!");
++
++        }
++    };
++
++    @Override
++	public void finish() {
++		// TODO Auto-generated method stub
++		if (isRealFinish) {
++            super.finish();
++            this.moveTaskToBack(true);
++        } else {
++            this.moveTaskToBack(false);
++        }
++        isRealFinish = false;
++	}
++    private void realFinish(){
++        isRealFinish=true;
++        finish();
++        if(mService!=null) stopService(new Intent(RecordActivity.this, RecordService.class));
++    }
++}
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/aeon/recorder/RecordService.java b/alps/frameworks/base/packages/SystemUI/src/com/aeon/recorder/RecordService.java
+new file mode 100755
+index 0000000..f470171
+--- /dev/null
++++ b/alps/frameworks/base/packages/SystemUI/src/com/aeon/recorder/RecordService.java
+@@ -0,0 +1,480 @@
++package com.aeon.recorder;
++
++import android.app.Service;
++import android.content.Context;
++import android.content.Intent;
++import android.content.ComponentName;
++import android.media.projection.MediaProjectionManager;
++import android.media.projection.MediaProjection;
++import android.media.projection.MediaProjectionInfo;
++import android.hardware.display.DisplayManager;
++import android.hardware.display.VirtualDisplay;
++import android.media.MediaRecorder;
++import android.os.Binder;
++import android.os.Environment;
++import android.os.HandlerThread;
++import android.os.IBinder;
++import android.widget.Toast;
++
++import java.io.File;
++import java.io.IOException;
++import android.util.Log;
++import android.provider.Settings;
++import android.os.Handler;
++import android.os.Message;
++import android.os.Looper;
++import android.app.Notification;
++import android.app.Notification.Builder;
++import android.app.Notification.BigTextStyle;
++import android.app.PendingIntent;
++import android.os.SystemClock;
++import android.text.format.DateFormat;
++import java.text.SimpleDateFormat;
++import java.util.Date;
++import java.util.Locale;
++import android.os.StatFs;
++import com.mediatek.storage.StorageManagerEx;
++import com.android.systemui.R;
++
++public class RecordService extends Service {
++
++    private static final String TAG="lych";
++    private Context mContext;
++    private MediaProjectionManager mpm;
++    private MediaProjection mediaProjection;
++    private MediaRecorder mediaRecorder;
++    private VirtualDisplay virtualDisplay;
++
++    private boolean running;
++    // file prefix
++    public static final String RECORDING_FILE_PREFIX = "SR";
++    // file extension
++    public static final String RECORDING_FILE_EXTENSION = ".mp4";
++    // recording file folder
++    public static final String SCREEN_RECORD_FOLDER = "ScreenRecord";
++    private static final String RECORD_NAME_FORMAT="'SR'_yyyMMdd_HHmmss";
++
++    public static final long LOW_SPACE_THRESHOLD = 512 * 1024;
++    // SR state invalid, need to check
++    public static final int STATE_INVALID = -1;
++    // error type no sdcard
++    public static final int ERROR_SDCARD_NOT_PRESENT = 0;
++    // error type sdcard not have enough space
++    public static final int ERROR_SDCARD_INSUFFICIENT_SPACE = 1;
++    // error type can't write sdcard
++    public static final int ERROR_SDCARD_WRITE_FAILED = 2;
++    // error type recorder internal error occur
++    public static final int ERROR_RECORDER_INTERNAL = 3;
++    // SR state not recording and not prepare
++    public static final int STATE_IDLE = 4;
++    // SR state prepare
++    public static final int STATE_PREPARE=5;
++    // SR state recording
++    public static final int STATE_RECORDING = 6;
++    // use to record current screen recorder state
++    private int mRecordState = STATE_IDLE;
++    // the recording time after start recording
++    private long mRecordTime = 0;
++    // record start time
++    private long mRecordStartTime = 0;
++    // current record file
++    private File mRecordFile = null;
++
++    private int width = 720;
++    private int height = 1280;
++    private int dpi;
++
++    private boolean showTouch=false;
++    private RecordServiceHandler mServiceHandler;
++    private Looper mServiceLooper;
++    private Notification.Builder mNotificationBuilder = null;
++    private static final int NOTIFICATION_ID = 1;
++    
++    private Handler mHandler;
++    public void setHandler(Handler handler){
++        this.mHandler=handler;
++    }
++    private void handleRecordState(int state){
++        if(mHandler!=null){
++            mHandler.obtainMessage(state).sendToTarget();
++        }
++    }
++
++    @Override
++    public IBinder onBind(Intent intent) {
++        Log.d("lych","RecordService>>onBind!");
++        return new RecordBinder();
++    }
++
++    @Override
++    public int onStartCommand(Intent intent, int flags, int startId) {
++        Log.d("lych","RecordService>>onStartCommand! state="+getRecordState());
++        if(getRecordState()==STATE_RECORDING){
++            stopRecord();
++        }
++        return START_STICKY;
++    }
++
++    @Override
++    public void onCreate() {
++        super.onCreate();
++        Log.d("lych","RecordService>>onCreate!");
++        mContext=this;
++        //mpm = (MediaProjectionManager)getSystemService(Context.MEDIA_PROJECTION_SERVICE);
++        //mpm.addCallback(mpmScreenRecordCallback,new Handler());
++        HandlerThread serviceThread = new HandlerThread("ScreenrecordServiceThread",
++        android.os.Process.THREAD_PRIORITY_BACKGROUND);
++        serviceThread.start();
++        mServiceLooper = serviceThread.getLooper();
++        mServiceHandler = new RecordServiceHandler(mServiceLooper);
++        mediaRecorder = new MediaRecorder();
++    }
++
++    @Override
++    public void onDestroy() {
++        if(getRecordState()==STATE_RECORDING) stopRecord();
++        mServiceLooper.quit();
++        //mpm.removeCallback(mpmScreenRecordCallback);
++        super.onDestroy();
++    }
++
++    public void setMediaProject(MediaProjection project) {
++        mediaProjection = project;
++    }
++
++    public void setConfig(int width, int height, int dpi) {
++        this.width = width;
++        this.height = height;
++        this.dpi = dpi;
++    }
++
++    /**
++     * Notify error message to the callback
++     *
++     * @param error recorder error type
++     */
++    private void setError(int error) {
++        if(mServiceHandler!=null){
++            mServiceHandler.obtainMessage(error).sendToTarget();
++        }
++    }
++
++    public void setRecordState(int state){
++        mRecordState = state ;
++    }
++    public int getRecordState(){
++        return mRecordState;
++    }
++    public void startRecord() {
++        Log.d(TAG,"startRecord");
++        if (mediaProjection == null || getRecordState()==STATE_RECORDING) {
++            return;
++        }
++
++        initRecorder();
++        createVirtualDisplay();
++        if(getRecordState()==STATE_PREPARE){
++            showTouch=getShowTouchEnabled();
++            writeShowTouches(true); //open the show touch point
++            mRecordStartTime = SystemClock.elapsedRealtime();
++            mediaRecorder.start();
++            mRecordStartTime = SystemClock.elapsedRealtime();
++            setRecordState(STATE_RECORDING);
++        }else{
++            setError(ERROR_RECORDER_INTERNAL);
++        }
++    }
++
++    public void stopRecord() {
++        Log.d(TAG,"stopRecord");
++        if(getRecordState()==STATE_RECORDING){
++            writeShowTouches(showTouch);
++        }
++        setRecordState(STATE_IDLE);
++        releaseRecorder();
++        virtualDisplay.release();
++        mediaProjection.stop();
++        handleRecordState(RecordActivity.MSG_RECORD_RELEASE);
++        removeNotification();
++        stopSelf();
++        //mediaProjection.unregisterCallback(mediaProjectionCallback);
++    }
++    public void releaseRecorder() {
++        if (mediaRecorder != null) {
++            mediaRecorder.stop();
++            mediaRecorder.release();
++            mediaRecorder = null;
++        }
++        mRecordFile = null;
++        mRecordStartTime = 0;
++        mRecordTime = 0;
++    }
++    private void createVirtualDisplay() {
++        //mediaProjection.registerCallback(mediaProjectionCallback,new Handler());
++        virtualDisplay = mediaProjection.createVirtualDisplay("ScreenRecord", width, height, dpi,
++        DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mediaRecorder.getSurface(), virtualDisplayCallback, null);
++    }
++
++    private void initRecorder() {
++        if(!checkFileisReady()) return;
++        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
++        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
++        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
++        mediaRecorder.setOutputFile(mRecordFile.getPath());
++        mediaRecorder.setVideoSize(width, height);
++        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
++        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
++        mediaRecorder.setVideoEncodingBitRate(5 * 1024 * 1024);
++        mediaRecorder.setVideoFrameRate(30);
++        try {
++            mediaRecorder.prepare();
++            setRecordState(STATE_PREPARE);
++        } catch (IOException e) {
++            e.printStackTrace();
++            setError(ERROR_RECORDER_INTERNAL);
++        }
++    }
++
++    private boolean checkFileisReady(){
++        mRecordTime = 0;
++
++        // Check external storage
++        if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
++            Log.e(TAG, "startRecording, no external storage available");
++            setError(ERROR_SDCARD_NOT_PRESENT);
++            return false;
++        }
++
++        String rootDir = getDefaultStoragePath();
++        // check whether have sufficient storage space, if not will notify
++        // caller error message
++        if (!hasEnoughSpace(rootDir)) {
++            setError(ERROR_SDCARD_INSUFFICIENT_SPACE);
++            Log.e(TAG, "startRecording, SD card does not have sufficient space!!");
++            return false;
++        }
++
++        // get external storage directory
++        File sdDir = new File(rootDir);
++        File recordingDir = new File(sdDir, SCREEN_RECORD_FOLDER);
++        // exist a file named SR Recording, so can't create SR recording folder
++        if (recordingDir.exists() && !recordingDir.isDirectory()) {
++            Log.e(TAG, "startRecording, a file with name \"SR Recording\" already exists!!");
++            setError(ERROR_SDCARD_WRITE_FAILED);
++            return false;
++        } else if (!recordingDir.exists()) { // try to create recording folder
++            boolean mkdirResult = recordingDir.mkdir();
++            if (!mkdirResult) { // create recording file failed
++                setError(ERROR_RECORDER_INTERNAL);
++                return false;
++            }
++        }
++        // create recording temporary file
++        long curTime = System.currentTimeMillis();
++        Date date = new Date(curTime);
++        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(RECORD_NAME_FORMAT);
++        String time = simpleDateFormat.format(date);
++        StringBuilder stringBuilder = new StringBuilder();
++        stringBuilder.append(time).append(RECORDING_FILE_EXTENSION);
++        String name = stringBuilder.toString();
++        mRecordFile = new File(recordingDir, name);
++        try {
++            if (mRecordFile.createNewFile()) {
++                Log.d(TAG, "startRecording, createNewFile success with path "
++                        + mRecordFile.getPath());
++            }
++        } catch (IOException e) {
++            Log.e(TAG, "startRecording, IOException while createTempFile: " + e);
++            e.printStackTrace();
++            setError(ERROR_SDCARD_WRITE_FAILED);
++            return false;
++        }
++        return true;
++    }
++
++    public long getRecordTime() {
++        if (STATE_RECORDING == mRecordState) {
++            mRecordTime = SystemClock.elapsedRealtime() - mRecordStartTime;
++        }
++        return mRecordTime;
++    }
++   /*  public String getsaveDirectory() {
++        if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
++            return null;
++        }
++        String rootDir = getDefaultStoragePath() + "/" + "ScreenRecord" + "/";
++
++        File file = new File(rootDir);
++        if (!file.exists()) {
++            if (!file.mkdirs()) {
++            return null;
++            }
++        }
++        //Toast.makeText(getApplicationContext(), rootDir, Toast.LENGTH_SHORT).show();
++
++        return rootDir;        
++    } */
++
++    /**
++     * Get the phone storage path
++     *
++     * @return The phone storage path
++     */
++    public String getDefaultStoragePath() {
++        //return Environment.getExternalStorageDirectory().getPath();
++		return StorageManagerEx.getDefaultPath();
++    }
++    /**
++     * Check if has enough space for record
++     *
++     * @param recordingSdcard The recording sdcard path
++     *
++     * @return true if has enough space for record
++     */
++    public boolean hasEnoughSpace(String recordingSdcard) {
++        boolean ret = false;
++        try {
++            StatFs fs = new StatFs(recordingSdcard);
++            long blocks = fs.getAvailableBlocks();
++            long blockSize = fs.getBlockSize();
++            long spaceLeft = blocks * blockSize;
++            ret = spaceLeft > LOW_SPACE_THRESHOLD ? true : false;
++        } catch (IllegalArgumentException e) {
++            Log.e(TAG, "hasEnoughSpace, sdcard may be unmounted:" + recordingSdcard);
++        }
++        return ret;
++    }
++    /**
++     *
++     * @param millis to format time in milliseconds
++     * @return formated time, eg "01:02:03" means 1 hour 2 minutes 3 seconds
++     */
++    public String timeFormat(long millis) {
++        millis = millis / 1000;
++        long hour = millis / (60 * 60);
++        millis %= (60 * 60);
++        long min = millis / 60;
++        long sec = millis % 60;
++        StringBuilder timeText = new StringBuilder();
++        timeText.append(addPaddingForString(hour)).append(":").
++                append(addPaddingForString(min)).append(":").append(addPaddingForString(sec));
++        return timeText.toString();
++    }
++    private String addPaddingForString(long time) {
++        StringBuilder builder = new StringBuilder();
++        if (time >= 0 && time < 10) {
++            builder.append("0");
++        }
++        return builder.append(time).toString();
++    }
++
++    /**
++     * Show notification
++     */
++    public void updateRecordingNotification(long recordTime) {
++        if (mNotificationBuilder == null) {
++            Intent intent = new Intent();
++            intent.setComponent(new ComponentName(
++            "com.android.systemui", "com.aeon.recorder.RecordActivity"));
++            //intent.setClass(mContext, RecordActivity.class);
++            //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
++            PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, intent,
++                    PendingIntent.FLAG_UPDATE_CURRENT);
++
++            mNotificationBuilder = new Builder(this)
++                    .setContentText(getText(R.string.screen_recorder_notifi_message))
++                    .setShowWhen(false)
++                    .setAutoCancel(true)
++                    .setSmallIcon(R.drawable.qs_screen_record);
++                    //.setLargeIcon(largeIcon)
++                    //.addAction(R.drawable.btn_rec_stop_enabled, getText(R.string.stop_record),
++                    //        pendingIntent);
++
++            mNotificationBuilder.setContentIntent(pendingIntent);
++        }
++        String time = timeFormat(recordTime);
++        mNotificationBuilder.setContentTitle(time);
++        showRecordingNotification(mNotificationBuilder.build());
++
++    }
++    public void showRecordingNotification(Notification notification) {
++        startForeground(NOTIFICATION_ID, notification);
++    }
++    public void removeNotification() {
++        stopForeground(true);
++    }
++
++    public class RecordBinder extends Binder {
++        public RecordService getRecordService() {
++            return RecordService.this;
++        }
++    }
++    
++    final class RecordServiceHandler extends Handler {
++        public RecordServiceHandler(Looper looper) {
++            super(looper);
++        }
++
++        @Override
++        public void handleMessage(Message msg) {
++            Log.d("lych","handleMessage !");
++            String showString = null;
++            switch (msg.what) {
++                case ERROR_SDCARD_NOT_PRESENT:
++                    showString = mContext.getString(R.string.toast_sdcard_missing);
++                    showToast(showString);
++                    break;
++                case ERROR_SDCARD_WRITE_FAILED:
++                    showString = mContext.getString(R.string.toast_recorder_internal_error);
++                    showToast(showString);
++                    break;
++                case ERROR_RECORDER_INTERNAL:
++                    showString = mContext.getString(R.string.toast_recorder_internal_error);
++                    showToast(showString);
++                    break;
++                case ERROR_SDCARD_INSUFFICIENT_SPACE:
++                    showString = mContext.getString(R.string.toast_sdcard_insufficient_space);
++                    showToast(showString);
++                    break;
++                default:
++                    break;
++            }
++        }
++    }
++
++    private void showToast(String str){
++        Toast.makeText(mContext, str, Toast.LENGTH_SHORT).show();
++        handleRecordState(RecordActivity.MSG_RECORD_RELEASE);
++        stopSelf();
++    }
++    private MediaProjection.Callback mediaProjectionCallback=new MediaProjection.Callback(){
++        @Override
++        public void onStop() {
++            Log.d("lych","mediaProjectionCallback, onStop");
++        }
++    };
++    private VirtualDisplay.Callback virtualDisplayCallback = new VirtualDisplay.Callback(){
++        @Override
++        public void onPaused() {
++            Log.d("lych","virtualDisplayCallback, onPaused");
++        }
++
++        @Override
++        public void onResumed() {
++            Log.d("lych","virtualDisplayCallback, onResumed");
++        }
++
++        @Override
++        public void onStopped() {//if onStop,the screen record will never start.
++            Log.d("lych","virtualDisplayCallback, onStopped");
++            handleRecordState(RecordActivity.MSG_RECORD_RELEASE);
++            stopSelf();
++        }
++    };
++    private void writeShowTouches(boolean enabled){
++        Settings.System.putInt(getContentResolver(),Settings.System.SHOW_TOUCHES, enabled ? 1 : 0);
++    }
++    private boolean getShowTouchEnabled(){
++         return Settings.System.getInt(getContentResolver(), Settings.System.SHOW_TOUCHES, 0) != 0;
++    }
++}
+\ No newline at end of file
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/ScreenRecorderTile.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/ScreenRecorderTile.java
+new file mode 100755
+index 0000000..0f50fe2
+--- /dev/null
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/ScreenRecorderTile.java
+@@ -0,0 +1,74 @@
++/*
++ author:lych
++ */
++
++package com.android.systemui.qs.tiles;
++
++import android.app.ActivityManager;
++
++import com.android.internal.logging.MetricsLogger;
++import com.android.systemui.R;
++import com.android.systemui.qs.QSTile;
++import android.content.ComponentName;
++import android.content.Context;
++import android.content.Intent;
++import android.util.Log;
++
++
++/** Quick settings tile: screen recorder **/
++public class ScreenRecorderTile extends QSTile<QSTile.BooleanState> {
++    
++    private static final Intent SCREEN_RECORDER = new Intent().setComponent(new ComponentName(
++            "com.android.systemui", "com.aeon.recorder.RecordActivity"));
++
++    public ScreenRecorderTile(Host host) {
++        super(host);
++
++    }
++
++    @Override
++    protected void handleDestroy() {
++        super.handleDestroy();
++    }
++
++    @Override
++    protected BooleanState newTileState() {
++        return new BooleanState();
++    }
++
++    @Override
++    public void setListening(boolean listening) {
++    }
++
++    @Override
++    protected void handleUserSwitch(int newUserId) {
++    }
++
++    @Override
++    protected void handleClick() {        
++        boolean newState = !mState.value;
++        //refreshState(newState ? UserBoolean.USER_TRUE : UserBoolean.USER_FALSE);
++        Log.d("lych","ScreenRecorderTile>>handleClick!");
++        //SCREEN_RECORDER.putExtra("pkgName", mContext.getPackageName());
++        mHost.startActivityDismissingKeyguard(SCREEN_RECORDER);
++       /*  Intent intent = new Intent();
++        intent.setComponent(new ComponentName(
++                "com.android.systemui", "com.aeon.recorder.RecordActivity"));
++        mHost.startActivityDismissingKeyguard(intent); */
++    }
++
++    @Override
++    protected void handleUpdateState(BooleanState state, Object arg) {
++       // Log.d("lych","ScreenRecorderTile>>handleUpdateState!");
++        state.visible = true;
++        state.label = mHost.getContext().getString(R.string.quick_settings_screen_recorder);        
++        state.icon = ResourceIcon.get(R.drawable.qs_screen_record);
++
++    }
++
++    @Override
++    public int getMetricsCategory() {
++        return MetricsLogger.QS_PANEL;
++    }
++
++}
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/QSTileHost.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/QSTileHost.java
+old mode 100644
+new mode 100755
+index ed3e1c1..59b835d
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/QSTileHost.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/QSTileHost.java
+@@ -77,6 +77,8 @@ import java.util.LinkedHashMap;
+ import java.util.List;
+ import java.util.Map;
+ 
++import com.android.systemui.qs.tiles.ScreenRecorderTile;
++
+ /** Platform implementation of the quick settings tile host **/
+ public class QSTileHost implements QSTile.Host, Tunable {
+     private static final String TAG = "QSTileHost";
+@@ -333,6 +335,11 @@ public class QSTileHost implements QSTile.Host, Tunable {
+             return (ApnSettingsTile) quickSettingsPlugin.customizeAddQSTile(
+                     new ApnSettingsTile(this));
+         }
++        //Begin: add for screen recorder by lych
++        else if(tileSpec.equals("screenrecorder")){
++            return new ScreenRecorderTile(this);
++        }
++        //End: add for screen recorder by lych
+         /// @}
+         else if (tileSpec.startsWith(IntentTile.PREFIX)) return IntentTile.create(this,tileSpec);
+         else throw new IllegalArgumentException("Bad tile spec: " + tileSpec);
+-- 
+1.7.9.5
+

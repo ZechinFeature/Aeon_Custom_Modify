@@ -1,0 +1,99 @@
+From f510596f625a9bc4a26c4200ca0caf7e8943e1f4 Mon Sep 17 00:00:00 2001
+From: wenhonghuan <wen.honghuan@eastaeon.com>
+Date: Thu, 28 Apr 2016 18:16:08 +0800
+Subject: [PATCH] =?UTF-8?q?[QMoblie]=E5=AE=9E=E7=8E=B0=E5=9C=A8launcher=E4=B8?=
+ =?UTF-8?q?=8A=E5=8F=8C=E5=87=BB=E6=81=AF=E5=B1=8F=E7=9A=84=E9=9C=80=E6=B1=82?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../src/com/android/launcher3/Launcher.java        |    1 +
+ .../src/com/android/launcher3/Workspace.java       |   25 +++++++++++++++++++-
+ 2 files changed, 25 insertions(+), 1 deletion(-)
+
+diff --git a/alps/packages/apps/LauncherL1/src/com/android/launcher3/Launcher.java b/alps/packages/apps/LauncherL1/src/com/android/launcher3/Launcher.java
+index 99b8d52..2472439 100755
+--- a/alps/packages/apps/LauncherL1/src/com/android/launcher3/Launcher.java
++++ b/alps/packages/apps/LauncherL1/src/com/android/launcher3/Launcher.java
+@@ -2985,6 +2985,7 @@ public class Launcher extends Activity
+             if (mWorkspace.isInOverviewMode()) {
+                 mWorkspace.exitOverviewMode(mWorkspace.indexOfChild(v), true);
+             }
++			mWorkspace.onClick(v);
+         }
+ 
+         Object tag = v.getTag();
+diff --git a/alps/packages/apps/LauncherL1/src/com/android/launcher3/Workspace.java b/alps/packages/apps/LauncherL1/src/com/android/launcher3/Workspace.java
+index fea3529..0adf874 100755
+--- a/alps/packages/apps/LauncherL1/src/com/android/launcher3/Workspace.java
++++ b/alps/packages/apps/LauncherL1/src/com/android/launcher3/Workspace.java
+@@ -99,13 +99,17 @@ import java.util.Set;
+ import java.util.TreeMap;
+ import java.util.concurrent.atomic.AtomicInteger;
+ 
++import android.os.PowerManager;
++import android.os.SystemClock;
++
++
+ /**
+  * The workspace is a wide area with a wallpaper and a finite number of pages.
+  * Each page contains a number of icons, folders or widgets the user can
+  * interact with. A workspace is meant to be used with a fixed width only.
+  */
+ public class Workspace extends SmoothPagedView
+-        implements DropTarget, DragSource, DragScroller, View.OnTouchListener,
++        implements DropTarget, DragSource, DragScroller, View.OnTouchListener, View.OnClickListener,
+         DragController.DragListener, LauncherTransitionable, ViewGroup.OnHierarchyChangeListener,
+         Insettable {
+     private static final String TAG = "Launcher.Workspace";
+@@ -308,6 +312,9 @@ public class Workspace extends SmoothPagedView
+     private boolean mDeferDropAfterUninstall;
+     private boolean mUninstallSuccessful;
+ 
++	PowerManager mPowerManager;
++	Context mContext;
++
+     private final Runnable mBindPages = new Runnable() {
+         @Override
+         public void run() {
+@@ -338,6 +345,7 @@ public class Workspace extends SmoothPagedView
+      */
+     public Workspace(Context context, AttributeSet attrs, int defStyle) {
+         super(context, attrs, defStyle);
++		mContext = context;
+         mContentIsRefreshable = false;
+ 
+         /// M: Whether support Cycle Sliding or not.
+@@ -475,6 +483,7 @@ public class Workspace extends SmoothPagedView
+      * Initializes various states for this workspace.
+      */
+     protected void initWorkspace() {
++    	mPowerManager = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
+         mCurrentPage = mDefaultPage;
+         Launcher.setScreen(mCurrentPage);
+         LauncherAppState app = LauncherAppState.getInstance();
+@@ -5881,6 +5890,20 @@ public class Workspace extends SmoothPagedView
+         return super.onTouchEvent(event);
+     }
+ 
++	private long lastClickTime;
++
++	@Override
++	public void onClick(View v) {
++		long nowClickTime = System.currentTimeMillis();
++		if((Math.abs(lastClickTime - nowClickTime) < 500)){
++			mPowerManager.goToSleep(SystemClock.uptimeMillis(),
++                PowerManager.GO_TO_SLEEP_REASON_POWER_BUTTON,
++                PowerManager.GO_TO_SLEEP_FLAG_NO_DOZE);
++		}else{
++			lastClickTime = System.currentTimeMillis();
++		}
++	}
++
+     /**M: Added for unread message feature.@{**/
+     /**
+      * M: Update unread number of shortcuts and folders in workspace and hotseat.
+-- 
+1.7.9.5
+

@@ -1,0 +1,716 @@
+From ca68737f99f1b2b97b5b112e0726481e4e1fae0d Mon Sep 17 00:00:00 2001
+From: HuangXiong <huang.xiong@eastaeon.com>
+Date: Wed, 8 Jun 2016 11:35:36 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82][=E5=8A=9F=E8=83=BD]=E6=B7=BB?=
+ =?UTF-8?q?=E5=8A=A0HOME=E9=94=AE=E5=92=8CMenu=E9=94=AE=E7=9A=84=E8=87=AA=E5?=
+ =?UTF-8?q?=AE=9A=E4=B9=89=E5=8A=9F=E8=83=BD=20I?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ alps/frameworks/base/api/current.txt               |    4 +
+ alps/frameworks/base/api/system-current.txt        |    4 +
+ .../base/core/java/android/provider/Settings.java  |   18 +-
+ .../frameworks/base/core/res/res/values/config.xml |    2 +-
+ .../android/server/policy/PhoneWindowManager.java  |  195 ++++++++++++++++----
+ alps/packages/apps/Settings/res/values/arrays.xml  |   27 ++-
+ alps/packages/apps/Settings/res/values/strings.xml |   16 ++
+ .../Settings/res/xml/accessibility_settings.xml    |   47 ++++-
+ .../accessibility/AccessibilitySettings.java       |  155 +++++++++++++++-
+ 9 files changed, 420 insertions(+), 48 deletions(-)
+ mode change 100644 => 100755 alps/packages/apps/Settings/res/xml/accessibility_settings.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/src/com/android/settings/accessibility/AccessibilitySettings.java
+
+diff --git a/alps/frameworks/base/api/current.txt b/alps/frameworks/base/api/current.txt
+index c9cd69a..fb9eda3 100644
+--- a/alps/frameworks/base/api/current.txt
++++ b/alps/frameworks/base/api/current.txt
+@@ -26572,6 +26572,10 @@ package android.provider {
+     field public static final deprecated java.lang.String DEVICE_PROVISIONED = "device_provisioned";
+     field public static final java.lang.String ENABLED_ACCESSIBILITY_SERVICES = "enabled_accessibility_services";
+     field public static final java.lang.String ENABLED_INPUT_METHODS = "enabled_input_methods";
++    field public static final java.lang.String FUNCTION_HOME_VALUE_D = "home_func_value_d";
++    field public static final java.lang.String FUNCTION_HOME_VALUE_L = "home_func_value_l";
++    field public static final java.lang.String FUNCTION_HOME_VALUE_S = "home_func_value_s";
++    field public static final java.lang.String FUNCTION_MENU_VALUE_S = "menu_func_value_s";
+     field public static final deprecated java.lang.String HTTP_PROXY = "http_proxy";
+     field public static final java.lang.String INPUT_METHOD_SELECTOR_VISIBILITY = "input_method_selector_visibility";
+     field public static final java.lang.String INSTALL_NON_MARKET_APPS = "install_non_market_apps";
+diff --git a/alps/frameworks/base/api/system-current.txt b/alps/frameworks/base/api/system-current.txt
+index f2b671b..7637596 100644
+--- a/alps/frameworks/base/api/system-current.txt
++++ b/alps/frameworks/base/api/system-current.txt
+@@ -28631,6 +28631,10 @@ package android.provider {
+     field public static final deprecated java.lang.String DEVICE_PROVISIONED = "device_provisioned";
+     field public static final java.lang.String ENABLED_ACCESSIBILITY_SERVICES = "enabled_accessibility_services";
+     field public static final java.lang.String ENABLED_INPUT_METHODS = "enabled_input_methods";
++    field public static final java.lang.String FUNCTION_HOME_VALUE_D = "home_func_value_d";
++    field public static final java.lang.String FUNCTION_HOME_VALUE_L = "home_func_value_l";
++    field public static final java.lang.String FUNCTION_HOME_VALUE_S = "home_func_value_s";
++    field public static final java.lang.String FUNCTION_MENU_VALUE_S = "menu_func_value_s";
+     field public static final deprecated java.lang.String HTTP_PROXY = "http_proxy";
+     field public static final java.lang.String INPUT_METHOD_SELECTOR_VISIBILITY = "input_method_selector_visibility";
+     field public static final java.lang.String INSTALL_NON_MARKET_APPS = "install_non_market_apps";
+diff --git a/alps/frameworks/base/core/java/android/provider/Settings.java b/alps/frameworks/base/core/java/android/provider/Settings.java
+index 84a2e63..1f84acd 100755
+--- a/alps/frameworks/base/core/java/android/provider/Settings.java
++++ b/alps/frameworks/base/core/java/android/provider/Settings.java
+@@ -5639,7 +5639,23 @@ public final class Settings {
+          * @hide
+          */
+         public static final String LONG_PRESS_TIMEOUT = "long_press_timeout";
+-
++		
++	//Begin add huangx fixed: add option in settings, define the key functions.
++		/**
++         * The timout for considering a press to be a long press in milliseconds.
++         * @hide
++         */
++        public static final String FUNCTION_MENU_VALUE = "menu_func_value";
++		
++        public static final String FUNCTION_MENU_VALUE_S = "menu_func_value_s";
++		
++        public static final String FUNCTION_HOME_VALUE_S = "home_func_value_s";
++		
++        public static final String FUNCTION_HOME_VALUE_L = "home_func_value_l";
++		
++        public static final String FUNCTION_HOME_VALUE_D = "home_func_value_d";
++		
++	//End huangx fixed: add option in settings, define the key functions.
+         /**
+          * List of the enabled print services.
+          * @hide
+diff --git a/alps/frameworks/base/core/res/res/values/config.xml b/alps/frameworks/base/core/res/res/values/config.xml
+index dd9ef3c..3b348ba 100755
+--- a/alps/frameworks/base/core/res/res/values/config.xml
++++ b/alps/frameworks/base/core/res/res/values/config.xml
+@@ -947,7 +947,7 @@
+          This needs to match the constants in
+          policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
+     -->
+-    <integer name="config_doubleTapOnHomeBehavior">0</integer>
++    <integer name="config_doubleTapOnHomeBehavior">1</integer>
+ 
+     <!-- Minimum screen brightness setting allowed by the power manager.
+          The user is forbidden from setting the brightness below this level. -->
+diff --git a/alps/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java b/alps/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java
+index 69e9b01..48f17fb 100755
+--- a/alps/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java
++++ b/alps/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java
+@@ -483,7 +483,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+     boolean mLastFocusNeedsMenu = false;
+     // If nonzero, a panic gesture was performed at that time in uptime millis and is still pending.
+     private long mPendingPanicGestureUptime;
+-
++	
++	private long key_home_down_time = 0;//add by huangx define the key functions
++	private boolean isMenuKeyUp = false;
+     InputConsumer mInputConsumer = null;
+ 
+     static final Rect mTmpParentFrame = new Rect();
+@@ -2756,6 +2758,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+                 && keyCode == DISMISS_SCREEN_PINNING_KEY_CODE
+                 && (down && repeatCount == 1)) { // long press
+             interceptDismissPinningChord();
++			//Log.i("huangx"," huangx KeyEvent.FLAG_FALLBACK DISMISS_SCREEN_PINNING_KEY_CODE interceptDismissPinningChord --------0 ");
+         }
+         /// @}
+ 
+@@ -2798,19 +2801,20 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+                 TelecomManager telecomManager = getTelecommService();
+                 if (telecomManager != null && telecomManager.isRinging()) {
+                     Log.i(TAG, "Ignoring HOME; there's a ringing incoming call.");
++					//Log.i("huangx", "Ignoring HOME; there's a ringing incoming call.");
+                     return -1;
+                 }
+-
+                 // Delay handling home if a double-tap is possible.
+                 if (mDoubleTapOnHomeBehavior != DOUBLE_TAP_HOME_NOTHING) {
+                     mHandler.removeCallbacks(mHomeDoubleTapTimeoutRunnable); // just in case
+                     mHomeDoubleTapPending = true;
+                     mHandler.postDelayed(mHomeDoubleTapTimeoutRunnable,
+                             ViewConfiguration.getDoubleTapTimeout());
++					//Log.i("huangx","KeyEvent.KEYCODE_HOME mHomeDoubleTapTimeoutRunnable ================0");
+                     return -1;
+                 }
+-
+                 handleShortPressOnHome();
++				//Log.i("huangx"," huangx KeyEvent.KEYCODE_HOME handleShortPressOnHome ====================0.2");
+                 return -1;
+             }
+ 
+@@ -2833,21 +2837,37 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+                     }
+                 }
+             }
+-
+             // Remember that home is pressed and handle special actions.
+             if (repeatCount == 0) {
+                 mHomePressed = true;
++				
+                 if (mHomeDoubleTapPending) {
+                     mHomeDoubleTapPending = false;
+                     mHandler.removeCallbacks(mHomeDoubleTapTimeoutRunnable);
+-                    handleDoubleTapOnHome();
++                    //handleDoubleTapOnHome();
++					mHomeConsumed = true;
++					int home_func = Settings.Secure.getInt(mContext.getContentResolver(),
++									/*Settings.Secure.FUNCTION_MENU_VALUE_d*/"home_func_value_d",
++									2);
++					keyOptionFunction(home_func,keyguardOn,event.getDeviceId());
++					//Log.i("huangx"," huangx KeyEvent.KEYCODE_HOME mHomeDoubleTapTimeoutRunnable ================1.2  home_func = "+home_func);
+                 } else if (mLongPressOnHomeBehavior == LONG_PRESS_HOME_RECENT_SYSTEM_UI
+                         || mDoubleTapOnHomeBehavior == DOUBLE_TAP_HOME_RECENT_SYSTEM_UI) {
+-                    preloadRecentApps();
++                    //preloadRecentApps();
++					//Log.i("huangx"," huangx KeyEvent.KEYCODE_HOME mHomeDoubleTapTimeoutRunnable ================1.3 ");
+                 }
++				//Log.i("huangx"," huangx KeyEvent.KEYCODE_HOME mHomeDoubleTapPending ================1.4 "+mHomeDoubleTapPending);
+             } else if ((event.getFlags() & KeyEvent.FLAG_LONG_PRESS) != 0) {
+-                if (!keyguardOn) {
+-                    handleLongPressOnHome(event.getDeviceId());
++                if (!keyguardOn) { //home longpress
++					mHomeConsumed = true;
++                    //handleLongPressOnHome(event.getDeviceId());
++					int home_func = Settings.Secure.getInt(mContext.getContentResolver(),
++									/*Settings.Secure.FUNCTION_MENU_VALUE_L*/"home_func_value_l",
++									1);
++					Log.i("huangx", "menu key short pressed! menu_func-->   =================2" + home_func+" repeatCount = "+repeatCount);
++					keyOptionFunction(home_func,keyguardOn,event.getDeviceId());
++					
++					//Log.i("huangx"," huangx KeyEvent.KEYCODE_HOME handleLongPressOnHome =================2.1 "+event.getDeviceId());
+                 }
+             }
+             return -1;
+@@ -2860,31 +2880,121 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+ 
+             // Hijack modified menu keys for debugging features
+             final int chordBug = KeyEvent.META_SHIFT_ON;
+-
+-            if (!down && repeatCount == 0) {
+-                if (mEnableShiftMenuBugReports && (metaState & chordBug) == chordBug) {
+-                    Intent intent = new Intent(Intent.ACTION_BUG_REPORT);
+-                    mContext.sendOrderedBroadcastAsUser(intent, UserHandle.CURRENT,
+-                            null, null, null, 0, null, null);
+-                    return -1;
+-                } else if (SHOW_PROCESSES_ON_ALT_MENU &&
+-                        (metaState & KeyEvent.META_ALT_ON) == KeyEvent.META_ALT_ON) {
+-                    Intent service = new Intent();
+-                    service.setClassName(mContext, "com.android.server.LoadAverageService");
+-                    ContentResolver res = mContext.getContentResolver();
+-                    boolean shown = Settings.Global.getInt(
+-                            res, Settings.Global.SHOW_PROCESSES, 0) != 0;
+-                    if (!shown) {
+-                        mContext.startService(service);
+-                    } else {
+-                        mContext.stopService(service);
+-                    }
+-                    Settings.Global.putInt(
+-                            res, Settings.Global.SHOW_PROCESSES, shown ? 0 : 1);
+-                    return -1;
+-                }
+-            }else if(down && ((event.getFlags() & KeyEvent.FLAG_LONG_PRESS) != 0)) {
+-				toggleRecentApps();
++			
++			if(!down && isMenuKeyUp){
++				isMenuKeyUp = false;
++				//Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU isMenuKeyUp =" +isMenuKeyUp);
++				//return -1;
++			}else 
++            if (!down && repeatCount == 0) {//ShortpressMenu
++				int menu_func = Settings.Secure.getInt(mContext.getContentResolver(),
++									/*Settings.Secure.FUNCTION_MENU_VALUE_S*/"menu_func_value_s",
++									3);
++				//Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU ShortpressMenu +++++++++++++++++++0 menu_func = "+menu_func + "  repeatCount = "+repeatCount);
++				
++				if(menu_func != 3){
++					keyOptionFunction(menu_func,keyguardOn,event.getDeviceId());//add huang fix: define the key functions.
++					//Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU ShortpressMenu ++++++++++++++++++1");
++				}else {
++					if (mEnableShiftMenuBugReports && (metaState & chordBug) == chordBug) {
++						Intent intent = new Intent(Intent.ACTION_BUG_REPORT);
++						mContext.sendOrderedBroadcastAsUser(intent, UserHandle.CURRENT,
++								null, null, null, 0, null, null);
++						//Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU ShortpressMenu ++++++++++++++++2");
++						return -1;
++					} else if (SHOW_PROCESSES_ON_ALT_MENU &&
++							(metaState & KeyEvent.META_ALT_ON) == KeyEvent.META_ALT_ON) {
++						Intent service = new Intent();
++						service.setClassName(mContext, "com.android.server.LoadAverageService");
++						ContentResolver res = mContext.getContentResolver();
++						boolean shown = Settings.Global.getInt(
++								res, Settings.Global.SHOW_PROCESSES, 0) != 0;
++						if (!shown) {
++							//Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU ShortpressMenu ++++++++++++++++2.1");
++							mContext.startService(service);
++						} else {
++							//Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU ShortpressMenu ++++++++++++++++2.2");
++							mContext.stopService(service);
++						}
++						Settings.Global.putInt(
++								res, Settings.Global.SHOW_PROCESSES, shown ? 0 : 1);
++						//Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU ShortpressMenu +++++++++++++++++2.3");
++						return -1;
++					}
++				}
++				//Log.i("huangx","mEnableShiftMenuBugReports = "+mEnableShiftMenuBugReports+" metaState = "+metaState+" chordBug = "+chordBug+" ");
++				//Log.i("huangx","SHOW_PROCESSES_ON_ALT_MENU = "+SHOW_PROCESSES_ON_ALT_MENU+" metaState = "+metaState+" KeyEvent.META_ALT_ON = "+KeyEvent.META_ALT_ON+" ");
++				/* if (mEnableShiftMenuBugReports && (metaState & chordBug) == chordBug) {
++						Intent intent = new Intent(Intent.ACTION_BUG_REPORT);
++						mContext.sendOrderedBroadcastAsUser(intent, UserHandle.CURRENT,
++								null, null, null, 0, null, null);
++						Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU ShortpressMenu ++++++++++++++++2");
++						return -1;
++				} else if (SHOW_PROCESSES_ON_ALT_MENU &&
++						(metaState & KeyEvent.META_ALT_ON) == KeyEvent.META_ALT_ON) {
++					Intent service = new Intent();
++					service.setClassName(mContext, "com.android.server.LoadAverageService");
++					ContentResolver res = mContext.getContentResolver();
++					boolean shown = Settings.Global.getInt(
++							res, Settings.Global.SHOW_PROCESSES, 0) != 0;
++					Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU ShortpressMenu ++++++++++++++++2.01 shown = "+shown);
++					if (!shown) {
++						Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU ShortpressMenu ++++++++++++++++2.1");
++						mContext.startService(service);
++					} else {
++						Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU ShortpressMenu ++++++++++++++++2.2");
++						mContext.stopService(service);
++					}
++					Settings.Global.putInt(
++							res, Settings.Global.SHOW_PROCESSES, shown ? 0 : 1);
++					Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU ShortpressMenu +++++++++++++++++2.3");
++					return -1;
++				} */
++				
++            }else if(down && ((event.getFlags() & KeyEvent.FLAG_LONG_PRESS) != 0)) { //LongpressMenu
++				//toggleRecentApps();
++				mPreloadedRecentApps = false;
++				isMenuKeyUp = true;
++				//Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU LongpressMenu +++++++++++++++++++3 repeatCount = "+repeatCount);
++				//Log.i("huangx","mEnableShiftMenuBugReports = "+mEnableShiftMenuBugReports+" metaState = "+metaState+" chordBug = "+chordBug+" ");
++			    //Log.i("huangx","SHOW_PROCESSES_ON_ALT_MENU = "+SHOW_PROCESSES_ON_ALT_MENU+" metaState = "+metaState+" KeyEvent.META_ALT_ON = "+KeyEvent.META_ALT_ON+" ");
++				int menu_func = Settings.Secure.getInt(mContext.getContentResolver(),
++									/*Settings.Secure.FUNCTION_MENU_VALUE*/"menu_func_value",
++									0);
++				//Log.i("huangx", "menu key long pressed! menu_func-->  +++++++++++++++++++3.1" + menu_func+"  getDeviceId = "+event.getDeviceId());
++				
++				if(menu_func == 3){
++					if (mEnableShiftMenuBugReports && (metaState & chordBug) == chordBug) {
++						Intent intent = new Intent(Intent.ACTION_BUG_REPORT);
++						mContext.sendOrderedBroadcastAsUser(intent, UserHandle.CURRENT,
++								null, null, null, 0, null, null);
++						//Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU LongpressMenu ++++++++++++++++b");
++						return -1;
++					} else if (SHOW_PROCESSES_ON_ALT_MENU &&
++							(metaState & KeyEvent.META_ALT_ON) == KeyEvent.META_ALT_ON) {
++						Intent service = new Intent();
++						service.setClassName(mContext, "com.android.server.LoadAverageService");
++						ContentResolver res = mContext.getContentResolver();
++						boolean shown = Settings.Global.getInt(
++								res, Settings.Global.SHOW_PROCESSES, 0) != 0;
++						if (!shown) {
++							//Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU LongpressMenu ++++++++++++++++c");
++							mContext.startService(service);
++						} else {
++							//Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU LongpressMenu ++++++++++++++++d");
++							mContext.stopService(service);
++						}
++						Settings.Global.putInt(
++								res, Settings.Global.SHOW_PROCESSES, shown ? 0 : 1);
++						//Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU LongpressMenu +++++++++++++++++e");
++						return -1;
++					}
++				}else {
++					keyOptionFunction(menu_func,keyguardOn,event.getDeviceId());//add huang fix: define the key functions.
++					//Log.i("huangx"," huangx KeyEvent.KEYCODE_MENU LongpressMenu ++++++++++++++++++a");
++					//return -1;
++				}
++				
+ 			}
+         } else if (keyCode == KeyEvent.KEYCODE_SEARCH) {
+             if (down) {
+@@ -2906,7 +3016,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+                 Log.i(TAG, "jxw-return 0");
+                 return 0;
+             }
+-
+             if (!keyguardOn) {
+                 if (down && repeatCount == 0) {
+                     preloadRecentApps();
+@@ -7704,4 +7813,22 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+         mCurrentInputMethodTargetWindow = target;
+     }
+     /// @}
++	
++//Begin add huangx fixed: define the key functions.
++	private void keyOptionFunction(int keyOpt,boolean keyguardOn,int deviceId){
++		switch(keyOpt){
++			case 0:
++				toggleRecentApps();   // Recents
++				break;
++			case 1:
++				if (!keyguardOn) {
++					handleLongPressOnHome(/* event.getDeviceId() */deviceId);  //VoiceSearch
++				}
++				break;
++			case 2:
++				handleShortPressOnHome();    // GoHome
++				break;
++		}
++	}
++//End huangx fixed: define the key functions.
+ }
+diff --git a/alps/packages/apps/Settings/res/values/arrays.xml b/alps/packages/apps/Settings/res/values/arrays.xml
+index eaa8802..340dfc6 100755
+--- a/alps/packages/apps/Settings/res/values/arrays.xml
++++ b/alps/packages/apps/Settings/res/values/arrays.xml
+@@ -1428,5 +1428,30 @@
+         <item>EE, d MMM yyyy</item>
+         <item>yyyy MMM d, EE</item>
+     </string-array>
+-
++	
++	<string-array name="menu_title_entries">
++		<item>recent app</item>
++        <item>Voice search</item>
++        <item>go home</item>
++		<item>Open/Close Menu</item>
++	</string-array>
++	
++	<string-array name="menu_title_values" translatable="false">
++		<item>0</item>
++        <item>1</item>
++        <item>2</item>
++		<item>3</item>
++	</string-array>
++	
++	<string-array name="home_title_entries">
++		<item>recent app</item>
++        <item>Voice search</item>
++        <item>go home</item>
++	</string-array>
++	<string-array name="home_title_values">
++		<item>0</item>
++        <item>1</item>
++        <item>2</item>
++	</string-array>
++	
+ </resources>
+diff --git a/alps/packages/apps/Settings/res/values/strings.xml b/alps/packages/apps/Settings/res/values/strings.xml
+index bba1f06..57be86d 100755
+--- a/alps/packages/apps/Settings/res/values/strings.xml
++++ b/alps/packages/apps/Settings/res/values/strings.xml
+@@ -7029,4 +7029,20 @@
+    <string name="lockscreen_wallpaper_settings_title">lockscreen wallpaper</string>
+   <string name="date_time_date_format_dialog">Choose date format</string>
+   <string name="date_format_now">dd,MM yyyy</string>
++  
++  
++  <string name="customkey_category">Button</string>
++  <string name="menukey_category">Menu button</string>
++  <string name="homekey_category">Home button</string>
++  <string name="key_longpress">LongPress</string>
++  <string name="key_shortpress">ShortPress</string>
++  <string name="ttttttt">menu_key_setting</string>
++  
++  <string name="menu_lp_title">Long press action</string>
++  <string name="menu_sp_title">Short press action</string>
++  
++  <string name="home_lp_title">Long press action</string>
++  <string name="home_sp_title">Short press action</string>
++  <string name="home_dp_title">Double tap action</string>
++  
+ </resources>
+diff --git a/alps/packages/apps/Settings/res/xml/accessibility_settings.xml b/alps/packages/apps/Settings/res/xml/accessibility_settings.xml
+old mode 100644
+new mode 100755
+index 892bde6..f410658
+--- a/alps/packages/apps/Settings/res/xml/accessibility_settings.xml
++++ b/alps/packages/apps/Settings/res/xml/accessibility_settings.xml
+@@ -22,11 +22,50 @@
+             android:key="services_category"
+             android:title="@string/accessibility_services_title">
+     </PreferenceCategory>
+-
++	
++	
+     <PreferenceCategory
+             android:key="system_category"
+             android:title="@string/accessibility_system_title">
+-
++		<PreferenceScreen
++		android:key="customkey_category"
++		android:title="@string/customkey_category">
++			<PreferenceCategory
++				android:key="menukey_category"
++				android:title="@string/menukey_category">
++				<ListPreference
++					android:key="select_menu_func_preference"
++					android:title="@string/menu_lp_title"
++					android:entries="@array/menu_title_entries"
++					android:entryValues="@array/menu_title_values" 
++				/>
++
++				<ListPreference
++					android:key="select_menu_func_preference_s"
++					android:title="@string/menu_sp_title"
++					android:entries="@array/menu_title_entries"
++					android:entryValues="@array/menu_title_values"
++				/>
++			</PreferenceCategory>
++			<PreferenceCategory
++				android:key="homekey_category"
++				android:title="@string/homekey_category">
++				<ListPreference
++					android:key="select_home_func_preference_l"
++					android:title="@string/home_lp_title"
++					android:entries="@array/home_title_entries"
++					android:entryValues="@array/home_title_values"
++				/>
++				<ListPreference
++					android:key="select_home_func_preference_d"
++					android:title="@string/home_dp_title"
++					android:entries="@array/home_title_entries"
++					android:entryValues="@array/home_title_values"
++				/>
++			</PreferenceCategory>
++		</PreferenceScreen>
++		
++		
+         <PreferenceScreen
+             android:fragment="com.android.settings.accessibility.CaptionPropertiesFragment"
+             android:key="captioning_preference_screen"
+@@ -77,7 +116,9 @@
+                 android:entries="@array/long_press_timeout_selector_titles"
+                 android:entryValues="@array/long_press_timeout_selector_values"
+                 android:persistent="false"/>
+-
++				
++		
++				
+         <!-- M: mediatek add this for ipo settings -->
+         <SwitchPreference
+                 android:key="ipo_setting"
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/accessibility/AccessibilitySettings.java b/alps/packages/apps/Settings/src/com/android/settings/accessibility/AccessibilitySettings.java
+old mode 100644
+new mode 100755
+index 1f998b1..2403d4f
+--- a/alps/packages/apps/Settings/src/com/android/settings/accessibility/AccessibilitySettings.java
++++ b/alps/packages/apps/Settings/src/com/android/settings/accessibility/AccessibilitySettings.java
+@@ -102,7 +102,15 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
+             "daltonizer_preference_screen";
+     /// M: MTK add ipo settings
+     private static final String IPO_SETTING_PREFERENCE = "ipo_setting";
++//Begin add huangx fixed: add option in settings, define the key functions.
+ 
++	private static final String menu_key_setting = "select_menu_func_preference";
++	private static final String menu_sp_key_setting = "select_menu_func_preference_s";
++	private static final String home_lp_key_setting = "select_home_func_preference_l";
++	private static final String home_sp_key_setting = "select_home_func_preference_s";
++	private static final String home_dp_key_setting = "select_home_func_preference_d";
++
++//End huangx fixed: add option in settings, define the key functions.
+     // Extras passed to sub-fragments.
+     static final String EXTRA_PREFERENCE_KEY = "preference_key";
+     static final String EXTRA_CHECKED = "checked";
+@@ -126,7 +134,12 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
+ 
+     private final Map<String, String> mLongPressTimeoutValuetoTitleMap =
+             new HashMap<String, String>();
+-
++			
++	private final Map<String, String> mMenuValuetoTitleMap = new HashMap<String, String>();
++	private final Map<String, String> mMenuSpValuetoTitleMap = new HashMap<String, String>();
++	private final Map<String, String> mHomeLpValuetoTitleMap = new HashMap<String, String>();
++	private final Map<String, String> mHomeDpValuetoTitleMap = new HashMap<String, String>();
++			
+     private final Configuration mCurConfig = new Configuration();
+ 
+     private final Handler mHandler = new Handler();
+@@ -188,6 +201,7 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
+     private PreferenceCategory mSystemsCategory;
+ 
+     private SwitchPreference mToggleLargeTextPreference;
++	private ListPreference mListPreference,mMenuSpListPreference,mHomeSpListPreference,mHomeLpListPreference,mHomeDpListPreference;
+     private SwitchPreference mToggleHighTextContrastPreference;
+     private SwitchPreference mTogglePowerButtonEndsCallPreference;
+     private SwitchPreference mToggleLockScreenRotationPreference;
+@@ -203,6 +217,7 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
+     private SwitchPreference mIpoSetting;
+ 
+     private int mLongPressTimeoutDefault;
++	private int mMenuFunctionDefault,mMenuSpFuncDefault,mHomeSpFuncDefault,mHomeLpFuncDefault,mHomeDpFuncDefault;
+ 
+     private DevicePolicyManager mDpm;
+ 
+@@ -249,9 +264,48 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
+         }
+         super.onPause();
+     }
+-
++	
++//Begin add huangx fixed: add option in settings, define the key functions.
++	private void handleMenuPreferenceChange(String stringValue,int keyNum) {
++		//android.util.Log.e("huangx","stringValue:" + stringValue+"  keyNum = "+keyNum);
++		switch(keyNum){
++			case 0: //menukey longpress
++				Settings.Secure.putInt(getContentResolver(),Settings.Secure.FUNCTION_MENU_VALUE, Integer.parseInt(stringValue));
++				mListPreference.setSummary(mMenuValuetoTitleMap.get(stringValue));
++				break;
++			case 1:  //menukey shortpress
++				Settings.Secure.putInt(getContentResolver(),Settings.Secure.FUNCTION_MENU_VALUE_S, Integer.parseInt(stringValue));
++				mMenuSpListPreference.setSummary(mMenuSpValuetoTitleMap.get(stringValue));
++				break;
++			case 2: //homekey longpress
++				Settings.Secure.putInt(getContentResolver(),Settings.Secure.FUNCTION_HOME_VALUE_L, Integer.parseInt(stringValue));
++				mHomeLpListPreference.setSummary(mHomeLpValuetoTitleMap.get(stringValue));
++				break;
++			case 3: //homekey double tap
++				Settings.Secure.putInt(getContentResolver(),Settings.Secure.FUNCTION_HOME_VALUE_D, Integer.parseInt(stringValue));
++				mHomeDpListPreference.setSummary(mHomeDpValuetoTitleMap.get(stringValue));
++				break;
++		}
++    }
++//End huangx fixed: add option in settings, define the key functions.
++	
+     @Override
+     public boolean onPreferenceChange(Preference preference, Object newValue) {
++	//Begin add huangx fixed: define the key functions.
++		if(mListPreference == preference){
++			handleMenuPreferenceChange((String) newValue,0);
++			return true;
++		}else if(mMenuSpListPreference == preference){
++			handleMenuPreferenceChange((String) newValue,1);
++			return true;
++		}else if(mHomeLpListPreference == preference){
++			handleMenuPreferenceChange((String) newValue,2);
++			return true;
++		}else if(mHomeDpListPreference == preference){
++			handleMenuPreferenceChange((String) newValue,3);
++			return true;
++		}else 
++	//End huangx fixed: define the key functions.
+         if (mSelectLongPressTimeoutPreference == preference) {
+             handleLongPressTimeoutPreferenceChange((String) newValue);
+             return true;
+@@ -416,17 +470,72 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
+                 (ListPreference) findPreference(SELECT_LONG_PRESS_TIMEOUT_PREFERENCE);
+         mSelectLongPressTimeoutPreference.setOnPreferenceChangeListener(this);
+         if (mLongPressTimeoutValuetoTitleMap.size() == 0) {
+-            String[] timeoutValues = getResources().getStringArray(
+-                    R.array.long_press_timeout_selector_values);
++            String[] timeoutValues = getResources().getStringArray(R.array.long_press_timeout_selector_values);
++			
+             mLongPressTimeoutDefault = Integer.parseInt(timeoutValues[0]);
+-            String[] timeoutTitles = getResources().getStringArray(
+-                    R.array.long_press_timeout_selector_titles);
++            String[] timeoutTitles = getResources().getStringArray(R.array.long_press_timeout_selector_titles);
+             final int timeoutValueCount = timeoutValues.length;
+             for (int i = 0; i < timeoutValueCount; i++) {
+                 mLongPressTimeoutValuetoTitleMap.put(timeoutValues[i], timeoutTitles[i]);
+             }
+         }
+-
++//Begin add huangx fixed: add option in settings, define the key functions.
++	//menu longpress
++		mListPreference = (ListPreference) findPreference(menu_key_setting);
++		mListPreference.setOnPreferenceChangeListener(this);
++		if (mMenuValuetoTitleMap.size() == 0) {
++            String[] FunctionValues = getResources().getStringArray(R.array.menu_title_values);
++			
++            mMenuFunctionDefault = Integer.parseInt(FunctionValues[0]);
++			//android.util.Log.i("huangx"," mMenuFunctionDefault --------------  "+mMenuFunctionDefault);
++            String[] FunctionTitles = getResources().getStringArray( R.array.menu_title_entries);
++            final int FunctionValueCount = FunctionValues.length;
++            for (int i = 0; i < FunctionValueCount; i++) {
++                mMenuValuetoTitleMap.put(FunctionValues[i], FunctionTitles[i]);
++            }
++        }
++		// menu shortpress
++		mMenuSpListPreference = (ListPreference) findPreference(menu_sp_key_setting);
++		mMenuSpListPreference.setOnPreferenceChangeListener(this);
++		if (mMenuSpValuetoTitleMap.size() == 0) {
++            String[] FunctionValues = getResources().getStringArray(R.array.menu_title_values);
++			
++            mMenuSpFuncDefault = Integer.parseInt(FunctionValues[3]);
++            String[] FunctionTitles = getResources().getStringArray( R.array.menu_title_entries);
++            final int FunctionValueCount = FunctionValues.length;
++            for (int i = 0; i < FunctionValueCount; i++) {
++                mMenuSpValuetoTitleMap.put(FunctionValues[i], FunctionTitles[i]);
++            }
++        }
++	//home key mHomeSpListPreference,mHomeLpListPreference,mHomeDpListPreference;
++		mHomeLpListPreference = (ListPreference) findPreference(home_lp_key_setting);
++		mHomeLpListPreference.setOnPreferenceChangeListener(this);
++		if (mHomeLpValuetoTitleMap.size() == 0) {
++            String[] FunctionValues = getResources().getStringArray(R.array.home_title_values);
++			
++            mHomeLpFuncDefault = Integer.parseInt(FunctionValues[1]);
++            String[] FunctionTitles = getResources().getStringArray( R.array.home_title_entries);
++            final int FunctionValueCount = FunctionValues.length;
++            for (int i = 0; i < FunctionValueCount; i++) {
++                mHomeLpValuetoTitleMap.put(FunctionValues[i], FunctionTitles[i]);
++            }
++        }
++		
++		mHomeDpListPreference = (ListPreference) findPreference(home_dp_key_setting);
++		mHomeDpListPreference.setOnPreferenceChangeListener(this);
++		if (mHomeDpValuetoTitleMap.size() == 0) {
++            String[] FunctionValues = getResources().getStringArray(R.array.home_title_values);
++			
++            mHomeDpFuncDefault = Integer.parseInt(FunctionValues[2]);
++			//android.util.Log.i("huangx"," mHomeDpFuncDefault --------------  "+mHomeDpFuncDefault);
++            String[] FunctionTitles = getResources().getStringArray( R.array.home_title_entries);
++            final int FunctionValueCount = FunctionValues.length;
++            for (int i = 0; i < FunctionValueCount; i++) {
++                mHomeDpValuetoTitleMap.put(FunctionValues[i], FunctionTitles[i]);
++            }
++        }
++		
++//End huangx fixed: add option in settings, define the key functions.
+         // Captioning.
+         mCaptioningPreferenceScreen = (PreferenceScreen) findPreference(
+                 CAPTIONING_PREFERENCE_SCREEN);
+@@ -610,7 +719,37 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
+         final boolean speakPasswordEnabled = Settings.Secure.getInt(getContentResolver(),
+                 Settings.Secure.ACCESSIBILITY_SPEAK_PASSWORD, 0) != 0;
+         mToggleSpeakPasswordPreference.setChecked(speakPasswordEnabled);
+-
++		
++//Begin add huangx fixed: define the key functions.
++	//-----
++        final int menuFuncValue = Settings.Secure.getInt(getContentResolver(),
++                Settings.Secure.FUNCTION_MENU_VALUE, mMenuFunctionDefault);
++        String value1 = String.valueOf(menuFuncValue);
++		//android.util.Log.e("huangx","value1:" + value1);
++        mListPreference.setValue(value1);
++        mListPreference.setSummary(mMenuValuetoTitleMap.get(value1));
++	//----
++        final int menuSpFuncValue = Settings.Secure.getInt(getContentResolver(),
++                Settings.Secure.FUNCTION_MENU_VALUE_S, mMenuSpFuncDefault);
++        value1 = String.valueOf(menuSpFuncValue);
++		//android.util.Log.e("huangx"," .....2 value1: " + value1);
++        mMenuSpListPreference.setValue(value1);
++        mMenuSpListPreference.setSummary(mMenuSpValuetoTitleMap.get(value1));
++	//----
++        final int homeLpFuncValue = Settings.Secure.getInt(getContentResolver(),
++                Settings.Secure.FUNCTION_HOME_VALUE_L, mHomeLpFuncDefault);
++        value1 = String.valueOf(homeLpFuncValue);
++		//android.util.Log.e("huangx"," .....3 value1: " + value1);
++        mHomeLpListPreference.setValue(value1);
++        mHomeLpListPreference.setSummary(mHomeLpValuetoTitleMap.get(value1));
++	//----
++        final int homeDpFuncValue = Settings.Secure.getInt(getContentResolver(),
++                Settings.Secure.FUNCTION_HOME_VALUE_D, mHomeDpFuncDefault);
++        value1 = String.valueOf(homeDpFuncValue);
++		//android.util.Log.e("huangx"," .....3 value1: " + value1);
++        mHomeDpListPreference.setValue(value1);
++        mHomeDpListPreference.setSummary(mHomeDpValuetoTitleMap.get(value1));
++//End huangx fixed: define the key functions.		
+         // Long press timeout.
+         final int longPressTimeout = Settings.Secure.getInt(getContentResolver(),
+                 Settings.Secure.LONG_PRESS_TIMEOUT, mLongPressTimeoutDefault);
+-- 
+1.7.9.5
+

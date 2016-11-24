@@ -1,0 +1,629 @@
+From 13384160c95a88039608181165f7b0cec6a3960f Mon Sep 17 00:00:00 2001
+From: "Xia.Fei" <xia.fei@eastaeon.com>
+Date: Wed, 16 Mar 2016 16:18:17 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82][FM]=E6=B7=BB=E5=8A=A0=20Slee?=
+ =?UTF-8?q?p=20FM=20=E5=8A=9F=E8=83=BD?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../apps/FMRadio/res/menu/fm_action_bar.xml        |    7 +
+ .../apps/FMRadio/res/values-zh-rCN/strings.xml     |   17 +++
+ alps/packages/apps/FMRadio/res/values/arrays.xml   |   24 ++++
+ alps/packages/apps/FMRadio/res/values/strings.xml  |   21 ++-
+ .../src/com/android/fmradio/FmListener.java        |    2 +
+ .../src/com/android/fmradio/FmMainActivity.java    |  135 +++++++++++++++++-
+ .../FMRadio/src/com/android/fmradio/FmService.java |   77 +++++++++++
+ .../fmradio/dialogs/FmSleepSettingDialog.java      |  144 ++++++++++++++++++++
+ 8 files changed, 424 insertions(+), 3 deletions(-)
+ mode change 100644 => 100755 alps/packages/apps/FMRadio/res/menu/fm_action_bar.xml
+ mode change 100644 => 100755 alps/packages/apps/FMRadio/res/values-zh-rCN/strings.xml
+ create mode 100755 alps/packages/apps/FMRadio/res/values/arrays.xml
+ mode change 100644 => 100755 alps/packages/apps/FMRadio/res/values/strings.xml
+ mode change 100644 => 100755 alps/packages/apps/FMRadio/src/com/android/fmradio/FmListener.java
+ mode change 100644 => 100755 alps/packages/apps/FMRadio/src/com/android/fmradio/FmService.java
+ create mode 100755 alps/packages/apps/FMRadio/src/com/android/fmradio/dialogs/FmSleepSettingDialog.java
+
+diff --git a/alps/packages/apps/FMRadio/res/menu/fm_action_bar.xml b/alps/packages/apps/FMRadio/res/menu/fm_action_bar.xml
+old mode 100644
+new mode 100755
+index 492ad66..cc79608
+--- a/alps/packages/apps/FMRadio/res/menu/fm_action_bar.xml
++++ b/alps/packages/apps/FMRadio/res/menu/fm_action_bar.xml
+@@ -42,4 +42,11 @@
+         android:id="@+id/fm_record_list"
+         android:showAsAction ="never"
+         android:title="@string/fm_over_record_list" />
++
++    <!-- Begin: Added by bu.xinchun 2015-12-07, add Sleep FM func -->
++    <item
++        android:id="@+id/fm_sleep_fm_setting"
++        android:showAsAction ="never"
++        android:title="@string/fm_sleep_fm" />
++    <!-- End: Added by bu.xinchun 2015-12-07, add Sleep FM func -->
+ </menu>
+\ No newline at end of file
+diff --git a/alps/packages/apps/FMRadio/res/values-zh-rCN/strings.xml b/alps/packages/apps/FMRadio/res/values-zh-rCN/strings.xml
+old mode 100644
+new mode 100755
+index 88f8a64..d3b62e8
+--- a/alps/packages/apps/FMRadio/res/values-zh-rCN/strings.xml
++++ b/alps/packages/apps/FMRadio/res/values-zh-rCN/strings.xml
+@@ -64,4 +64,21 @@
+     <string name="toast_record_not_saved" msgid="6526674547687611282">"录音未保存"</string>
+     <string name="toast_listen" msgid="2014315478895754055">"收听"</string>
+     <string name="toast_station_renamed" msgid="2185292052267585710">"此电台已重新命名"</string>
++
++    <!-- Begin: Added by bu.xinchun 2015-12-07, for Sleep FM func -->
++    <string name="fm_sleep_fm">"延时关闭 FM"</string>
++    <string name="sleep_fm_in_10_min">"10 分钟后"</string>
++    <string name="sleep_fm_in_20_min">"20 分钟后"</string>
++    <string name="sleep_fm_in_30_min">"30 分钟后"</string>
++    <string name="sleep_fm_in_40_min">"40 分钟后"</string>
++    <string name="sleep_fm_in_50_min">"50 分钟后"</string>
++    <string name="sleep_fm_in_60_min">"60 分钟后"</string>
++    <string name="sleep_fm_in_90_min">"90 分钟后"</string>
++    <string name="sleep_fm_in_120_min">"120 分钟后"</string>
++    <string name="sleep_fm_custom_time">"自定义时间"</string>
++    <string name="sleep_fm_none">"无"</string>
++    <string name="sleep_setted_delay_notice">"收音机将在 <xliff:g id="mhours">%1$s</xliff:g> 小时 <xliff:g id="mminus">%2$s</xliff:g> 分钟后关闭!"</string>
++    <string name="sleep_setted_at_time_notice">"收音机将在 <xliff:g id="mdate">%1$s</xliff:g> 关闭!"</string>
++    <string name="change_sleep_fm_setting_notice">"FM 电台 -> 菜单 -> 延时关闭 FM"</string>
++    <!-- End: Added by bu.xinchun 2015-12-07, for Sleep FM func -->
+ </resources>
+diff --git a/alps/packages/apps/FMRadio/res/values/arrays.xml b/alps/packages/apps/FMRadio/res/values/arrays.xml
+new file mode 100755
+index 0000000..1df86b1
+--- /dev/null
++++ b/alps/packages/apps/FMRadio/res/values/arrays.xml
+@@ -0,0 +1,24 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources>
++    <string-array name="sleep_fm_deley_minutes_entry">
++        <item>@string/sleep_fm_in_10_min</item>
++        <item>@string/sleep_fm_in_20_min</item>
++        <item>@string/sleep_fm_in_30_min</item>
++        <item>@string/sleep_fm_in_40_min</item>
++        <item>@string/sleep_fm_in_50_min</item>
++        <item>@string/sleep_fm_in_60_min</item>
++        <item>@string/sleep_fm_in_90_min</item>
++        <item>@string/sleep_fm_in_120_min</item>
++    </string-array>
++
++    <integer-array name="sleep_fm_deley_minutes_entry_values">
++        <item>10</item>
++        <item>20</item>
++        <item>30</item>
++        <item>40</item>
++        <item>50</item>
++        <item>60</item>
++        <item>90</item>
++        <item>120</item>
++    </integer-array>
++</resources>
+diff --git a/alps/packages/apps/FMRadio/res/values/strings.xml b/alps/packages/apps/FMRadio/res/values/strings.xml
+old mode 100644
+new mode 100755
+index 37e4c66..a82e83d
+--- a/alps/packages/apps/FMRadio/res/values/strings.xml
++++ b/alps/packages/apps/FMRadio/res/values/strings.xml
+@@ -15,7 +15,8 @@
+      limitations under the License.
+ -->
+ 
+-<resources>
++<resources xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+     <!-- Application name shown in Launcher [CHAR LIMIT=20] -->
+     <string name="app_name">FM Radio</string>
+     <!-- Toast message shown after we refresh radio stations successfully [CHAR LIMIT=50] -->
+@@ -156,4 +157,22 @@
+     <string name="FMR_EM_CMD_title" translatable="false">CMD EXPAND</string>
+     <string name="FMR_EM_CMD_return" translatable="false">CMD EXPAND RETURN VALUE</string>
+     <string name="FMR_EM_DEFAULT_VALUE" translatable="false">0</string>
++
++    <!-- Begin: Added by bu.xinchun 2015-12-07, for Sleep FM func -->
++    <string name="fm_sleep_fm">"Sleep FM"</string>
++    <string name="sleep_fm_in_10_min">"10 minutes later"</string>
++    <string name="sleep_fm_in_20_min">"20 minutes later"</string>
++    <string name="sleep_fm_in_30_min">"30 minutes later"</string>
++    <string name="sleep_fm_in_40_min">"40 minutes later"</string>
++    <string name="sleep_fm_in_50_min">"50 minutes later"</string>
++    <string name="sleep_fm_in_60_min">"60 minutes later"</string>
++    <string name="sleep_fm_in_90_min">"90 minutes later"</string>
++    <string name="sleep_fm_in_120_min">"120 minutes later"</string>
++    <string name="sleep_fm_custom_time">"Custom"</string>
++    <string name="sleep_fm_none">"None"</string>
++    <string name="sleep_setted_delay_notice">"FM will be power down after <xliff:g id="mhours">%1$s</xliff:g> hours <xliff:g id="mminus">%2$s</xliff:g> minus!"</string>
++    <string name="sleep_setted_at_time_notice">"FM will be power down at <xliff:g id="mdate">%1$s</xliff:g> !"</string>
++    <string name="change_sleep_fm_setting_notice">"FM Radio -> Menu -> Sleep FM"</string>
++    <string name="fm_notification_date_form" translatable="false">"yyyy-MM-dd HH:mm:ss"</string>
++    <!-- End: Added by bu.xinchun 2015-12-07, for Sleep FM func -->
+ </resources>
+diff --git a/alps/packages/apps/FMRadio/src/com/android/fmradio/FmListener.java b/alps/packages/apps/FMRadio/src/com/android/fmradio/FmListener.java
+old mode 100644
+new mode 100755
+index d6ed342..9cbf237
+--- a/alps/packages/apps/FMRadio/src/com/android/fmradio/FmListener.java
++++ b/alps/packages/apps/FMRadio/src/com/android/fmradio/FmListener.java
+@@ -116,6 +116,8 @@ public interface FmListener {
+     // For EM
+     String KEY_IS_POWER_UP = "key_is_power_up";
+ 
++    //For Sleep FM.
++    int MSGID_SLEEP_FM = 110; // Added by bu.xinchu 2015-12-15.
+ 
+     /**
+      * Call back method to activity from service
+diff --git a/alps/packages/apps/FMRadio/src/com/android/fmradio/FmMainActivity.java b/alps/packages/apps/FMRadio/src/com/android/fmradio/FmMainActivity.java
+index 64d1fa1..9b02e27 100755
+--- a/alps/packages/apps/FMRadio/src/com/android/fmradio/FmMainActivity.java
++++ b/alps/packages/apps/FMRadio/src/com/android/fmradio/FmMainActivity.java
+@@ -69,10 +69,23 @@ import com.mediatek.fmradio.ext.ExtensionHelper;
+ import com.mediatek.fmradio.ext.IFavoriteExt;
+ /// @}
+ 
++//START. For Sleep FM.
++import android.content.SharedPreferences;
++import com.android.fmradio.dialogs.FmSleepSettingDialog;
++import java.lang.ref.WeakReference;
++import android.app.Notification;
++import android.app.NotificationManager;
++import android.app.PendingIntent;
++import android.graphics.Bitmap;
++import java.text.DateFormat;
++import java.text.SimpleDateFormat;
++import java.util.Calendar;
++//END. For Sleep FM.
+ /**
+  * This class interact with user, provide FM basic function.
+  */
+-public class FmMainActivity extends Activity implements FmFavoriteEditDialog.EditFavoriteListener {
++public class FmMainActivity extends Activity implements FmFavoriteEditDialog.EditFavoriteListener
++    , FmSleepSettingDialog.OnSleepFMSettingChangedLister {
+     // Logging
+     private static final String TAG = "FmMainActivity";
+ 
+@@ -172,6 +185,10 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
+ 
+     private FmScroller.EventListener mEventListener;
+ 
++    //For Sleep FM. // Added by bu.xinchun
++    private MenuItem mMenuItemSleepFM = null;
++    private NotificationManager mNotificationMgr;
++
+     // Service listener
+     private FmListener mFmRadioListener = new FmListener() {
+         @Override
+@@ -380,6 +397,95 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
+         }
+     };
+ 
++    /* Begin: Added by bu.xinchun 2015-12-08. For Sleep FM func. */
++    private void sendSleepFMNotification(String atTimeNotice) {
++        Notification.Builder notifyBuilder = new Notification.Builder(mContext);
++
++        Intent seeFm = new Intent(Intent.ACTION_MAIN);
++        seeFm.addCategory(Intent.CATEGORY_LAUNCHER);
++        seeFm.setClass(mContext, FmMainActivity.class);
++        seeFm.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
++        PendingIntent pi = PendingIntent.getActivity(getApplicationContext()
++                , 0, seeFm, PendingIntent.FLAG_UPDATE_CURRENT);
++
++        Bitmap largeIcon = FmUtils.createNotificationLargeIcon(mContext,
++                FmUtils.formatStation(mCurrentStation));
++
++        //.addLine(atTimeNotice)
++        notifyBuilder.setAutoCancel(false)
++            .setSmallIcon(R.drawable.fm_title_icon)
++            .setLargeIcon(largeIcon)
++            .setContentIntent(pi)
++            .setContentTitle(getString(R.string.fm_sleep_fm))
++            .setContentText(getString(R.string.change_sleep_fm_setting_notice))
++            .setStyle(new Notification.BigTextStyle().bigText(atTimeNotice)
++                .setBigContentTitle(getString(R.string.fm_sleep_fm))
++                .setSummaryText(getString(R.string.change_sleep_fm_setting_notice)));
++
++        if (mNotificationMgr != null) {
++            mNotificationMgr.notify(FmService.NOTIFICATION_SLEEP_FM_ID, notifyBuilder.build());
++        }
++    }
++
++    @Override
++    public void onSetSleepFMDelayed(long delayMillis) {
++        if (mService == null) {
++            return;
++        }
++
++        mService.sleepFMDelayed(delayMillis);
++
++        int minus = (int)((delayMillis/1000/60) % 60);
++        int hours = (int)(delayMillis/1000/60/60);
++        String text = getString(R.string.sleep_setted_delay_notice
++                , new String[] {String.valueOf(hours), String.valueOf(minus)});
++        Toast.makeText(this, text, Toast.LENGTH_LONG).show();
++
++        Calendar cal = Calendar.getInstance();
++        final int newHours = cal.get(Calendar.HOUR_OF_DAY) + hours;
++        final int newMinus = cal.get(Calendar.MINUTE) + minus;
++        cal.set(Calendar.HOUR_OF_DAY, newHours);
++        cal.set(Calendar.MINUTE, newMinus);
++
++        final String notifyText = getNotifyAtTimeText(cal);
++
++        sendSleepFMNotification(notifyText);
++    }
++
++    @Override
++    public void onSetSleepFMAtTime(long upTimeMillis) {
++        if (mService == null) {
++            return;
++        }
++
++        //mService.sleepFMAtTime(upTimeMillis);
++
++        Calendar cal = Calendar.getInstance();
++        mService.sleepFMDelayed(upTimeMillis - cal.getTimeInMillis());
++
++        cal.setTimeInMillis(upTimeMillis);
++
++        final String text = getNotifyAtTimeText(cal);
++        Toast.makeText(this, text, Toast.LENGTH_LONG).show();
++
++        sendSleepFMNotification(text);
++    }
++
++    private String getNotifyAtTimeText(Calendar atCal) {
++        DateFormat df = new SimpleDateFormat(getString(R.string.fm_notification_date_form));
++        String text = getString(R.string.sleep_setted_at_time_notice
++                , new String[] {String.valueOf(df.format(atCal.getTime()))});
++        return text;
++    }
++
++    @Override
++    public void onSetSleepFMNone() {
++        if (mService != null) {
++            mService.cancelSleepFM();
++        }
++    }
++    /* End: Added by bu.xinchun 2015-12-08. For Sleep FM func. */
++
+     // When call bind service, it will call service connect. register call back
+     // listener and initial device
+     private final ServiceConnection mServiceConnection = new ServiceConnection() {
+@@ -569,6 +675,8 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
+         initUiComponent();
+         registerButtonClickListener();
+         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
++        //For Sleep FM.
++        mNotificationMgr = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE); // added by bu.xinchun
+ 
+         mScroller = (FmScroller) findViewById(R.id.multiscroller);
+         mScroller.initialize();
+@@ -857,6 +965,8 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
+         mMenuItemHeadset = menu.findItem(R.id.fm_headset);
+         mMenuItemStartRecord = menu.findItem(R.id.fm_start_record);
+         mMenuItemRecordList = menu.findItem(R.id.fm_record_list);
++        //For Sleep FM.
++        mMenuItemSleepFM = menu.findItem(R.id.fm_sleep_fm_setting);
+         if (null != mMenuItemHeadset) {
+             mMenuItemHeadset.setTitle(R.string.optmenu_earphone);
+         }
+@@ -883,6 +993,11 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
+         // if fm power down by other app, should enable power menu, make it to
+         // powerup.
+         refreshActionMenuItem(isSeeking ? false : isPowerUp);
++		//START. For Sleep FM.
++        if (mMenuItemSleepFM == null) {
++            mMenuItemSleepFM = menu.findItem(R.id.fm_sleep_fm_setting);
++        }
++		//END. For Sleep FM.
+         refreshPopupMenuItem(isPowerUp);
+         refreshPlayButton(isSeeking ? false
+                 : (isPowerUp || (isPowerdown && !mIsDisablePowerMenu)));
+@@ -937,6 +1052,15 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
+             case R.id.fm_record_list:
+                 openSavedRecordings();
+                 break;
++            /* Begin: Added by bu.xinchun 2015-12-08. For Sleep FM func. */
++            case R.id.fm_sleep_fm_setting:
++                if (mService != null) {
++                    FmSleepSettingDialog sleepFmDlgFragment = new FmSleepSettingDialog(this);
++                    sleepFmDlgFragment.show(mFragmentManager, "TAG_SLEEP_FM");
++                    mFragmentManager.executePendingTransactions();
++                }
++                break;
++            /* End: Added by bu.xinchun 2015-12-08. For Sleep FM func. */
+             default:
+                 Log.e(TAG, "onOptionsItemSelected, invalid options menu item.");
+                 break;
+@@ -1130,9 +1254,16 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
+     }
+ 
+     private void refreshPopupMenuItem(boolean enabled) {
++        //START. For Sleep FM.
+         if (null != mMenuItemStationlList) {
+-            mMenuItemStartRecord.setEnabled(enabled);
++            if (null != mMenuItemStartRecord) {
++                mMenuItemStartRecord.setEnabled(enabled);
++            }
++        }
++        if (null != mMenuItemSleepFM) {
++            mMenuItemSleepFM.setEnabled(enabled);
+         }
++        //END. For Sleep FM.
+     }
+ 
+     /**
+diff --git a/alps/packages/apps/FMRadio/src/com/android/fmradio/FmService.java b/alps/packages/apps/FMRadio/src/com/android/fmradio/FmService.java
+old mode 100644
+new mode 100755
+index f4c5c65..9c84afa
+--- a/alps/packages/apps/FMRadio/src/com/android/fmradio/FmService.java
++++ b/alps/packages/apps/FMRadio/src/com/android/fmradio/FmService.java
+@@ -66,6 +66,12 @@ import java.util.Arrays;
+ import java.util.HashMap;
+ import java.util.Iterator;
+ 
++//START. For Sleep FM.
++import android.app.NotificationManager;
++import android.content.SharedPreferences;
++import com.android.fmradio.dialogs.FmSleepSettingDialog;
++//END. For Sleep FM.
++
+ /**
+  * Background service to control FM or do background tasks.
+  */
+@@ -99,6 +105,9 @@ public class FmService extends Service implements FmRecorder.OnRecorderStateChan
+     // Notification id
+     private static final int NOTIFICATION_ID = 1;
+ 
++    //For Sleep FM.
++    public static final int NOTIFICATION_SLEEP_FM_ID = 1949; // Added by bu.xinchun
++
+     // ignore audio data
+     private static final int AUDIO_FRAMES_TO_IGNORE_COUNT = 3;
+ 
+@@ -1871,6 +1880,64 @@ public class FmService extends Service implements FmRecorder.OnRecorderStateChan
+         mFmServiceHandler.sendEmptyMessage(FmListener.MSGID_FM_EXIT);
+     }
+ 
++    /* Begin: Added by bu.xinchun 2015-12-15, for sleep FM func. */
++    private Thread thExit = new Thread() {
++        public void run() {
++            exitFm();
++            stopSelf();
++        }
++    };
++
++    /**
++     * Exit FMRadio application after delayed million seconds.
++     */
++    public void sleepFMDelayed(long delayMillis) {
++        if (mFmServiceHandler != null) {
++            //mFmServiceHandler.removeCallbacksAndMessages(null);
++
++            /*mFmServiceHandler.removeMessages(FmListener.MSGID_SLEEP_FM);
++            mFmServiceHandler.sendEmptyMessageDelayed(
++                    FmListener.MSGID_SLEEP_FM, delayMillis);*/
++
++            mFmServiceHandler.removeCallbacks(thExit);
++            mFmServiceHandler.postDelayed(thExit, delayMillis);
++        }
++    }
++
++    /**
++     * Exit FMRadio application at a certain million seconds.
++     */
++    public void sleepFMAtTime(long uptimeMillis) {
++        if (mFmServiceHandler != null) {
++            //mFmServiceHandler.removeCallbacksAndMessages(null);
++
++            /*mFmServiceHandler.removeMessages(FmListener.MSGID_SLEEP_FM);
++            mFmServiceHandler.sendEmptyMessageAtTime(FmListener.MSGID_SLEEP_FM
++                    ,uptimeMillis);*/
++
++            mFmServiceHandler.removeCallbacks(thExit);
++            mFmServiceHandler.postAtTime(thExit, uptimeMillis);
++        }
++    }
++
++    /**
++     * Exit FMRadio application at a certain million seconds.
++     */
++    public void cancelSleepFM() {
++        Log.d(TAG, "[cancelSleepFMSetting]");
++        if (mFmServiceHandler != null) {
++            mFmServiceHandler.removeMessages(FmListener.MSGID_SLEEP_FM);
++        }
++
++        NotificationManager nMgr = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
++        nMgr.cancel(FmService.NOTIFICATION_SLEEP_FM_ID);
++
++        SharedPreferences sp = getSharedPreferences(
++                FmSleepSettingDialog.PREF_SLEEP_FM_FILE_NAME, Context.MODE_PRIVATE);
++        sp.edit().remove(FmSleepSettingDialog.PREF_SLEEP_FM_KEY).commit();
++    }
++    /* End: Added by bu.xinchun 2015-12-15, for sleep FM func. */
++
+     @Override
+     public void onConfigurationChanged(Configuration newConfig) {
+         super.onConfigurationChanged(newConfig);
+@@ -2969,6 +3036,8 @@ public class FmService extends Service implements FmRecorder.OnRecorderStateChan
+ 
+                 // fm exit
+                 case FmListener.MSGID_FM_EXIT:
++                    //For Sleep SM.
++                    cancelSleepFM(); // Added by bu.xinchun
+                     if (mIsSpeakerUsed) {
+                         setForceUse(false);
+                     }
+@@ -2984,6 +3053,14 @@ public class FmService extends Service implements FmRecorder.OnRecorderStateChan
+                     }
+                     break;
+ 
++                /* Begin: Added by bu.xinchun 2015-12-15, for sleep FM func. */
++                // Sleep FM at a setted time.
++                case FmListener.MSGID_SLEEP_FM:
++                    exitFm();
++                    stopSelf();
++                    break;
++                /* End: Added by bu.xinchun 2015-12-15, for sleep FM func. */
++
+                 // switch antenna
+                 case FmListener.MSGID_SWITCH_ANTENNA:
+                     bundle = msg.getData();
+diff --git a/alps/packages/apps/FMRadio/src/com/android/fmradio/dialogs/FmSleepSettingDialog.java b/alps/packages/apps/FMRadio/src/com/android/fmradio/dialogs/FmSleepSettingDialog.java
+new file mode 100755
+index 0000000..048f36f
+--- /dev/null
++++ b/alps/packages/apps/FMRadio/src/com/android/fmradio/dialogs/FmSleepSettingDialog.java
+@@ -0,0 +1,144 @@
++package com.android.fmradio.dialogs;
++
++import android.app.AlertDialog;
++import android.app.Dialog;
++import android.app.DialogFragment;
++import android.app.TimePickerDialog;
++import android.app.TimePickerDialog.OnTimeSetListener;
++import android.content.Context;
++import android.content.DialogInterface;
++import android.content.DialogInterface.OnClickListener;
++import android.content.SharedPreferences;
++import android.os.Bundle;
++import android.util.Log;
++import android.widget.TimePicker;
++
++import com.android.fmradio.R;
++
++import java.util.Calendar;
++
++/**
++ * Pick a sleep time to close FM.
++ * @author bu.xinchun 2015-12-08
++ * Modified by bu.xinchun 2015-12-15.
++ */
++public class FmSleepSettingDialog extends DialogFragment {
++
++    private static final String TAG = FmSleepSettingDialog.class.getSimpleName();
++    public static final String PREF_SLEEP_FM_FILE_NAME = "fm_sleep_fm_setting_selection";
++    public static final String PREF_SLEEP_FM_KEY = "fm_sleep_setting_selected_item_index";
++
++    public static interface OnSleepFMSettingChangedLister {
++        void onSetSleepFMDelayed(long delayMillies);
++        void onSetSleepFMAtTime(long upTimeMillies);
++        void onSetSleepFMNone();
++    }
++
++    private int newSelectedItem = -1;
++    private int oldSelectedItem;
++    private OnSleepFMSettingChangedLister mSleepSettingListener;
++
++    public FmSleepSettingDialog(OnSleepFMSettingChangedLister mListener) {
++        mSleepSettingListener = mListener;
++    }
++
++    @Override
++    public Dialog onCreateDialog(Bundle savedInstanceState) {
++        if (savedInstanceState != null) {
++        }
++        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
++        builder.setTitle(R.string.fm_sleep_fm);
++
++        final String [] baseChoices = getResources().getStringArray(R.array.sleep_fm_deley_minutes_entry);
++        String [] choices = new String[baseChoices.length + 2];
++        for (int i = 0; i < baseChoices.length; i++) {
++            choices[i] = baseChoices[i];
++        }
++        choices[baseChoices.length] = getString(R.string.sleep_fm_custom_time);
++        choices[baseChoices.length + 1] = getString(R.string.sleep_fm_none);
++
++        int [] baseChoicesVals = getResources().getIntArray(R.array.sleep_fm_deley_minutes_entry_values);
++        int [] choicesVals = new int [baseChoicesVals.length + 2];
++        choicesVals[baseChoicesVals.length] = -1;
++        choicesVals[baseChoicesVals.length + 1] = -2;
++
++        SharedPreferences sp = getActivity().getSharedPreferences(PREF_SLEEP_FM_FILE_NAME, Context.MODE_PRIVATE);
++        oldSelectedItem = sp.getInt(PREF_SLEEP_FM_KEY, baseChoices.length + 1);
++        newSelectedItem = oldSelectedItem;
++
++        builder.setSingleChoiceItems(choices, oldSelectedItem, new OnClickListener() {
++
++            public void onClick(DialogInterface dialog, int which) {
++                newSelectedItem = which;
++            }
++        });
++
++        builder.setNegativeButton(android.R.string.no, null);
++        builder.setPositiveButton(android.R.string.yes, new OnClickListener() {
++
++            @Override
++            public void onClick(DialogInterface dialog, int which) {
++                Log.i("bxc", "curSelectedPos = " + newSelectedItem
++                        + ", which = " + which);
++                if (newSelectedItem != oldSelectedItem || newSelectedItem == baseChoices.length) {
++                    SharedPreferences sp = getActivity().getSharedPreferences(PREF_SLEEP_FM_FILE_NAME, Context.MODE_PRIVATE);
++                    sp.edit().putInt(PREF_SLEEP_FM_KEY, newSelectedItem).commit();
++
++                    startSleepFmConfig(newSelectedItem);
++                }
++                dialog.dismiss();
++            }
++        });
++        return builder.create();
++    }
++
++    void startSleepFmConfig(int selectWhich) {
++        int [] baseChoices = getResources().getIntArray(R.array.sleep_fm_deley_minutes_entry_values);
++        if (selectWhich == baseChoices.length + 1) {
++            // None
++            if (mSleepSettingListener != null) {
++                mSleepSettingListener.onSetSleepFMNone();
++            }
++            return;
++        } else if (selectWhich == baseChoices.length) {
++            // Custom
++            showTimePickerDialog();
++        } else if (selectWhich >= 0 && selectWhich < baseChoices.length) {
++            int minutes = baseChoices[selectWhich];
++
++            if (mSleepSettingListener != null) {
++                mSleepSettingListener.onSetSleepFMDelayed(minutes * 60 * 1000);
++            }
++        }
++    }
++
++    private final void showTimePickerDialog() {
++        // select a time.
++        Calendar calendar = Calendar.getInstance();
++
++        TimePickerDialog timePicker = new TimePickerDialog(getActivity()
++                , new OnTimeSetListener() {
++
++            @Override
++            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
++                Calendar cal2 = Calendar.getInstance();
++                cal2.set(Calendar.HOUR_OF_DAY, hourOfDay);
++                cal2.set(Calendar.MINUTE, minute);
++
++                Calendar cal = Calendar.getInstance();
++                long afterMillies = cal2.getTimeInMillis() - cal.getTimeInMillis();
++
++                if (afterMillies < 60*1000) {
++                    cal2.set(Calendar.DAY_OF_MONTH, cal2.get(Calendar.DAY_OF_MONTH) + 1);
++                }
++
++                if (mSleepSettingListener != null) {
++                    mSleepSettingListener.onSetSleepFMAtTime(cal2.getTimeInMillis());
++                }
++            }
++        }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true);
++
++        timePicker.show();
++    }
++
++}
+-- 
+1.7.9.5
+

@@ -1,0 +1,64 @@
+From d2088657b42359d53768fcac348893867ae5519b Mon Sep 17 00:00:00 2001
+From: zhangjuntao <zhang.juntao@eastaeon.com>
+Date: Thu, 10 Mar 2016 13:37:19 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E5=BD=95=E9=9F?=
+ =?UTF-8?q?=B3=E6=A0=BC=E5=BC=8F=E9=BB=98=E8=AE=A4=E4=B8=BAogg?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../android/soundrecorder/RecordParamsSetting.java |   21 ++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+
+diff --git a/alps/packages/apps/SoundRecorder/src/com/android/soundrecorder/RecordParamsSetting.java b/alps/packages/apps/SoundRecorder/src/com/android/soundrecorder/RecordParamsSetting.java
+index 5296969..f8343f7 100755
+--- a/alps/packages/apps/SoundRecorder/src/com/android/soundrecorder/RecordParamsSetting.java
++++ b/alps/packages/apps/SoundRecorder/src/com/android/soundrecorder/RecordParamsSetting.java
+@@ -118,6 +118,7 @@ public class RecordParamsSetting {
+                         /* here use 0/1/2 indicate parameters first/second/third recording
+                          * quality, rather than high/middle/low
+                          */
++                        /*
+                         params = sParams[selectFormat].clone();
+                         recordParams.mAudioEncoder =
+                                 sPreferences.getInt(HIGH_ENCODER, params[0]);
+@@ -129,8 +130,19 @@ public class RecordParamsSetting {
+                                 sPreferences.getInt(HIGH_SAMPLE_RATE, params[3]);
+                         recordParams.mOutputFormat =
+                                 sPreferences.getInt(HIGH_OUTPUT_FORMAT, params[4]);
++						*/
++
++					    recordParams.mAudioChannels = AUDIO_CHANNELS_STEREO; 
++                        recordParams.mAudioEncoder = MediaRecorder.AudioEncoder.VORBIS; 
++                                               recordParams.mAudioEncodingBitRate = ENCODE_BITRATE_VORBIS; 
++                        recordParams.mRemainingTimeCalculatorBitRate = ENCODE_BITRATE_VORBIS; 
++                        recordParams.mAudioSamplingRate = SAMPLE_RATE_VORBIS; 
++                        recordParams.mExtension = ".ogg"; 
++                        recordParams.mMimeType = AUDIO_OGG; 
++                        recordParams.mOutputFormat = MediaRecorder.OutputFormat.OUTPUT_FORMAT_OGG;
+                         break;
+                     case 1:
++						/*
+                         params = sParams[selectFormat].clone();
+                         recordParams.mAudioEncoder =
+                                 sPreferences.getInt(STANDARD_ENCODER, params[0]);
+@@ -142,6 +154,15 @@ public class RecordParamsSetting {
+                                 sPreferences.getInt(STANDARD_SAMPLE_RATE, params[3]);
+                         recordParams.mOutputFormat =
+                                 sPreferences.getInt(STANDARD_OUTPUT_FORMAT, params[4]);
++                                */
++                        recordParams.mAudioChannels = AUDIO_CHANNELS_STEREO; 
++                        recordParams.mAudioEncoder = MediaRecorder.AudioEncoder.VORBIS; 
++                                               recordParams.mAudioEncodingBitRate = ENCODE_BITRATE_VORBIS; 
++                        recordParams.mRemainingTimeCalculatorBitRate = ENCODE_BITRATE_VORBIS; 
++                        recordParams.mAudioSamplingRate = SAMPLE_RATE_VORBIS; 
++                        recordParams.mExtension = ".ogg"; 
++                        recordParams.mMimeType = AUDIO_OGG; 
++                        recordParams.mOutputFormat = MediaRecorder.OutputFormat.OUTPUT_FORMAT_OGG;
+                         break;
+                     case 2:
+                         params = sParams[selectFormat].clone();
+-- 
+1.7.9.5
+

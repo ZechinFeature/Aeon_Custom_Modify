@@ -1,0 +1,116 @@
+From 1509c12bb56e6b5cadbd3fb364ee85049ef1064c Mon Sep 17 00:00:00 2001
+From: guoxiaolin <guo.xiaolin@eastaeon.com>
+Date: Wed, 9 Mar 2016 14:34:28 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91+7=E4=B8=8E8=E5?=
+ =?UTF-8?q?=8F=B7=E7=A0=81=E5=8C=B9=E9=85=8D?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../providers/telephony/MmsSmsProvider.java        |   34 ++++++++++++++++++++
+ .../android/providers/telephony/SmsProvider.java   |   34 ++++++++++++++++++--
+ 2 files changed, 65 insertions(+), 3 deletions(-)
+ mode change 100644 => 100755 alps/packages/providers/TelephonyProvider/src/com/android/providers/telephony/MmsSmsProvider.java
+ mode change 100644 => 100755 alps/packages/providers/TelephonyProvider/src/com/android/providers/telephony/SmsProvider.java
+
+diff --git a/alps/packages/providers/TelephonyProvider/src/com/android/providers/telephony/MmsSmsProvider.java b/alps/packages/providers/TelephonyProvider/src/com/android/providers/telephony/MmsSmsProvider.java
+old mode 100644
+new mode 100755
+index b064bf0..b1ef532
+--- a/alps/packages/providers/TelephonyProvider/src/com/android/providers/telephony/MmsSmsProvider.java
++++ b/alps/packages/providers/TelephonyProvider/src/com/android/providers/telephony/MmsSmsProvider.java
+@@ -1446,6 +1446,40 @@ public class MmsSmsProvider extends ContentProvider {
+                                 isEqual = true;
+                                 break;
+                             }
++							//example by mtk begin
++                            if (isPhoneNumber && (refinedAddress != null && refinedAddress.length() <= NORMAL_NUMBER_MAX_LENGTH)) {
++                                if (PhoneNumberUtils.compare(refinedAddress, addressValue, mUseStrictPhoneNumberComparation)) {
++                                    isEqual = true;
++                                    break;
++                                }
++							else
++							{
++											  
++											String temp_refinedAddress = null;
++											String temp_addressValue = null;
++							 Log.d(LOG_TAG, "refinedAddress2:"+refinedAddress); 
++							 Log.d(LOG_TAG, "addressValue2:"+addressValue);
++									  if((refinedAddress.startsWith("+7"))&&(addressValue.startsWith("8"))&&(refinedAddress.length()== (addressValue.length()+1)))
++									  {
++											temp_refinedAddress = refinedAddress.replace("+7", "8");
++											temp_addressValue = addressValue;
++									  }
++									  else if((addressValue.startsWith("+7"))&&(refinedAddress.startsWith("8"))&&(addressValue.length()== (refinedAddress.length()+1)))
++									  {
++											temp_refinedAddress = refinedAddress;
++											temp_addressValue = addressValue.replace("+7", "8");
++									  }
++							 Log.d(LOG_TAG, "temp_refinedAddress2:"+temp_refinedAddress);
++							 Log.d(LOG_TAG, "temp_addressValue2:"+temp_addressValue);
++							 if(temp_refinedAddress != null&&temp_addressValue != null) 
++							 {
++														 isEqual = PhoneNumberUtils.compare(temp_refinedAddress, temp_addressValue, mUseStrictPhoneNumberComparation);
++							  Log.d(LOG_TAG, "isEqual2:"+isEqual);
++														 break;
++													 } 
++							}
++							}
++							//example by mtk end
+                             if (isPhoneNumber && (refinedAddress != null
+                                     && refinedAddress.length() <= NORMAL_NUMBER_MAX_LENGTH)
+                                     && (addressValue != null
+diff --git a/alps/packages/providers/TelephonyProvider/src/com/android/providers/telephony/SmsProvider.java b/alps/packages/providers/TelephonyProvider/src/com/android/providers/telephony/SmsProvider.java
+old mode 100644
+new mode 100755
+index 6394fd7..e767f90
+--- a/alps/packages/providers/TelephonyProvider/src/com/android/providers/telephony/SmsProvider.java
++++ b/alps/packages/providers/TelephonyProvider/src/com/android/providers/telephony/SmsProvider.java
+@@ -1704,12 +1704,40 @@ public class SmsProvider extends ContentProvider {
+                             retVal = addressesMap.get(addressValue);
+                             break;
+                         }
++						//by Mtk
++					   else
++					   {
++							   String temp_refinedAddress = null;
++							   String temp_addressValue = null;
++							   Log.d(TAG, "refinedAddress2:"+refinedAddress); 
++							   Log.d(TAG, "addressValue2:"+addressValue);
++							   if((refinedAddress.startsWith("+7"))&&(addressValue.startsWith("8"))&&(refinedAddress.length()== (addressValue.length()+1)))
++							   {
++									   temp_refinedAddress = refinedAddress.replace("+7", "8");
++									   temp_addressValue = addressValue;
++							   }
++							   else if((addressValue.startsWith("+7"))&&(refinedAddress.startsWith("8"))&&(addressValue.length()== (refinedAddress.length()+1)))
++							   {
++									   temp_refinedAddress = refinedAddress;
++									   temp_addressValue = addressValue.replace("+7", "8");
++							   }
++									   Log.d(TAG, "temp_refinedAddress2:"+temp_refinedAddress);
++									   Log.d(TAG, "temp_addressValue2:"+temp_addressValue);
++							   if (temp_refinedAddress != null&&temp_addressValue != null) 
++							   {
++									   if (PhoneNumberUtils.compare(temp_refinedAddress, temp_addressValue, useStrictPhoneNumberComparation))
++									   {
++									   Log.d(TAG, "PhoneNumberUtils.compare return true");
++									   retVal = addressesMap.get(addressValue);
++									   Log.d(TAG, "retVal:"+retVal);
++									   break;
++									   }
++							   } 
++					   }
++					   //by mtk
+                     }
+                 }
+             }
+-            if (!needInsert) {
+-                return retVal;
+-            }
+             if (retVal == -1L) {
+                 retVal = insertCanonicalAddresses(db, refinedAddress);
+                 Log.d(TAG, "getSingleAddressId: insert new canonical_address for " +
+-- 
+1.7.9.5
+

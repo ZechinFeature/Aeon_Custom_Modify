@@ -1,0 +1,164 @@
+From 18b2153b9724b7dc9e422c149d3f492213f9411d Mon Sep 17 00:00:00 2001
+From: "Xia.Fei" <xia.fei@eastaeon.com>
+Date: Thu, 10 Mar 2016 15:25:20 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=E4=BF=AE=E6=94=B9=E7=85=A7=E7?=
+ =?UTF-8?q?=89=87=E3=80=81=E5=BD=95=E5=83=8F=E3=80=81=E5=BD=95=E9=9F=B3=E7=AD?=
+ =?UTF-8?q?=89=E6=96=87=E4=BB=B6=E5=90=8D=E6=A0=BC=E5=BC=8F?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../src/com/android/fmradio/FmRecorder.java        |    4 ++--
+ alps/packages/apps/Gallery2/res/values/strings.xml |    6 +++---
+ .../apps/LegacyCamera/res/values/strings.xml       |    6 +++---
+ .../src/com/android/soundrecorder/Recorder.java    |    4 ++--
+ .../com/mediatek/telecom/recording/Recorder.java   |    7 ++++++-
+ .../packages/apps/Camera/res/values/strings.xml    |    4 ++--
+ 6 files changed, 18 insertions(+), 13 deletions(-)
+ mode change 100644 => 100755 alps/packages/apps/FMRadio/src/com/android/fmradio/FmRecorder.java
+ mode change 100644 => 100755 alps/packages/apps/LegacyCamera/res/values/strings.xml
+ mode change 100644 => 100755 alps/packages/apps/SoundRecorder/src/com/android/soundrecorder/Recorder.java
+
+diff --git a/alps/packages/apps/FMRadio/src/com/android/fmradio/FmRecorder.java b/alps/packages/apps/FMRadio/src/com/android/fmradio/FmRecorder.java
+old mode 100644
+new mode 100755
+index 4d981e0..4847c95
+--- a/alps/packages/apps/FMRadio/src/com/android/fmradio/FmRecorder.java
++++ b/alps/packages/apps/FMRadio/src/com/android/fmradio/FmRecorder.java
+@@ -43,7 +43,7 @@ import java.util.Locale;
+ public class FmRecorder implements MediaRecorder.OnErrorListener, MediaRecorder.OnInfoListener {
+     private static final String TAG = "FmRecorder";
+     // file prefix
+-    public static final String RECORDING_FILE_PREFIX = "FM";
++    public static final String RECORDING_FILE_PREFIX = "FMR";
+     // file extension
+     public static final String RECORDING_FILE_EXTENSION = ".3gpp";
+     // recording file folder
+@@ -125,7 +125,7 @@ public class FmRecorder implements MediaRecorder.OnErrorListener, MediaRecorder.
+         // create recording temporary file
+         long curTime = System.currentTimeMillis();
+         Date date = new Date(curTime);
+-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("MMddyyyy_HHmmss",
++        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("ddMMyy_HHmmss",
+                 Locale.ENGLISH);
+         String time = simpleDateFormat.format(date);
+         StringBuilder stringBuilder = new StringBuilder();
+diff --git a/alps/packages/apps/Gallery2/res/values/strings.xml b/alps/packages/apps/Gallery2/res/values/strings.xml
+index 61d3054..a646247 100755
+--- a/alps/packages/apps/Gallery2/res/values/strings.xml
++++ b/alps/packages/apps/Gallery2/res/values/strings.xml
+@@ -839,13 +839,13 @@
+     <string name="spaceIsLow_content" product="default">Your SD card is running out of space. Change the quality setting or delete some images or other files.</string>
+ 
+     <!-- Camera format string for new image files. Passed to java.text.SimpleDateFormat. -->
+-    <string name="image_file_name_format" translatable="false">"'IMG'_yyyyMMdd_HHmmss"</string>
++    <string name="image_file_name_format" translatable="false">"'IMG'_ddMMyy_HHmmss"</string>
+ 
+     <!-- Video Camera format string for new video files. Passed to java.text.SimpleDateFormat. -->
+-    <string name="video_file_name_format" translatable="false">"'VID'_yyyyMMdd_HHmmss"</string>
++    <string name="video_file_name_format" translatable="false">"'VID'_ddMMyy_HHmmss"</string>
+ 
+     <!-- Filename prefix for panorama output. -->
+-    <string name="pano_file_name_format" translatable="false">"'PANO'_yyyyMMdd_HHmmss"</string>
++    <string name="pano_file_name_format" translatable="false">"'PANO'_ddMMyy_HHmmss"</string>
+ 
+     <!-- The message shown when video record reaches size limit. -->
+     <string name="video_reach_size_limit">Size limit reached.</string>
+diff --git a/alps/packages/apps/LegacyCamera/res/values/strings.xml b/alps/packages/apps/LegacyCamera/res/values/strings.xml
+old mode 100644
+new mode 100755
+index 1a10af2..b0e857b
+--- a/alps/packages/apps/LegacyCamera/res/values/strings.xml
++++ b/alps/packages/apps/LegacyCamera/res/values/strings.xml
+@@ -221,13 +221,13 @@
+     <string name="spaceIsLow_content" product="default">Your SD card is running out of space. Change the quality setting or delete some images or other files.</string>
+ 
+     <!-- Camera format string for new image files. Passed to java.text.SimpleDateFormat. -->
+-    <string name="image_file_name_format" translatable="false">"'IMG'_yyyyMMdd_HHmmss"</string>
++    <string name="image_file_name_format" translatable="false">"'IMG'_ddMMyy_HHmmss"</string>
+ 
+     <!-- Video Camera format string for new video files. Passed to java.text.SimpleDateFormat. -->
+-    <string name="video_file_name_format" translatable="false">"'VID'_yyyyMMdd_HHmmss"</string>
++    <string name="video_file_name_format" translatable="false">"'VID'_ddMMyy_HHmmss"</string>
+ 
+     <!-- Filename prefix for panorama output. -->
+-    <string name="pano_file_name_format" translatable="false">"'PANO'_yyyyMMdd_HHmmss"</string>
++    <string name="pano_file_name_format" translatable="false">"'PANO'_ddMMyy_HHmmss"</string>
+ 
+     <!-- The messsage shown when video record reaches size limit. -->
+     <string name="video_reach_size_limit">Size limit reached.</string>
+diff --git a/alps/packages/apps/SoundRecorder/src/com/android/soundrecorder/Recorder.java b/alps/packages/apps/SoundRecorder/src/com/android/soundrecorder/Recorder.java
+old mode 100644
+new mode 100755
+index 69bf37e..516173b
+--- a/alps/packages/apps/SoundRecorder/src/com/android/soundrecorder/Recorder.java
++++ b/alps/packages/apps/SoundRecorder/src/com/android/soundrecorder/Recorder.java
+@@ -47,7 +47,7 @@ public class Recorder implements MediaRecorder.OnErrorListener {
+     public static final String SAMPLE_SUFFIX = ".tmp";
+ 
+     private static final String TAG = "SR/Recorder";
+-    private static final String SAMPLE_PREFIX = "record";
++    private static final String SAMPLE_PREFIX = "AUD_";
+ 
+     // M: the three below are all in millseconds
+     private long mSampleLength = 0;
+@@ -400,7 +400,7 @@ public class Recorder implements MediaRecorder.OnErrorListener {
+                 LogUtils.i(TAG, "<createRecordingFile> sample directory  is:"
+                         + sampleDir.toString());
+             }
+-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
++            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("ddMMyy_HHmmss");
+             String time = simpleDateFormat.format(new Date(System.currentTimeMillis()));
+             StringBuilder stringBuilder = new StringBuilder();
+             stringBuilder.append(SAMPLE_PREFIX).append(time).append(myExtension);
+diff --git a/alps/packages/services/Telecomm/src/com/mediatek/telecom/recording/Recorder.java b/alps/packages/services/Telecomm/src/com/mediatek/telecom/recording/Recorder.java
+index d607aa1..5a4c978 100755
+--- a/alps/packages/services/Telecomm/src/com/mediatek/telecom/recording/Recorder.java
++++ b/alps/packages/services/Telecomm/src/com/mediatek/telecom/recording/Recorder.java
+@@ -219,7 +219,7 @@ public class Recorder implements OnErrorListener {
+         log("startRecording");
+         stop();
+ 
+-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss");
++        SimpleDateFormat dateFormat = new SimpleDateFormat("'CAL_'ddMMyy_HHmmss");
+         String prefix = dateFormat.format(new Date());
+         File sampleDir = new File(StorageManagerEx.getDefaultPath());
+ 
+@@ -239,6 +239,9 @@ public class Recorder implements OnErrorListener {
+         mRecordStoragePath = sampleDir.getCanonicalPath();
+         /// @}
+ 
++        //START. By XiaFei. 20160310. Format the name of the recording files.
++        mSampleFile = new File(sampleDir, prefix+extension);
++        /*
+         try {
+             mSampleFile = File.createTempFile(prefix, extension, sampleDir);
+         } catch (IOException e) {
+@@ -246,6 +249,8 @@ public class Recorder implements OnErrorListener {
+             Log.i(TAG, "----***------- can't access sdcard !! " + e);
+             throw e;
+         }
++        */
++        //END. By XiaFei. 20160310. Format the name of the recording files.
+ 
+         log("finish creating temp file, start to record");
+ 
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/strings.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/strings.xml
+index 59bdb96..7f5ad22 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/strings.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/strings.xml
+@@ -360,8 +360,8 @@
+     <string name="dialog_ok">OK</string>
+     <string name="pref_restore_title">Camera settings</string>
+     <string name="pref_restore_detail">Restore defaults</string>
+-    <string name="image_file_name_format" translatable="false">"'IMG'_yyyyMMdd_HHmmss"</string>
+-    <string name="video_file_name_format" translatable="false">"'VID'_yyyyMMdd_HHmmss"</string>
++    <string name="image_file_name_format" translatable="false">"'IMG'_ddMMyy_HHmmss"</string>
++    <string name="video_file_name_format" translatable="false">"'VID'_ddMMyy_HHmmss"</string>
+     <string name="accessibility_switch">%1$s switch</string>
+     <string name="count_down_title_text">Counting down to take a photo</string>
+     <string name="video_reach_size_limit">Size limit reached.</string>
+-- 
+1.7.9.5
+

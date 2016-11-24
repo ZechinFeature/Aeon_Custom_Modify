@@ -1,0 +1,56 @@
+From 14a68346c9507813142118072c803a977c3b5c10 Mon Sep 17 00:00:00 2001
+From: zhangxiaobo <zhang.xiaobo@eastaeon.com>
+Date: Sat, 19 Mar 2016 11:23:26 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E4=BF=AE=E6=94?=
+ =?UTF-8?q?=B9=E9=94=81=E5=B1=8F=E6=97=A5=E6=9C=9F=E6=A0=BC=E5=BC=8F=E5=92=8C?=
+ =?UTF-8?q?=E8=AE=BE=E7=BD=AE=E4=B8=AD=E9=BB=98=E8=AE=A4=E6=97=A5=E6=9C=9F=E6?=
+ =?UTF-8?q?=A0=BC=E5=BC=8F?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../Keyguard/res/values/donottranslate.xml         |    4 ++--
+ .../src/com/android/settings/DateTimeSettings.java |    3 ++-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+ mode change 100644 => 100755 alps/frameworks/base/packages/Keyguard/res/values/donottranslate.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/src/com/android/settings/DateTimeSettings.java
+
+diff --git a/alps/frameworks/base/packages/Keyguard/res/values/donottranslate.xml b/alps/frameworks/base/packages/Keyguard/res/values/donottranslate.xml
+old mode 100644
+new mode 100755
+index a4d0ff7..807e858
+--- a/alps/frameworks/base/packages/Keyguard/res/values/donottranslate.xml
++++ b/alps/frameworks/base/packages/Keyguard/res/values/donottranslate.xml
+@@ -16,10 +16,10 @@
+ 
+ <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+     <!-- Skeleton string format for displaying the date. -->
+-    <string name="abbrev_wday_month_day_no_year">EEEEMMMMd</string>
++    <string name="abbrev_wday_month_day_no_year">dd/MM/yyyy</string>
+ 
+     <!-- Skeleton string format for displaying the date when an alarm is set. -->
+-    <string name="abbrev_wday_month_day_no_year_alarm">EEEMMMd</string>
++    <string name="abbrev_wday_month_day_no_year_alarm">dd/MM/yyyy</string>
+ 
+     <!-- Skeleton string format for displaying the time in 12-hour format. -->
+     <string name="clock_12hr_format">hm</string>
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/DateTimeSettings.java b/alps/packages/apps/Settings/src/com/android/settings/DateTimeSettings.java
+old mode 100644
+new mode 100755
+index 0215dfb..924dc32
+--- a/alps/packages/apps/Settings/src/com/android/settings/DateTimeSettings.java
++++ b/alps/packages/apps/Settings/src/com/android/settings/DateTimeSettings.java
+@@ -196,7 +196,8 @@ public class DateTimeSettings extends SettingsPreferenceFragment
+         // We use 13:00 so we can demonstrate the 12/24 hour options.
+         mDummyDate.set(now.get(Calendar.YEAR), 11, 31, 13, 0, 0);
+         Date dummyDate = mDummyDate.getTime();
+-        mDatePref.setSummary(DateFormat.getLongDateFormat(context).format(now.getTime()));
++        //mDatePref.setSummary(DateFormat.getLongDateFormat(context).format(now.getTime()));
++		mDatePref.setSummary(DateFormat.format("dd-MM-yyyy",now));
+         mTimePref.setSummary(DateFormat.getTimeFormat(getActivity()).format(now.getTime()));
+         mTimeZone.setSummary(ZoneGetter.getTimeZoneOffsetAndName(now.getTimeZone(), now.getTime()));
+         mTime24Pref.setSummary(DateFormat.getTimeFormat(getActivity()).format(dummyDate));
+-- 
+1.7.9.5
+

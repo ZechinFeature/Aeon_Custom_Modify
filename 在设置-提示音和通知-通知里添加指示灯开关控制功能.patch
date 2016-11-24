@@ -1,0 +1,355 @@
+From aa32557037d4cfadcbeda71daea514d1fae16e71 Mon Sep 17 00:00:00 2001
+From: liuyuanchang <liu.yuanchang@eastaeon.com>
+Date: Fri, 25 Mar 2016 14:09:42 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=E5=9C=A8=E8=AE=BE=E7=BD=AE-=E6?=
+ =?UTF-8?q?=8F=90=E7=A4=BA=E9=9F=B3=E5=92=8C=E9=80=9A=E7=9F=A5-=E9=80=9A=E7=9F?=
+ =?UTF-8?q?=A5=E9=87=8C=E6=B7=BB=E5=8A=A0=E6=8C=87=E7=A4=BA=E7=81=AF=E5=BC=80?=
+ =?UTF-8?q?=E5=85=B3=E6=8E=A7=E5=88=B6=E5=8A=9F=E8=83=BD?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../base/core/java/android/provider/Settings.java  |    2 +
+ .../android/providers/settings/DatabaseHelper.java |    2 +
+ .../java/com/android/server/BatteryService.java    |   67 ++++++++++++++++----
+ .../notification/NotificationManagerService.java   |   13 +++-
+ .../apps/Settings/res/values-pt-rPT/strings.xml    |    4 ++
+ .../apps/Settings/res/values-zh-rCN/strings.xml    |    4 ++
+ .../apps/Settings/res/values-zh-rTW/strings.xml    |    4 ++
+ alps/packages/apps/Settings/res/values/strings.xml |    3 +
+ .../res_ext/xml/audioprofile_notification.xml      |    6 ++
+ .../audioprofile/AudioProfileNotification.java     |   51 +++++++++++++++
+ 10 files changed, 142 insertions(+), 14 deletions(-)
+ mode change 100644 => 100755 alps/frameworks/base/core/java/android/provider/Settings.java
+ mode change 100644 => 100755 alps/frameworks/base/services/core/java/com/android/server/BatteryService.java
+ mode change 100644 => 100755 alps/frameworks/base/services/core/java/com/android/server/notification/NotificationManagerService.java
+ mode change 100644 => 100755 alps/packages/apps/Settings/res/values-pt-rPT/strings.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/res/values-zh-rCN/strings.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/res/values-zh-rTW/strings.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/res/values/strings.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/res_ext/xml/audioprofile_notification.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/src/com/mediatek/audioprofile/AudioProfileNotification.java
+
+diff --git a/alps/frameworks/base/core/java/android/provider/Settings.java b/alps/frameworks/base/core/java/android/provider/Settings.java
+old mode 100644
+new mode 100755
+index 217016f..bd84596
+--- a/alps/frameworks/base/core/java/android/provider/Settings.java
++++ b/alps/frameworks/base/core/java/android/provider/Settings.java
+@@ -6683,6 +6683,8 @@ public final class Settings {
+     public static final class Global extends NameValueTable {
+         public static final String SYS_PROP_SETTING_VERSION = "sys.settings_global_version";
+ 
++		/** @hide */ public static final String LED_NOTI_ENABLE = "led_noti_enable";
++
+         /**
+          * The content:// style URL for global secure settings items.  Not public.
+          */
+diff --git a/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java b/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+index f93e760..f05b5c3 100755
+--- a/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
++++ b/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+@@ -2752,6 +2752,8 @@ class DatabaseHelper extends SQLiteOpenHelper {
+             loadSetting(stmt, Settings.Global.ENHANCED_4G_MODE_ENABLED,
+                     ImsConfig.FeatureValueConstants.ON);
+ 
++			loadSetting(stmt,Settings.Global.LED_NOTI_ENABLE, 1); // add for led notification: 1 on,0 off
++
+             // M: Load MTK added Global providers before Android M.
+             mUtils.loadCustomGlobalSettings(stmt);
+ 
+diff --git a/alps/frameworks/base/services/core/java/com/android/server/BatteryService.java b/alps/frameworks/base/services/core/java/com/android/server/BatteryService.java
+old mode 100644
+new mode 100755
+index aa80252..4080c33
+--- a/alps/frameworks/base/services/core/java/com/android/server/BatteryService.java
++++ b/alps/frameworks/base/services/core/java/com/android/server/BatteryService.java
+@@ -242,6 +242,22 @@ public final class BatteryService extends SystemService {
+                         Settings.Global.LOW_POWER_MODE_TRIGGER_LEVEL),
+                         false, obs, UserHandle.USER_ALL);
+                 updateBatteryWarningLevelLocked();
++				// add for lec notification
++				ContentObserver obs1 = new ContentObserver(mHandler) {
++                    @Override
++                    public void onChange(boolean selfChange) {
++                        synchronized (mLock) {
++                            // Update the battery LED
++                            mLed.updateLightsLocked();
++                       }
++                    }
++                };
++                final ContentResolver resolver1 = mContext.getContentResolver();
++                resolver1.registerContentObserver(Settings.Global.getUriFor(
++                        Settings.Global.LED_NOTI_ENABLE),
++                        false, obs1, UserHandle.USER_ALL);
++                mLed.updateLightsLocked();
++				// add end
+             }
+         }
+     }
+@@ -839,6 +855,19 @@ public final class BatteryService extends SystemService {
+         public void updateLightsLocked() {
+             final int level = mBatteryProps.batteryLevel;
+             final int status = mBatteryProps.batteryStatus;
++			// add for led notification enable
++			boolean chargingledswitchoff = true;
++		    boolean lowbatteryledswitchoff = true;
++		    int enable = Settings.Global.getInt(mContext.getContentResolver(),Settings.Global.LED_NOTI_ENABLE, -1);
++			if (enable == 1) {
++				chargingledswitchoff = false;
++				lowbatteryledswitchoff = false;
++			} else{
++				chargingledswitchoff = true;
++				lowbatteryledswitchoff = true;
++			}
++			// add end
++
+             if (mIPOBoot)
+             {
+                 //Get led status in IPO mode
+@@ -846,26 +875,38 @@ public final class BatteryService extends SystemService {
+             }
+             if (level < mLowBatteryWarningLevel) {
+                 if (status == BatteryManager.BATTERY_STATUS_CHARGING) {
+-                    updateLedStatus();
+-                    // Solid red when battery is charging
+-                    mBatteryLight.setColor(mBatteryLowARGB);
++					if(!lowbatteryledswitchoff){ //@@ add by lych
++						updateLedStatus();
++						// Solid red when battery is charging
++						mBatteryLight.setColor(mBatteryLowARGB);
++					} //@@ add by lych
+                 } else {
+                     LowLevelFlag = true;
+-                    updateLedStatus();
+-                    // Flash red when battery is low and not charging
+-                    mBatteryLight.setFlashing(mBatteryLowARGB, Light.LIGHT_FLASH_TIMED,
+-                            mBatteryLedOn, mBatteryLedOff);
++					if(!lowbatteryledswitchoff){
++						updateLedStatus();
++						// Flash red when battery is low and not charging
++						mBatteryLight.setFlashing(mBatteryLowARGB, Light.LIGHT_FLASH_TIMED,
++								mBatteryLedOn, mBatteryLedOff);
++					}
+                 }
+             } else if (status == BatteryManager.BATTERY_STATUS_CHARGING
+                     || status == BatteryManager.BATTERY_STATUS_FULL) {
+                 if (status == BatteryManager.BATTERY_STATUS_FULL || level >= 90) {
+-                    updateLedStatus();
+-                    // Solid green when full or charging and nearly full
+-                    mBatteryLight.setColor(mBatteryFullARGB);
++					if(!chargingledswitchoff){
++						updateLedStatus();
++						// Solid green when full or charging and nearly full
++						mBatteryLight.setColor(mBatteryFullARGB);
++					}else{
++						mBatteryLight.turnOff();
++					}
+                 } else {
+-                    updateLedStatus();
+-                    // Solid orange when charging and halfway full
+-                    mBatteryLight.setColor(mBatteryMediumARGB);
++					if(!chargingledswitchoff){
++						updateLedStatus();
++						// Solid orange when charging and halfway full
++						mBatteryLight.setColor(mBatteryMediumARGB);
++					}else{
++						mBatteryLight.turnOff();
++					}
+                 }
+             } else {
+                 if (ipo_led_on && mIPOBoot) {
+diff --git a/alps/frameworks/base/services/core/java/com/android/server/notification/NotificationManagerService.java b/alps/frameworks/base/services/core/java/com/android/server/notification/NotificationManagerService.java
+old mode 100644
+new mode 100755
+index ac8b705..d097e8e
+--- a/alps/frameworks/base/services/core/java/com/android/server/notification/NotificationManagerService.java
++++ b/alps/frameworks/base/services/core/java/com/android/server/notification/NotificationManagerService.java
+@@ -3208,10 +3208,21 @@ public class NotificationManagerService extends SystemService {
+             }
+         }
+ 
++		// add begin by lych
++		int mvalue = Settings.Global.getInt(getContext().getContentResolver(),Settings.Global.LED_NOTI_ENABLE, -1);
++		Log.d("lych","mvalue:"+mvalue);
++        boolean notiledswitchoff = true;
++        if (mvalue ==1) {
++			notiledswitchoff = false;
++		} else{
++			notiledswitchoff = true;
++		}
++		// add end
++
+         // Don't flash while we are in a call or screen is on
+         // if (mLedNotification == null || mInCall || mScreenOn) {
+         /// M: Add DM/PPL lock related.
+-        if (ledNotification == null || mInCall || /*mScreenOn ||*/ mDmLock || mPplLock) {
++        if (ledNotification == null || mInCall || /*mScreenOn ||*/ mDmLock || mPplLock ||notiledswitchoff) {
+             mNotificationLight.turnOff();
+             mStatusBar.notificationLightOff();
+         } else {
+diff --git a/alps/packages/apps/Settings/res/values-pt-rPT/strings.xml b/alps/packages/apps/Settings/res/values-pt-rPT/strings.xml
+old mode 100644
+new mode 100755
+index 5818d07..c4105b2
+--- a/alps/packages/apps/Settings/res/values-pt-rPT/strings.xml
++++ b/alps/packages/apps/Settings/res/values-pt-rPT/strings.xml
+@@ -2880,4 +2880,8 @@
+     <string name="write_settings_description" msgid="6868293938839954623">"Esta autorização permite que uma aplicação modifique as definições do sistema."</string>
+     <string name="write_settings_on" msgid="8230580416068832239">"Sim"</string>
+     <string name="write_settings_off" msgid="5156104383386336233">"Não"</string>
++
++	<!-- add for led notification enabled or not -->
++	<string name="accessibility_toggle_led_control_preference_title_noti">Indicador de notificação</string>
++
+ </resources>
+diff --git a/alps/packages/apps/Settings/res/values-zh-rCN/strings.xml b/alps/packages/apps/Settings/res/values-zh-rCN/strings.xml
+old mode 100644
+new mode 100755
+index 94e27ea..dca5857
+--- a/alps/packages/apps/Settings/res/values-zh-rCN/strings.xml
++++ b/alps/packages/apps/Settings/res/values-zh-rCN/strings.xml
+@@ -2880,4 +2880,8 @@
+     <string name="write_settings_description" msgid="6868293938839954623">"此权限允许应用修改系统设置。"</string>
+     <string name="write_settings_on" msgid="8230580416068832239">"允许"</string>
+     <string name="write_settings_off" msgid="5156104383386336233">"不允许"</string>
++
++	<!-- add for led notification enabled or not -->
++	<string name="accessibility_toggle_led_control_preference_title_noti">通知指示灯</string>
++
+ </resources>
+diff --git a/alps/packages/apps/Settings/res/values-zh-rTW/strings.xml b/alps/packages/apps/Settings/res/values-zh-rTW/strings.xml
+old mode 100644
+new mode 100755
+index 1be26d3..6059443
+--- a/alps/packages/apps/Settings/res/values-zh-rTW/strings.xml
++++ b/alps/packages/apps/Settings/res/values-zh-rTW/strings.xml
+@@ -2884,4 +2884,8 @@
+     <string name="write_settings_description" msgid="6868293938839954623">"這項權限允許應用程式修改系統設定。"</string>
+     <string name="write_settings_on" msgid="8230580416068832239">"可"</string>
+     <string name="write_settings_off" msgid="5156104383386336233">"否"</string>
++
++	<!-- add for led notification enabled or not -->
++	<string name="accessibility_toggle_led_control_preference_title_noti">指示燈</string>
++
+ </resources>
+diff --git a/alps/packages/apps/Settings/res/values/strings.xml b/alps/packages/apps/Settings/res/values/strings.xml
+old mode 100644
+new mode 100755
+index ad5ca8c..ef983be
+--- a/alps/packages/apps/Settings/res/values/strings.xml
++++ b/alps/packages/apps/Settings/res/values/strings.xml
+@@ -6998,4 +6998,7 @@
+     <string name="write_settings_on">Yes</string>
+     <!-- Summary of app not allowed to write system settings [CHAR LIMIT=45] -->
+     <string name="write_settings_off">No</string>
++
++	<!-- add for led notification enabled or not -->
++	<string name="accessibility_toggle_led_control_preference_title_noti">Notification indicator</string>
+ </resources>
+diff --git a/alps/packages/apps/Settings/res_ext/xml/audioprofile_notification.xml b/alps/packages/apps/Settings/res_ext/xml/audioprofile_notification.xml
+old mode 100644
+new mode 100755
+index f7ec5f6..8a541b1
+--- a/alps/packages/apps/Settings/res_ext/xml/audioprofile_notification.xml
++++ b/alps/packages/apps/Settings/res_ext/xml/audioprofile_notification.xml
+@@ -27,6 +27,12 @@
+             android:value="com.android.settings.Settings$NotificationAppListActivity" />
+     </PreferenceScreen>
+ 
++	<!-- add for led notification enabled or not -->
++	<SwitchPreference
++        android:key="toggle_led_control_preference_noti"
++        android:title="@string/accessibility_toggle_led_control_preference_title_noti"
++        android:persistent="false"/>
++
+     <!-- Notification access -->
+     <Preference
+         android:key="manage_notification_access"
+diff --git a/alps/packages/apps/Settings/src/com/mediatek/audioprofile/AudioProfileNotification.java b/alps/packages/apps/Settings/src/com/mediatek/audioprofile/AudioProfileNotification.java
+old mode 100644
+new mode 100755
+index 0a955d9..24057bd
+--- a/alps/packages/apps/Settings/src/com/mediatek/audioprofile/AudioProfileNotification.java
++++ b/alps/packages/apps/Settings/src/com/mediatek/audioprofile/AudioProfileNotification.java
+@@ -20,6 +20,8 @@ import com.android.settings.notification.NotificationAccessSettings;
+ import com.android.settings.search.Indexable;
+ 
+ 
++import android.preference.SwitchPreference; // add begin for led notification enabled or not
++
+ public class AudioProfileNotification extends SettingsPreferenceFragment implements Indexable {
+ 
+     private static final String TAG = "AudioProfileNotification";
+@@ -38,6 +40,11 @@ public class AudioProfileNotification extends SettingsPreferenceFragment impleme
+     private boolean mSecure;
+     private int mLockscreenSelectedValue;
+ 
++    // add begin for led notification enabled or not
++	private static final String TOGGLE_LED_CONTROL_PREFERENCE_NOTI ="toggle_led_control_preference_noti";
++	private SwitchPreference mToggleLedControlPreferenceNoti;
++	// add end
++
+     /**
+      * called to do the initial creation of a fragment.
+      *
+@@ -61,6 +68,8 @@ public class AudioProfileNotification extends SettingsPreferenceFragment impleme
+ 
+         mNotificationAccess = findPreference(KEY_NOTIFICATION_ACCESS);
+         refreshNotificationListeners();
++
++		initLedNotiEnabled();// add by lych
+     }
+ 
+     /**
+@@ -200,4 +209,46 @@ public class AudioProfileNotification extends SettingsPreferenceFragment impleme
+         return MetricsLogger.NOTIFICATION;
+     }
+ 
++	// add begin for led notification enabled or not
++	private void initLedNotiEnabled(){
++		mToggleLedControlPreferenceNoti = (SwitchPreference) findPreference(TOGGLE_LED_CONTROL_PREFERENCE_NOTI);
++		mToggleLedControlPreferenceNoti.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
++			@Override
++			public boolean onPreferenceChange(Preference preference, Object newValue) {
++				final boolean val = (Boolean) newValue;
++				handleToggleLedControlPreferenceClickNoti(val);
++				return true;
++			}
++		});
++		updateLedNotiEnabledState();
++	}
++	private void handleToggleLedControlPreferenceClickNoti(boolean isChecked){
++	    if(isChecked){
++		    mToggleLedControlPreferenceNoti.setSummary(R.string.accessibility_feature_state_on);
++			Settings.Global.putInt(mContext.getContentResolver(),Settings.Global.LED_NOTI_ENABLE, 1);
++	    }else{
++			mToggleLedControlPreferenceNoti.setSummary(R.string.accessibility_feature_state_off);
++			Settings.Global.putInt(mContext.getContentResolver(),Settings.Global.LED_NOTI_ENABLE, 0);
++	    }
++    }
++
++	private void updateLedNotiEnabledState(){
++		int enable = Settings.Global.getInt(mContext.getContentResolver(),Settings.Global.LED_NOTI_ENABLE, -1);
++		Log.d("lych","led enable: "+enable);
++        boolean isLedControlEnabled = false;
++		if (enable == 1) {
++			isLedControlEnabled = true;
++		} else {
++			isLedControlEnabled = false;
++		}
++
++	    if(mToggleLedControlPreferenceNoti!= null){
++		    mToggleLedControlPreferenceNoti.setChecked(isLedControlEnabled);
++		    if(isLedControlEnabled){
++			    mToggleLedControlPreferenceNoti.setSummary(R.string.accessibility_feature_state_on);
++		    }else{
++			    mToggleLedControlPreferenceNoti.setSummary(R.string.accessibility_feature_state_off);
++		    }
++	    }
++	}
+ }
+-- 
+1.7.9.5
+

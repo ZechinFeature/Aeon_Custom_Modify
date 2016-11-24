@@ -1,0 +1,122 @@
+From 958d7c432d4415aa78091a3fdc1bad31bde23573 Mon Sep 17 00:00:00 2001
+From: "deng.yanjun" <deng.yanjun@eastaeon.com>
+Date: Thu, 13 Oct 2016 15:12:34 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82][=E7=8A=B6=E6=80=81=E6=A0=8F]?=
+ =?UTF-8?q?=E5=9C=A8=E7=8A=B6=E6=80=81=E6=A0=8F=E5=A2=9E=E5=8A=A0=E8=87=AA=E5?=
+ =?UTF-8?q?=8A=A8=E8=83=8C=E5=85=89=E6=8E=A7=E4=BB=B6=E3=80=82?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../layout/quick_settings_brightness_dialog.xml    |    2 +-
+ .../systemui/settings/BrightnessController.java    |   47 +++++++++++++++++++-
+ 2 files changed, 46 insertions(+), 3 deletions(-)
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/res/layout/quick_settings_brightness_dialog.xml
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/src/com/android/systemui/settings/BrightnessController.java
+
+diff --git a/alps/frameworks/base/packages/SystemUI/res/layout/quick_settings_brightness_dialog.xml b/alps/frameworks/base/packages/SystemUI/res/layout/quick_settings_brightness_dialog.xml
+old mode 100644
+new mode 100755
+index 0bef513..284c1c0
+--- a/alps/frameworks/base/packages/SystemUI/res/layout/quick_settings_brightness_dialog.xml
++++ b/alps/frameworks/base/packages/SystemUI/res/layout/quick_settings_brightness_dialog.xml
+@@ -27,7 +27,7 @@
+         android:layout_marginEnd="8dp"
+         android:src="@drawable/ic_qs_brightness_auto_off"
+         android:contentDescription="@null"
+-        android:visibility="gone" />
++        android:visibility="visible" />
+ 
+     <com.android.systemui.settings.ToggleSlider
+         android:id="@+id/brightness_slider"
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/settings/BrightnessController.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/settings/BrightnessController.java
+old mode 100644
+new mode 100755
+index 77c27fa..2b30584
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/settings/BrightnessController.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/settings/BrightnessController.java
+@@ -29,14 +29,18 @@ import android.os.ServiceManager;
+ import android.os.UserHandle;
+ import android.provider.Settings;
+ import android.widget.ImageView;
++import android.view.View;
++import android.view.View.OnClickListener;
+ 
+ import com.android.internal.logging.MetricsLogger;
+ 
+ import java.util.ArrayList;
++import com.android.systemui.R;
+ 
+-public class BrightnessController implements ToggleSlider.Listener {
++
++public class BrightnessController implements ToggleSlider.Listener, OnClickListener  {
+     private static final String TAG = "StatusBar.BrightnessController";
+-    private static final boolean SHOW_AUTOMATIC_ICON = false;
++    private static final boolean SHOW_AUTOMATIC_ICON = true;
+ 
+     /**
+      * {@link android.provider.Settings.System#SCREEN_AUTO_BRIGHTNESS_ADJ} uses the range [-1, 1].
+@@ -66,6 +70,7 @@ public class BrightnessController implements ToggleSlider.Listener {
+     public interface BrightnessStateChangeCallback {
+         public void onBrightnessLevelChanged();
+     }
++	
+ 
+     /** ContentObserver to watch brightness **/
+     private class BrightnessObserver extends ContentObserver {
+@@ -134,6 +139,11 @@ public class BrightnessController implements ToggleSlider.Listener {
+     public BrightnessController(Context context, ImageView icon, ToggleSlider control) {
+         mContext = context;
+         mIcon = icon;
++		if(mIcon != null)
++		{
++			mIcon.setOnClickListener(this);
++		}
++
+         mControl = control;
+         mHandler = new Handler();
+         mUserTracker = new CurrentUserTracker(mContext) {
+@@ -158,6 +168,39 @@ public class BrightnessController implements ToggleSlider.Listener {
+         mChangeCallbacks.add(cb);
+     }
+ 
++
++	 @Override
++	 public void onClick(View v)
++	 {
++        if ((v != null) && (R.id.brightness_icon == v.getId())) 
++		{
++			try 
++			{
++				boolean auto = false;		
++				int brightnessMode = Settings.System.getIntForUser(mContext.getContentResolver(),
++                    Settings.System.SCREEN_BRIGHTNESS_MODE,
++                    Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL,
++                    UserHandle.USER_CURRENT);
++				
++				if(brightnessMode == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC)
++				{
++					setMode(Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);
++				}
++				else if(brightnessMode == Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL)
++				{
++					setMode(Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC);
++				}
++				auto = brightnessMode == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC ? true: false;
++				android.util.Log.i("haohao", "onClick  brightnessMode=" +brightnessMode + " auto=" +auto );
++				updateIcon(auto);
++			}
++			catch (Exception e)
++			{
++				android.util.Log.i("BrightnessController", "<onClick> getBrightnessMode: " + e);
++        	}
++			    
++        }
++    }
+     public boolean removeStateChangedCallback(BrightnessStateChangeCallback cb) {
+         return mChangeCallbacks.remove(cb);
+     }
+-- 
+1.7.9.5
+

@@ -1,0 +1,249 @@
+From 91dbcf5c8c0473a28eaa2fc5c828775bf6e17d6c Mon Sep 17 00:00:00 2001
+From: liuyuanchang <liu.yuanchang@eastaeon.com>
+Date: Wed, 14 Sep 2016 17:20:57 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=E6=89=93=E5=BC=80=E6=89=8B=E5?=
+ =?UTF-8?q?=8A=BF=E5=8A=9F=E8=83=BD=E6=97=B6=EF=BC=8C=E7=8A=B6=E6=80=81=E6=A0?=
+ =?UTF-8?q?=8F=E4=B8=8A=E6=98=BE=E7=A4=BA=E6=89=8B=E5=8A=BF=E5=9B=BE=E6=A0=87?=
+ =?UTF-8?q?=EF=BC=8C=E5=8F=8A=E4=B8=8B=E6=8B=89=E9=80=9A=E7=9F=A5=E6=A0=8F=E4?=
+ =?UTF-8?q?=B8=AD=E8=B7=B3=E8=BD=AC=E8=BF=9B=E5=85=A5=E6=89=8B=E5=8A=BF=E8=AE?=
+ =?UTF-8?q?=BE=E7=BD=AE=E7=95=8C=E9=9D=A2?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../res/drawable-hdpi/zzz_ic_settings_gesture.png  |  Bin 0 -> 1053 bytes
+ .../SystemUI/res/values-zh-rCN/strings.xml         |    4 ++
+ .../base/packages/SystemUI/res/values/strings.xml  |    3 +
+ .../systemui/statusbar/phone/PhoneStatusBar.java   |   65 ++++++++++++++++++++
+ alps/packages/apps/Settings/AndroidManifest.xml    |   18 ++++++
+ .../src/com/android/settings/Settings.java         |    2 +
+ .../src/com/android/settings/SettingsActivity.java |    3 +
+ 7 files changed, 95 insertions(+)
+ create mode 100755 alps/frameworks/base/packages/SystemUI/res/drawable-hdpi/zzz_ic_settings_gesture.png
+ mode change 100644 => 100755 alps/packages/apps/Settings/src/com/android/settings/Settings.java
+ mode change 100644 => 100755 alps/packages/apps/Settings/src/com/android/settings/SettingsActivity.java
+
+diff --git a/alps/frameworks/base/packages/SystemUI/res/drawable-hdpi/zzz_ic_settings_gesture.png b/alps/frameworks/base/packages/SystemUI/res/drawable-hdpi/zzz_ic_settings_gesture.png
+new file mode 100755
+index 0000000000000000000000000000000000000000..796748c08fb31ab368582566bc32e5a69a66cff8
+GIT binary patch
+literal 1053
+zcmeAS@N?(olHy`uVBq!ia0vp^Dj>|k3?#4J%UH$0z_>HOC&cyt|NjhA+egum3xT2s
+zXY_$_Ik_arFPMR0!|xQ?h5z3Qcs~F3w>9<EhcCarO8P!|`R26UwP{jU9<JvpQ0cmP
+zXD{z^b?Ng4^9=)|dTwvs_s=En>`b%XBgX>H$*<VYp4PT;+jbWI2l}7bR&j=hEsHQN
+zT`<ow=IA|-8CmZi3r*;gtJ>M#lr8#wa%D|fD63X}h{yrc%vc$Yxsl#ZR@&X%7Jd%O
+zbqac#A19TI@kW*80n=E6r;B5V#p%13Uz#%oO0a#%n|575$urYS!rNn#lIW)QJsod;
+zPmBFl8^7t_(OEA`?pV+L^`^q^+~2czs^8hH_xSR^*-7yDQRPGy4MjnP&aU1`!73{m
+zG7STFnJ5RdO;GJ`+$3u06}nEUp|8*6mQAakyePvFQ8!ngz(P+=rztEB@^O0F>J#@k
+ztu`y@*J3;nadgJ2v!-Gjt_iL1OI`i^{x<fBLWfo=PB?t?g2b)GoEsuyEwZ+4$*8z|
+zt4%rMc%XZFxOsY2)$d=0Q;ZuHI?nBTdO^Uz<fEo}TgG35`pe1+Uj;mR7G5-bZ_&=h
+zsHRqE(z@`aWYskL9g@$U6{Z}!aOjcH<}(XL6*hPM7rT6G*Lu?qGc(UEt;$)|>E-$M
+zD`ZqQ35I@rFZYA5Um&U9v(#zIxdN&BXL9!Y6WTdTJg;3(-L-1hzMWt1++Ch@LQ|rp
+z{rK{i&)paQe`>0u5@+2dp=tIZ&1BDRCV87c`GASaUuXL>%={M_5r1&bujTvpDO>;B
+b{)yS;yS>;2*6-_qNrl1F)z4*}Q$iB}n4Pt)
+
+literal 0
+HcmV?d00001
+
+diff --git a/alps/frameworks/base/packages/SystemUI/res/values-zh-rCN/strings.xml b/alps/frameworks/base/packages/SystemUI/res/values-zh-rCN/strings.xml
+index a105bc7..200beee 100755
+--- a/alps/frameworks/base/packages/SystemUI/res/values-zh-rCN/strings.xml
++++ b/alps/frameworks/base/packages/SystemUI/res/values-zh-rCN/strings.xml
+@@ -430,4 +430,8 @@
+     <string name="remove_from_settings_prompt" msgid="6069085993355887748">"要将系统界面调谐器从“设置”中移除，并停止使用所有相关功能吗？"</string>
+ 	<!-- By Xia.Fei, for kill background process -->
+     <string name="recents_kill_process_result">"已释放%1$s M空间"</string>
++
++    <string name="title_smart_gesture">智能手势</string>
++    <string name="message_smart_gesture">触摸可进入手势设置</string>
++
+ </resources>
+diff --git a/alps/frameworks/base/packages/SystemUI/res/values/strings.xml b/alps/frameworks/base/packages/SystemUI/res/values/strings.xml
+index 1684acc..9d2e372 100755
+--- a/alps/frameworks/base/packages/SystemUI/res/values/strings.xml
++++ b/alps/frameworks/base/packages/SystemUI/res/values/strings.xml
+@@ -1126,4 +1126,7 @@
+ 	<string name="operators_card1">CARD1</string>
+ 	<string name="operators_card2">CARD2</string>
+ 
++    <string name="title_smart_gesture">Smart Gesture</string>
++    <string name="message_smart_gesture">Touch to gesture settings</string>
++
+ </resources>
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
+index 71bd563..dc283c3 100755
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
+@@ -208,6 +208,8 @@ import android.graphics.drawable.Drawable;
+ import android.graphics.drawable.BitmapDrawable;
+ import android.graphics.Paint;
+ 
++import android.app.NotificationManager; //add by lych for show gesture notif icon
++
+ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
+         DragDownHelper.DragDownCallback, ActivityStarter, OnUnlockMethodChangedListener,
+         HeadsUpManager.OnHeadsUpChangedListener {
+@@ -686,6 +688,11 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
+         notifyUserAboutHiddenNotifications();
+ 
+         mScreenPinningRequest = new ScreenPinningRequest(mContext);
++
++        //Begin:lych for show gesture notif icon
++        GestureObserver mGestureObserver= new GestureObserver(mHandler);
++        mGestureObserver.observe();
++        // End:lych for show gesture notif icon
+     }
+ 
+     // ================================================================================
+@@ -1007,6 +1014,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
+         filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+         filter.addAction(Intent.ACTION_SCREEN_OFF);
+         filter.addAction(Intent.ACTION_SCREEN_ON);
++        filter.addAction(Intent.ACTION_LOCALE_CHANGED); //Add by lych for show gesture notif icon
+         context.registerReceiverAsUser(mBroadcastReceiver, UserHandle.ALL, filter, null, null);
+ 
+         IntentFilter demoFilter = new IntentFilter();
+@@ -3032,6 +3040,11 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
+             else if (Intent.ACTION_SCREEN_ON.equals(action)) {
+                 notifyNavigationBarScreenOn(true);
+             }
++            // Begin:lych for show gesture notif icon
++            else if (Intent.ACTION_LOCALE_CHANGED.equals(action)){
++                updateGestureNotification();
++            }
++            // End:lych for show gesture notif icon
+         }
+     };
+ 
+@@ -4684,4 +4697,56 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
+         }
+     }
+      /// @}
++
++    // Begin:lych for show gesture notif icon
++    private NotificationManager mNMan;
++    private Notification.Builder mNBuilder;
++    private static final int NOTIFY_ID = 0x1234;
++    private void initNotification(){
++        Intent mIntent=new Intent("com.aeon.SmartGesture.SETTINGS");
++        PendingIntent mPi = PendingIntent.getActivity(mContext, 0,mIntent, 0);
++        //mIntent.setClassName("com.android.settings", "com.android.settings.SmartGestureSettings");
++        mNMan = (NotificationManager)mContext.getSystemService(Context.NOTIFICATION_SERVICE);
++        mNBuilder=new Notification.Builder(mContext);
++        mNBuilder.setSmallIcon(R.drawable.zzz_ic_settings_gesture)
++                 .setWhen(0)
++                 .setOngoing(true)
++                 .setContentIntent(mPi)
++                 .setColor(mContext.getColor(com.android.internal.R.color.system_notification_accent_color))
++                 .setVisibility(Notification.VISIBILITY_PUBLIC)
++                 .setCategory(Notification.CATEGORY_STATUS);
++    }
++    private void updateGestureNotification(){
++		boolean openGesture=Settings.Global.getInt(mContext.getContentResolver(), Settings.Secure.SMART_GESTURE_MASTER, 0)==1;
++        Log.d("lych","PhoneStatusBar>>updateGestureNotification openGesture="+openGesture);
++        if(mNMan!=null && mNBuilder!=null){
++            if(openGesture){
++                String title = mContext.getString(R.string.title_smart_gesture);
++                String message=mContext.getString(R.string.message_smart_gesture);
++                mNBuilder.setContentTitle(title).setContentText(message);
++                mNMan.notify(NOTIFY_ID, mNBuilder.getNotification());
++            }else{
++                mNMan.cancel(NOTIFY_ID);
++            }
++		}
++	}
++	class GestureObserver extends ContentObserver {
++        GestureObserver(Handler handler) {
++            super(handler);
++        }
++
++        void observe() {
++            // Observe all users' changes
++            mContext.getContentResolver().registerContentObserver(
++                    Settings.Global.getUriFor(Settings.Secure.SMART_GESTURE_MASTER),
++                    false, this, UserHandle.USER_ALL);
++            initNotification();
++            updateGestureNotification();
++        }
++
++        @Override public void onChange(boolean selfChange) {
++            updateGestureNotification();
++        }
++    }
++    // End:lych for show gesture notif icon
+ }
+diff --git a/alps/packages/apps/Settings/AndroidManifest.xml b/alps/packages/apps/Settings/AndroidManifest.xml
+index e8c9ae3..bdc6c40 100755
+--- a/alps/packages/apps/Settings/AndroidManifest.xml
++++ b/alps/packages/apps/Settings/AndroidManifest.xml
+@@ -2895,5 +2895,23 @@
+ 			    <action android:name="android.intent.action.PHONE_STATE" />
+ 			</intent-filter>
+ 		</receiver>
++
++        <activity android:name="Settings$SmartGestureSettingsActivity"
++                android:configChanges="orientation|keyboardHidden|screenSize"
++                android:label="@string/title_smart_gesture"
++                android:clearTaskOnLaunch="true">
++            <intent-filter android:priority="1">
++                <action android:name="android.intent.action.MAIN" />
++                <action android:name="com.aeon.SmartGesture.SETTINGS" />
++                <category android:name="android.intent.category.DEFAULT" />
++            </intent-filter>
++            <meta-data android:name="com.android.settings.FRAGMENT_CLASS"
++                android:value="com.android.settings.eastaeon.SmartGestureSettings" />
++            <meta-data android:name="com.android.settings.TOP_LEVEL_HEADER_ID"
++                android:resource="@id/smart_gesture_settings" />
++            <meta-data android:name="com.android.settings.PRIMARY_PROFILE_CONTROLLED"
++                android:value="true" />
++        </activity>
++
+     </application>
+ </manifest>
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/Settings.java b/alps/packages/apps/Settings/src/com/android/settings/Settings.java
+old mode 100644
+new mode 100755
+index a3a2826..fff2736
+--- a/alps/packages/apps/Settings/src/com/android/settings/Settings.java
++++ b/alps/packages/apps/Settings/src/com/android/settings/Settings.java
+@@ -159,4 +159,6 @@ public class Settings extends SettingsActivity {
+      * M: WifiGprsSelector setting activity.
+      */
+     public static class WifiGprsSelectorActivity extends SettingsActivity { /* empty */ }
++
++    public static class SmartGestureSettingsActivity extends SettingsActivity { /* empty */ }
+ }
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/SettingsActivity.java b/alps/packages/apps/Settings/src/com/android/settings/SettingsActivity.java
+old mode 100644
+new mode 100755
+index 3784dd2..ef76a7f
+--- a/alps/packages/apps/Settings/src/com/android/settings/SettingsActivity.java
++++ b/alps/packages/apps/Settings/src/com/android/settings/SettingsActivity.java
+@@ -150,6 +150,7 @@ import java.util.List;
+ import java.util.Map;
+ import java.util.Set;
+ 
++
+ public class SettingsActivity extends Activity
+         implements PreferenceManager.OnPreferenceTreeClickListener,
+         PreferenceFragment.OnPreferenceStartFragmentCallback,
+@@ -301,6 +302,7 @@ public class SettingsActivity extends Activity
+             R.id.power_settings,
+             /// M: add hotknot
+             R.id.hotknot_settings,
++            R.id.smart_gesture_settings,
+             /// M: add hetcomm
+             R.id.hetcomm_settings
+     };
+@@ -398,6 +400,7 @@ public class SettingsActivity extends Activity
+             TetherWifiSettings.class.getName(),
+             /// M: WifiGprsSelector setting fragment
+             WifiGprsSelector.class.getName(),
++            com.android.settings.eastaeon.SmartGestureSettings.class.getName(),
+     };
+ 
+ 
+-- 
+1.7.9.5
+

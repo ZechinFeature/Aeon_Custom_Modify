@@ -1,0 +1,56 @@
+From 3320e210b33c2c5f83c0ab9fac41189c76d4ad79 Mon Sep 17 00:00:00 2001
+From: liuyuanchang <liu.yuanchang@eastaeon.com>
+Date: Wed, 23 Mar 2016 14:21:53 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=E9=BB=98=E8=AE=A4=E8=B0=B7=E6?=
+ =?UTF-8?q?=AD=8C=E8=BE=93=E5=85=A5=E6=B3=95?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../android/providers/settings/DatabaseHelper.java |    5 +++++
+ .../android/server/InputMethodManagerService.java  |    5 +++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java b/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+index c2da720..f93e760 100755
+--- a/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
++++ b/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+@@ -2521,6 +2521,11 @@ class DatabaseHelper extends SQLiteOpenHelper {
+                         R.bool.def_lockscreen_disabled);
+             }
+ 
++            loadSetting(stmt, Settings.Secure.ENABLED_INPUT_METHODS,
++			        "com.android.inputmethod.latin/.LatinIME:com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME");
++            loadSetting(stmt, Settings.Secure.DEFAULT_INPUT_METHOD,
++			       "com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME");
++
+             loadBooleanSetting(stmt, Settings.Secure.SCREENSAVER_ENABLED,
+                     com.android.internal.R.bool.config_dreamsEnabledByDefault);
+             loadBooleanSetting(stmt, Settings.Secure.SCREENSAVER_ACTIVATE_ON_DOCK,
+diff --git a/alps/frameworks/base/services/core/java/com/android/server/InputMethodManagerService.java b/alps/frameworks/base/services/core/java/com/android/server/InputMethodManagerService.java
+index dff4eab..0b52979 100755
+--- a/alps/frameworks/base/services/core/java/com/android/server/InputMethodManagerService.java
++++ b/alps/frameworks/base/services/core/java/com/android/server/InputMethodManagerService.java
+@@ -942,7 +942,7 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
+                     @Override
+                     public void onReceive(Context context, Intent intent) {
+                         synchronized(mMethodMap) {
+-                            resetStateIfCurrentLocaleChangedLocked();
++                            //resetStateIfCurrentLocaleChangedLocked();
+                         }
+                     }
+                 }, filter);
+@@ -1111,7 +1111,8 @@ public class InputMethodManagerService extends IInputMethodManager.Stub
+                         !mImeSelectedOnBoot /* resetDefaultEnabledIme */);
+                 if (!mImeSelectedOnBoot) {
+                    Slog.w(TAG, "Reset the default IME as \"Resource\" is ready here.");
+-                   String preInstalledImeName = SystemProperties.get("ro.mtk_default_ime");
++                  // String preInstalledImeName = SystemProperties.get("ro.mtk_default_ime");
++				  String preInstalledImeName = "com.google.android.inputmethod.latin.LatinIME";
+ 
+                     if (preInstalledImeName != null) {
+                         InputMethodInfo preInstalledImi = null;
+-- 
+1.7.9.5
+

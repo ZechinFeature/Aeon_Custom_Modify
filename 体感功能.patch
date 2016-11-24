@@ -1,0 +1,426 @@
+From e60fc2a8a06e874b7dcf9becccc7171524da402b Mon Sep 17 00:00:00 2001
+From: limin <li.min1@eastaeon.com>
+Date: Wed, 16 Mar 2016 18:13:01 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=20=E4=BD=93=E6=84=9F=E5=8A=9F?=
+ =?UTF-8?q?=E8=83=BD?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../base/core/java/android/provider/Settings.java  |    4 +-
+ .../android/providers/settings/DatabaseHelper.java |    3 ++
+ .../quickcontact/ExpandingEntryCardView.java       |   11 +++++
+ .../quickcontact/QuickContactActivity.java         |   50 ++++++++++++++++++++
+ .../src/com/android/contactsbind/HelpUtils.java    |   18 +++++++
+ .../src/com/android/incallui/AnswerFragment.java   |   26 +++++++++-
+ .../apps/Settings/res/values-zh-rCN/strings.xml    |    6 +++
+ alps/packages/apps/Settings/res/values/strings.xml |    6 +++
+ .../com/android/settings/SmartMotionSettings.java  |    3 ++
+ .../com/android/mms/ui/ComposeMessageActivity.java |   47 ++++++++++++++++++
+ 10 files changed, 172 insertions(+), 2 deletions(-)
+ mode change 100644 => 100755 alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/ExpandingEntryCardView.java
+ mode change 100644 => 100755 alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/QuickContactActivity.java
+ mode change 100644 => 100755 alps/packages/apps/Contacts/src/com/android/contactsbind/HelpUtils.java
+ mode change 100644 => 100755 alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
+
+diff --git a/alps/frameworks/base/core/java/android/provider/Settings.java b/alps/frameworks/base/core/java/android/provider/Settings.java
+index 5fdf501..0c1f7c3 100755
+--- a/alps/frameworks/base/core/java/android/provider/Settings.java
++++ b/alps/frameworks/base/core/java/android/provider/Settings.java
+@@ -1258,7 +1258,9 @@ public final class Settings {
+         public static final String NAME = "name";
+         public static final String VALUE = "value";
+ 		/** @hide */public static final String FLIP_MUTE_CALLS_MODE = "flip_mute_calls"; //zhangle add
+-
++       /** @hide */public static final String AUTO_ANSWER_CALLS_MODE = "auto_answer_calls";
++	   /** @hide */public static final String AUTO_SWITCH_ANSWER_MODE = "auto_switch_answer";
++	   /** @hide */public static final String AUTO_TAKE_CALLS_MODE = "auto_take_calls";
+         protected static boolean putString(ContentResolver resolver, Uri uri,
+                 String name, String value) {
+             // The database will take care of replacing duplicates.
+diff --git a/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java b/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+index 84ee710..eb98efe 100755
+--- a/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
++++ b/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+@@ -2402,6 +2402,9 @@ class DatabaseHelper extends SQLiteOpenHelper {
+ 					
+ 		    loadSetting(stmt,Settings.System.FLIP_MUTE_CALLS_MODE,0);
+ 			loadSetting(stmt,Settings.System.ANSWER_BY_SWING_MODE,0);
++			loadSetting(stmt,Settings.System.AUTO_ANSWER_CALLS_MODE,0);
++			loadSetting(stmt,Settings.System.AUTO_SWITCH_ANSWER_MODE,0);
++			loadSetting(stmt,Settings.System.AUTO_TAKE_CALLS_MODE,0);
+ 
+             loadDefaultHapticSettings(stmt);
+ 
+diff --git a/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/ExpandingEntryCardView.java b/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/ExpandingEntryCardView.java
+old mode 100644
+new mode 100755
+index 0f68124..686041f
+--- a/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/ExpandingEntryCardView.java
++++ b/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/ExpandingEntryCardView.java
+@@ -41,6 +41,8 @@ import android.transition.TransitionManager;
+ import android.transition.TransitionSet;
+ import android.util.AttributeSet;
+ import android.util.Property;
++import java.util.regex.Pattern;
++import com.android.contactsbind.HelpUtils;
+ import android.view.ContextMenu.ContextMenuInfo;
+ import android.view.LayoutInflater;
+ import android.view.MotionEvent;
+@@ -719,6 +721,10 @@ public class ExpandingEntryCardView extends CardView {
+         }
+         final TextView header = (TextView) view.findViewById(R.id.header);
+         if (!TextUtils.isEmpty(entry.getHeader())) {
++		if (!HelpUtils.getHadHeader() && isNumber(entry.getHeader())) {
++		HelpUtils.setNumber(entry.getHeader().replace(" ", ""));
++		HelpUtils.setHadHeader(true);
++		}
+             header.setText(entry.getHeader());
+         } else {
+             header.setVisibility(View.GONE);
+@@ -833,6 +839,11 @@ public class ExpandingEntryCardView extends CardView {
+ 
+         return view;
+     }
++	
++	 private boolean isNumber(String str) {
++	 Pattern pattern = Pattern.compile("[0-9]*");
++	 return pattern.matcher(str.replace(" ", "")).matches();
++	 }
+ 
+     private void updateExpandCollapseButton(CharSequence buttonText, long duration) {
+         if (mIsExpanded) {
+diff --git a/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/QuickContactActivity.java b/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/QuickContactActivity.java
+old mode 100644
+new mode 100755
+index 1a53b47..1306a44
+--- a/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/QuickContactActivity.java
++++ b/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/QuickContactActivity.java
+@@ -26,8 +26,13 @@ import android.animation.ArgbEvaluator;
+ import android.animation.ObjectAnimator;
+ import android.app.Activity;
+ import android.app.Fragment;
++import android.hardware.Sensor;
++import android.hardware.SensorEvent;
++import android.hardware.SensorEventListener;
++import android.hardware.SensorManager;
+ import android.app.LoaderManager.LoaderCallbacks;
+ import android.app.SearchManager;
++import android.os.Vibrator;
+ import android.content.ActivityNotFoundException;
+ import android.content.ContentUris;
+ import android.content.ContentValues;
+@@ -203,6 +208,10 @@ public class QuickContactActivity extends ContactsActivity {
+     private static final int SCRIM_COLOR = Color.argb(0xC8, 0, 0, 0);
+     private static final int REQUEST_CODE_CONTACT_SELECTION_ACTIVITY = 2;
+     private static final String MIMETYPE_SMS = "vnd.android-dir/mms-sms";
++	private SensorManager mSensorManager;
++	private Sensor mProximitySensor;
++    private EastaeonListener mEastaeonListener;
++	private boolean mIsRegister;
+ 
+     /** This is the Intent action to install a shortcut in the launcher. */
+     private static final String ACTION_INSTALL_SHORTCUT =
+@@ -860,6 +869,30 @@ public class QuickContactActivity extends ContactsActivity {
+ 
+         Trace.endSection();
+     }
++	
++    //20151124 add by yin.xiong :begin 
++	public class EastaeonListener implements SensorEventListener {  
++	public void onAccuracyChanged(Sensor sensor, int accuracy) { 
++	}  
++	            public void onSensorChanged(SensorEvent event) { 
++				float distance = event.values[0]; 
++				Log.d("SmartSomaticReaction", "Contacts --- proximity, event.values[0] = " + distance); 
++				if (distance == 0.0 && event.sensor.getType() == Sensor.TYPE_PROXIMITY) { 
++				Log.d("SmartSomaticReaction", "Contacts --- proximity, distance = " + distance); 
++				String number = HelpUtils.getNumber(); 
++				if (number == null || number.isEmpty()){ 
++				Log.d("SmartSomaticReaction", "Contacts --- proximity, number error!"); 
++				} else { 
++				Intent dialIntent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + number)); 
++				Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE); 
++				startActivity(dialIntent); 
++				vibrator.vibrate(100); 
++				} 
++				} 
++				} 
++				
++				} 
++				//20151124 add by yin.xiong :end
+ 
+     @Override
+     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+@@ -1127,6 +1160,12 @@ public class QuickContactActivity extends ContactsActivity {
+             mHasIntentLaunched = false;
+             populateContactAndAboutCard(mCachedCp2DataCardModel);
+         }
++		if (!mIsRegister && (Settings.System.getInt(getContentResolver(),Settings.System.AUTO_TAKE_CALLS_MODE, 0) != 0)) {
++		mEastaeonListener = new EastaeonListener();
++		mSensorManager.registerListener(mEastaeonListener, mProximitySensor, SensorManager.SENSOR_DELAY_NORMAL);
++		mIsRegister = true;
++		Log.d("SmartSomaticReaction", "Contacts --- proximity, registerListener;");
++		}
+ 
+         // When exiting the activity and resuming, we want to force a full reload of all the
+         // interaction data in case something changed in the background. On screen rotation,
+@@ -2328,6 +2367,17 @@ public class QuickContactActivity extends ContactsActivity {
+         };
+         mRecentDataTask.execute();
+     }
++	
++	 @Override
++	 protected void onPause() {
++	 super.onPause();
++	 if (mIsRegister) {
++	 mSensorManager.unregisterListener(mEastaeonListener, mProximitySensor);
++	 mIsRegister = false;
++	 Log.d("SmartSomaticReaction", "Contacts --- proximity, unregisterListener;");     
++	 }   
++	 }   
++	
+ 
+     @Override
+     protected void onStop() {
+diff --git a/alps/packages/apps/Contacts/src/com/android/contactsbind/HelpUtils.java b/alps/packages/apps/Contacts/src/com/android/contactsbind/HelpUtils.java
+old mode 100644
+new mode 100755
+index edec35a..9a410b6
+--- a/alps/packages/apps/Contacts/src/com/android/contactsbind/HelpUtils.java
++++ b/alps/packages/apps/Contacts/src/com/android/contactsbind/HelpUtils.java
+@@ -17,6 +17,7 @@
+ package com.android.contactsbind;
+ 
+ import android.app.Activity;
++import com.mediatek.contacts.util.Log;
+ 
+ /**
+  * Utility for starting help and feedback activity. This stub class is designed to be overwritten
+@@ -29,6 +30,8 @@ public class HelpUtils {
+      * {@link @launchHelpAndFeedbackForContactScreen} are implemented to start help and feedback
+      * activities.
+      */
++	private static String number = "";
++    private static boolean mHadHeader = false;
+     public static boolean isHelpAndFeedbackAvailable() {
+         return false;
+     }
+@@ -36,5 +39,20 @@ public class HelpUtils {
+     public static void launchHelpAndFeedbackForMainScreen(Activity activity) { }
+ 
+     public static void launchHelpAndFeedbackForContactScreen(Activity activity) { }
++	 public static void setNumber(String str) {
++	            number = str;
++				Log.d("SmartSomaticReaction", "Contacts --- proximity, setNumber = " 
++				number);
++				}
++				public static String getNumber() {
++				return number;
++				}
++				public static void setHadHeader(boolean flag) {
++				mHadHeader = flag;
++				Log.d("SmartSomaticReaction", "Contacts --- proximity, setHadHeader = " + mHadHeader);
++				}
++				public static boolean getHadHeader() {
++				return mHadHeader;
++				}
+ 
+ }
+diff --git a/alps/packages/apps/InCallUI/src/com/android/incallui/AnswerFragment.java b/alps/packages/apps/InCallUI/src/com/android/incallui/AnswerFragment.java
+index f6de470..01a346d 100755
+--- a/alps/packages/apps/InCallUI/src/com/android/incallui/AnswerFragment.java
++++ b/alps/packages/apps/InCallUI/src/com/android/incallui/AnswerFragment.java
+@@ -97,6 +97,7 @@ public class AnswerFragment extends BaseFragment<AnswerPresenter, AnswerPresente
+ 	// private Sensor mAccelerometerSensor;
+ 	private EastaeonListener mEastaeonListener;
+ 	private boolean mIsRegister;
++	private boolean mAutoSwitchAnswer;
+ 
+     public AnswerFragment() {
+     }
+@@ -201,9 +202,23 @@ public class AnswerFragment extends BaseFragment<AnswerPresenter, AnswerPresente
+ 	        audioManager.setSpeakerphoneOn(true);
+ 	        android.util.Log.e("SmartSomaticReaction", "InCallUI , Set SpeakMode !!!");
+ 	    } */
++		   private void ChangeSpeakMode() {
++	        // audioManager.setMode(AudioManager.MODE_IN_CALL);
++	        audioManager.setSpeakerphoneOn(false);
++	        android.util.Log.e("SmartSomaticReaction", "InCallUI , Change Speak Mode !!!");
++	    }
+ 
+     @Override
+     public void onShowAnswerUi(boolean shown) {
++	   mAutoAnswerCalls = (Settings.System.getInt(getContext().getContentResolver(),Settings.System.AUTO_ANSWER_CALLS_MODE, 0) != 0);
++        mAutoSwitchAnswer = (Settings.System.getInt(getContext().getContentResolver(),Settings.System.AUTO_SWITCH_ANSWER_MODE, 0) != 0);
++        if (!mIsRegister && (mAutoAnswerCalls || mAutoSwitchAnswer)/* !CallerInfoUtils.getAnswered() */) {
++            mEastaeonListener = new EastaeonListener();
++            mSensorManager.registerListener(mEastaeonListener, mProximitySensor, SensorManager.SENSOR_DELAY_NORMAL);
++            // mSensorManager.registerListener(mEastaeonListener, mAccelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
++            mIsRegister = true;
++            android.util.Log.d("SmartSomaticReaction", "InCallUI --- proximity, registerListener;");
++        }
+         Log.d(this, "Show answer UI: " + shown);
+         if (shown) {
+             mGlowpad.startPing();
+@@ -479,12 +494,21 @@ public class AnswerFragment extends BaseFragment<AnswerPresenter, AnswerPresente
+         return getActivity();
+     }
+ 
+-    @Override
++     @Override
+     public void onAnswer(int videoState, Context context) {
++        android.util.Log.d("SmartSomaticReaction", "InCallUI --- proximity, onAnswer()!!!");
++        CallerInfoUtils.setAnswered(true);
++        if (mIsRegister) {
++            mSensorManager.unregisterListener(mEastaeonListener, mProximitySensor);
++            // mSensorManager.unregisterListener(mEastaeonListener, mAccelerometerSensor);
++            mIsRegister = false;
++            android.util.Log.d("SmartSomaticReaction", "InCallUI --- proximity, unregisterListener;");
++        }
+         Log.d(this, "onAnswer videoState=" + videoState + " context=" + context);
+         getPresenter().onAnswer(videoState, context);
+     }
+ 
++
+     @Override
+     public void onDecline(Context context) {
+         getPresenter().onDecline(context);
+diff --git a/alps/packages/apps/Settings/res/values-zh-rCN/strings.xml b/alps/packages/apps/Settings/res/values-zh-rCN/strings.xml
+index b513e92..d7abe8b 100755
+--- a/alps/packages/apps/Settings/res/values-zh-rCN/strings.xml
++++ b/alps/packages/apps/Settings/res/values-zh-rCN/strings.xml
+@@ -2883,4 +2883,10 @@
+ 	 <string name="flipmute_category_title">>翻转静音</string>
+ 	 <string name="calls_flipmute_enable_title">来电</string>
+ 	 <string name="alarm_flipmute_enable_title">闹钟</string>
++	  <string name="auto_answer_calls_enable_title">自动接听</string>
++      <string name="auto_answer_calls_enable_summary">来电时将手机靠近耳朵自动接听</string>
++	  <string name="auto_switch_answer_enable_title">自动切换</string>
++      <string name="auto_switch_answer_enable_summary">靠近耳朵的时候自动从免提模式切换为听筒模式</string>
++	  <string name="auto_take_calls_enable_title">自动呼叫</string>
++	  <string name="auto_take_calls_enable_summary">查看联系人详情或者短信时，靠近耳朵可自动拨出电话</string>
+ </resources>
+diff --git a/alps/packages/apps/Settings/res/values/strings.xml b/alps/packages/apps/Settings/res/values/strings.xml
+index 927f993..950e0f6 100755
+--- a/alps/packages/apps/Settings/res/values/strings.xml
++++ b/alps/packages/apps/Settings/res/values/strings.xml
+@@ -7011,4 +7011,10 @@
+ 	<string name="flipmute_category_title">FLIP MUTE</string>
+ 	<string name="calls_flipmute_enable_title">Calls</string>
+ 	<string name="alarm_flipmute_enable_title">Alarm</string>
++    <string name="auto_answer_calls_enable_title">Smart answer</string>
++	<string name="auto_answer_calls_enable_summary">Put phone close to ear to answer</string>
++	<string name="auto_switch_answer_enable_title">Smart switch</string>
++	<string name="auto_switch_answer_enable_summary">Switch the phone from hand free mode to handset mode by putting the phone to your ear</string>
++	<string name="auto_take_calls_enable_title">Smart call</string>
++	<string name="auto_take_calls_enable_summary">Put the phone close to the ear to call the contact when you are reading contact detail or message</string>
+ </resources>
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/SmartMotionSettings.java b/alps/packages/apps/Settings/src/com/android/settings/SmartMotionSettings.java
+index 39872c0..99d0c54 100755
+--- a/alps/packages/apps/Settings/src/com/android/settings/SmartMotionSettings.java
++++ b/alps/packages/apps/Settings/src/com/android/settings/SmartMotionSettings.java
+@@ -43,6 +43,9 @@ public class SmartMotionSettings extends SettingsPreferenceFragment implements
+     private static final String KEY_AUTO_ANSWER_CALLS = "auto_answer_calls";
+     private static final String KEY_AUTO_SWITCH_ANSWER = "auto_switch_answer";
+     private static final String KEY_AUTO_TAKE_CALLS = "auto_take_calls";
++    private static final String KEY_AUTO_ANSWER_CALLS = "auto_answer_calls";
++    private static final String KEY_AUTO_SWITCH_ANSWER = "auto_switch_answer";
++    private static final String KEY_AUTO_TAKE_CALLS = "auto_take_calls";
+ 	
+ 	private SwitchPreference mTurnToSilencePreference;
+     private SwitchPreference mAnswerBySwingPreference;
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
+old mode 100644
+new mode 100755
+index 913fedf..4f7b7cf
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
+@@ -42,7 +42,13 @@ import java.io.IOException;
+ import java.io.InputStream;
+ import java.io.UnsupportedEncodingException;
+ 
++import android.os.Vibrator;
++
+ import android.os.UserHandle;
++import android.hardware.Sensor;
++import android.hardware.SensorEvent;
++import android.hardware.SensorEventListener;
++import android.hardware.SensorManager;
+ 
+ import java.lang.ref.WeakReference;
+ import java.net.URLDecoder;
+@@ -546,6 +552,10 @@ public class ComposeMessageActivity extends Activity
+ 
+     private boolean mIsActivityPaused = true;
+     private boolean mIsActivityStoped = true;
++	private SensorManager mSensorManager;
++    private Sensor mProximitySensor;
++    private EastaeonListener mEastaeonListener;
++    private boolean mIsRegister;
+ 
+     private StatusBarSelectorReceiver mStatusBarSelectorReceiver;
+ 
+@@ -3052,7 +3062,32 @@ public class ComposeMessageActivity extends Activity
+ 
+         this.registerReceiver(mSubReceiver, intentFilter);
+         /// @}
++		mIsRegister = false;
++        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
++        mProximitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
++
++    }
++	   //20151122 add by yin.xiong :begin
++    public class EastaeonListener implements SensorEventListener {
++
++            public void onAccuracyChanged(Sensor sensor, int accuracy) {
++            }
++
++            public void onSensorChanged(SensorEvent event) {
++                    float distance = event.values[0];
++                    Log.d("SmartSomaticReaction", "Mms --- proximity, event.values[0] = " + distance);
++                    if (distance == 0.0 && event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
++                            Log.d("SmartSomaticReaction", "Mms --- proximity, distance = " + distance);
++                            String number = getRecipients().get(0).getNumber();
++                            Intent dialIntent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + number));
++                            Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
++                            startActivity(dialIntent);
++                            vibrator.vibrate(100);
++                    }
++            }
++
+     }
++    //20151122 add by yin.xiong :end
+ 
+     private void showSubjectEditor(boolean show) {
+         if (Log.isLoggable(LogTag.APP, Log.VERBOSE)) {
+@@ -3862,6 +3897,12 @@ public class ComposeMessageActivity extends Activity
+         //Contact.startPresenceObserver();
+ 
+         addRecipientsListeners();
++		  if (!mIsRegister && (Settings.System.getInt(getContentResolver(),Settings.System.AUTO_TAKE_CALLS_MODE, 0) != 0)) {
++                       mEastaeonListener = new EastaeonListener();
++                       mSensorManager.registerListener(mEastaeonListener, mProximitySensor, SensorManager.SENSOR_DELAY_NORMAL);
++                       mIsRegister = true;
++                       Log.d("SmartSomaticReaction", "Mms --- proximity, registerListener;");
++        }
+ 
+         if (Log.isLoggable(LogTag.APP, Log.VERBOSE)) {
+             log("onResume: update title, mConversation=" + mConversation.toString());
+@@ -3940,6 +3981,12 @@ public class ComposeMessageActivity extends Activity
+         //mStatusBarManager.hideSIMIndicator(mComponentName);
+         StatusBarSelectorCreator.getInstance(this).hideStatusBar();
+         /// @}
++		    if (mIsRegister) {
++                       mSensorManager.unregisterListener(mEastaeonListener, mProximitySensor);
++                       mIsRegister = false;
++                       Log.d("SmartSomaticReaction", "Mms --- proximity, unregisterListener;");
++        }
++
+ 
+         removeRecipientsListeners();
+ 
+-- 
+1.7.9.5
+

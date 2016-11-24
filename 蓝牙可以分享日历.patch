@@ -1,0 +1,39 @@
+From e015213e57482cdb2fe474161b98de727a230252 Mon Sep 17 00:00:00 2001
+From: guoxiaolin <guo.xiaolin@eastaeon.com>
+Date: Tue, 8 Mar 2016 14:28:33 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E8=93=9D=E7=89?=
+ =?UTF-8?q?=99=E5=8F=AF=E4=BB=A5=E5=88=86=E4=BA=AB=E6=97=A5=E5=8E=86?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ alps/packages/apps/Bluetooth/AndroidManifest.xml |    2 ++
+ 1 file changed, 2 insertions(+)
+ mode change 100644 => 100755 alps/packages/apps/Bluetooth/AndroidManifest.xml
+
+diff --git a/alps/packages/apps/Bluetooth/AndroidManifest.xml b/alps/packages/apps/Bluetooth/AndroidManifest.xml
+old mode 100644
+new mode 100755
+index 3558c68..9aa9baa
+--- a/alps/packages/apps/Bluetooth/AndroidManifest.xml
++++ b/alps/packages/apps/Bluetooth/AndroidManifest.xml
+@@ -168,6 +168,7 @@
+                 <data android:mimeType="application/x-hwp" />
+                 <data android:mimeType="text/x-vcalendar" />
+                 <data android:mimeType="application/ogg" />
++                <data android:mimeType="application/vnd.android.package-archive" />
+                 <data android:mimeType="application/mspowerpoint" />
+             </intent-filter>
+             <intent-filter>
+@@ -189,6 +190,7 @@
+                 <data android:mimeType="application/vnd.openxmlformats-officedocument.presentationml.presentation" />
+                 <data android:mimeType="application/pdf" />
+                 <data android:mimeType="application/ogg" />
++                <data android:mimeType="application/vnd.android.package-archive" />
+                 <data android:mimeType="application/mspowerpoint" />
+             </intent-filter>
+             <intent-filter>
+-- 
+1.7.9.5
+

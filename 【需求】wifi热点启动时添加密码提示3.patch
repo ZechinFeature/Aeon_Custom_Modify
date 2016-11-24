@@ -1,0 +1,96 @@
+From 5d6744b8935fb0edc2817100689b537c2df0e1ca Mon Sep 17 00:00:00 2001
+From: guoxiaolin <guo.xiaolin@eastaeon.com>
+Date: Tue, 12 Apr 2016 16:20:01 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91wifi=E7=83=AD?=
+ =?UTF-8?q?=E7=82=B9=E5=90=AF=E5=8A=A8=E6=97=B6=E6=B7=BB=E5=8A=A0=E5=AF=86=E7?=
+ =?UTF-8?q?=A0=81=E6=8F=90=E7=A4=BA3?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../res/layout/wifi_ap_password_dialog.xml         |   10 ++++------
+ .../mediatek/wifi/hotspot/TetherWifiSettings.java  |   12 ++++++++----
+ 2 files changed, 12 insertions(+), 10 deletions(-)
+
+diff --git a/alps/packages/apps/Settings/res/layout/wifi_ap_password_dialog.xml b/alps/packages/apps/Settings/res/layout/wifi_ap_password_dialog.xml
+index 585b3bb..b0bb0f7 100755
+--- a/alps/packages/apps/Settings/res/layout/wifi_ap_password_dialog.xml
++++ b/alps/packages/apps/Settings/res/layout/wifi_ap_password_dialog.xml
+@@ -35,23 +35,21 @@
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+ 						android:text="@string/wifi_ssid"
+-                        style="@style/wifi_item_label" />
+-                <EditText android:id="@+id/ssid"
++                        style="@style/wifi_item_content" />
++                <TextView android:id="@+id/ssid"
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+ 						android:textDirection="locale"
+-						android:editable="false"
+                         style="@style/wifi_item_edit_content" />
+ 				<TextView android:id="@+id/tpassword"
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+ 						android:text="@string/security_passwords_title"
+-						style="@style/wifi_item_label"
++						style="@style/wifi_item_content"
+ 						/>
+-				<EditText android:id="@+id/password"
++				<TextView android:id="@+id/password"
+                         android:layout_width="match_parent"
+                         android:layout_height="wrap_content"
+-						android:editable="false"
+ 						android:textDirection="locale"
+                         style="@style/wifi_item_edit_content" />
+             </LinearLayout>
+diff --git a/alps/packages/apps/Settings/src/com/mediatek/wifi/hotspot/TetherWifiSettings.java b/alps/packages/apps/Settings/src/com/mediatek/wifi/hotspot/TetherWifiSettings.java
+index b2f8af7..e290fae 100755
+--- a/alps/packages/apps/Settings/src/com/mediatek/wifi/hotspot/TetherWifiSettings.java
++++ b/alps/packages/apps/Settings/src/com/mediatek/wifi/hotspot/TetherWifiSettings.java
+@@ -97,10 +97,10 @@ public class TetherWifiSettings extends SettingsPreferenceFragment
+     private List<HotspotClient> mClientList;
+     private View mDetailView;
+ 	private View mPasswordView;
+-	private EditText ssid_TV;
++	private TextView ssid_TV;
+ 	private String ssid_str="";
+ 	private String password_str="";
+-	private EditText password_TV;
++	private TextView password_TV;
+ 	private static  boolean isOnce = true;
+ 
+     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+@@ -158,8 +158,8 @@ public class TetherWifiSettings extends SettingsPreferenceFragment
+         mBlockedCategory = (PreferenceCategory) findPreference(BLOCKED_CATEGORY);
+ 		mPasswordView =getActivity().getLayoutInflater().
+                 inflate(R.layout.wifi_ap_password_dialog, null);
+-		ssid_TV=  (EditText)mPasswordView.findViewById(R.id.ssid);
+-		password_TV=  (EditText)mPasswordView.findViewById(R.id.password);
++		ssid_TV=  (TextView)mPasswordView.findViewById(R.id.ssid);
++		password_TV=  (TextView)mPasswordView.findViewById(R.id.password);
+         mDetailView = getActivity().getLayoutInflater().
+                 inflate(R.layout.wifi_ap_client_dialog, null);
+     }
+@@ -409,6 +409,9 @@ public class TetherWifiSettings extends SettingsPreferenceFragment
+     }
+ 
+     private void handleWifiApStateChanged(int state) {
++		mWifiConfig = mWifiManager.getWifiApConfiguration();
++		password_str=mWifiConfig.preSharedKey;
++		ssid_str=mWifiConfig.SSID;
+         switch (state) {
+             case WifiManager.WIFI_AP_STATE_ENABLING:
+                 setPreferenceState(false);
+@@ -426,6 +429,7 @@ public class TetherWifiSettings extends SettingsPreferenceFragment
+             password_TV.setText(password_str);
+ 			AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
+             .setTitle(R.string.wifi_hotspot_checkbox_text)
++			.setIcon(R.drawable.ic_wifi_lock_signal_4_dark)
+             .setView(mPasswordView)
+             .setPositiveButton(com.android.internal.R.string.ok,
+                     new DialogInterface.OnClickListener() {
+-- 
+1.7.9.5
+

@@ -1,0 +1,289 @@
+From f9fa030c9412be6aecaa0a861a8a03129f6ede59 Mon Sep 17 00:00:00 2001
+From: "Deng.yang" <deng.yang@eastaeon.com>
+Date: Wed, 16 Mar 2016 18:31:24 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E6=99=BA=E8=83?=
+ =?UTF-8?q?=BD=E4=BD=93=E6=84=9F=E5=8A=9F=E8=83=BD=E5=A2=9E=E5=8A=A0=E5=BC=80?=
+ =?UTF-8?q?=E5=85=B3?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ alps/frameworks/base/api/current.txt               |    1 +
+ alps/frameworks/base/api/system-current.txt        |    1 +
+ .../base/core/java/android/provider/Settings.java  |    1 +
+ .../SettingsProvider/res/values/defaults.xml       |    2 ++
+ .../android/providers/settings/DatabaseHelper.java |    9 ++++++++-
+ .../quickcontact/QuickContactActivity.java         |   16 ++++++++++++++--
+ .../services/Telephony/res/values/strings.xml      |    2 +-
+ .../Telephony/res/xml/phone_account_settings.xml   |    5 +++++
+ .../settings/PhoneAccountSettingsFragment.java     |   15 +++++++++++++++
+ .../com/android/mms/ui/ComposeMessageActivity.java |   14 +++++++++++---
+ 10 files changed, 59 insertions(+), 7 deletions(-)
+ mode change 100644 => 100755 alps/packages/services/Telephony/res/xml/phone_account_settings.xml
+ mode change 100644 => 100755 alps/packages/services/Telephony/src/com/android/phone/settings/PhoneAccountSettingsFragment.java
+
+diff --git a/alps/frameworks/base/api/current.txt b/alps/frameworks/base/api/current.txt
+index 84444a8..1d99ce1 100755
+--- a/alps/frameworks/base/api/current.txt
++++ b/alps/frameworks/base/api/current.txt
+@@ -26561,6 +26561,7 @@ package android.provider {
+     field public static final java.lang.String ACCESSIBILITY_ENABLED = "accessibility_enabled";
+     field public static final java.lang.String ACCESSIBILITY_SPEAK_PASSWORD = "speak_password";
+     field public static final deprecated java.lang.String ADB_ENABLED = "adb_enabled";
++    field public static final java.lang.String AEON_DIRECT_DIAL = "direct_dial";
+     field public static final java.lang.String ALLOWED_GEOLOCATION_ORIGINS = "allowed_geolocation_origins";
+     field public static final deprecated java.lang.String ALLOW_MOCK_LOCATION = "mock_location";
+     field public static final java.lang.String ANDROID_ID = "android_id";
+diff --git a/alps/frameworks/base/api/system-current.txt b/alps/frameworks/base/api/system-current.txt
+index b519078..c234292 100755
+--- a/alps/frameworks/base/api/system-current.txt
++++ b/alps/frameworks/base/api/system-current.txt
+@@ -28620,6 +28620,7 @@ package android.provider {
+     field public static final java.lang.String ACCESSIBILITY_ENABLED = "accessibility_enabled";
+     field public static final java.lang.String ACCESSIBILITY_SPEAK_PASSWORD = "speak_password";
+     field public static final deprecated java.lang.String ADB_ENABLED = "adb_enabled";
++    field public static final java.lang.String AEON_DIRECT_DIAL = "direct_dial";
+     field public static final java.lang.String ALLOWED_GEOLOCATION_ORIGINS = "allowed_geolocation_origins";
+     field public static final deprecated java.lang.String ALLOW_MOCK_LOCATION = "mock_location";
+     field public static final java.lang.String ANDROID_ID = "android_id";
+diff --git a/alps/frameworks/base/core/java/android/provider/Settings.java b/alps/frameworks/base/core/java/android/provider/Settings.java
+index 0754c3d..c92f10a 100755
+--- a/alps/frameworks/base/core/java/android/provider/Settings.java
++++ b/alps/frameworks/base/core/java/android/provider/Settings.java
+@@ -6409,6 +6409,7 @@ public final class Settings {
+                 "usb_audio_automatic_routing_disabled";
+ 
+ 		public static final String SHOW_BATTERY_PERENT = "show_battery_perent";
++		public static final String AEON_DIRECT_DIAL = "direct_dial";
+ 
+         /**
+          * The timeout in milliseconds before the device fully goes to sleep after
+diff --git a/alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml b/alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
+index 4335f4b..302c675 100755
+--- a/alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
++++ b/alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
+@@ -231,4 +231,6 @@
+ 	 <integer name="show_password" translatable="false">0</integer>
+ 	<!-- Default for Settings.Secure.FLIP_SILENT_MODE -->
+ 	<integer name="def_flip_silent_mode">0</integer>
++	<!-- Default for Settings.Secure.AEON_DIRECT_DIAL -->
++	<integer name="def_direct_dial_mode">0</integer> 
+ </resources>
+diff --git a/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java b/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+index e78077d..9c38877 100755
+--- a/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
++++ b/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+@@ -2429,10 +2429,17 @@ class DatabaseHelper extends SQLiteOpenHelper {
+ 
+             // M: Load MTK added System providers before Android M.
+             mUtils.loadCustomSystemSettings(stmt);
++			
++			/* load dy add TEXT_SHOW_PASSWORD */
++			loadStringSetting(stmt, Settings.System.TEXT_SHOW_PASSWORD,
++				R.integer.show_password); 
+ 
+ 			/* load dy add filp silent mode */
+ 			loadIntegerSetting(stmt, Settings.Secure.FLIP_SILENT_MODE,
+-				R.integer.def_flip_silent_mode); 	
++				R.integer.def_flip_silent_mode); 
++			/* load dy add direct dial mode */
++			loadIntegerSetting(stmt, Settings.Secure.AEON_DIRECT_DIAL,
++				R.integer.def_direct_dial_mode); 
+             /*
+              * IMPORTANT: Do not add any more upgrade steps here as the global,
+              * secure, and system settings are no longer stored in a database
+diff --git a/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/QuickContactActivity.java b/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/QuickContactActivity.java
+index 80fe4ce..36b30b9 100755
+--- a/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/QuickContactActivity.java
++++ b/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/QuickContactActivity.java
+@@ -49,6 +49,7 @@ import android.net.Uri;
+ import android.os.AsyncTask;
+ import android.os.Bundle;
+ import android.os.Trace;
++import android.provider.Settings;
+ import android.provider.CalendarContract;
+ import android.provider.ContactsContract;
+ import android.provider.ContactsContract.CommonDataKinds.Email;
+@@ -348,6 +349,8 @@ public class QuickContactActivity extends ContactsActivity {
+ 
+     private static final String FRAGMENT_TAG_SELECT_ACCOUNT = "select_account_fragment";
+ 	
++	private boolean IsDirectDial = false ;
++	
+ 	private SensorManager mSensorManager;
+ 	private Sensor mProximitySensor;
+ 	private EastaeonListener mEastaeonListener;
+@@ -873,6 +876,7 @@ public class QuickContactActivity extends ContactsActivity {
+ 		mIsRegister = false;
+ 		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+ 		mProximitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
++		isSupportDirectDial();	
+     }
+ 
+     public class EastaeonListener implements SensorEventListener {
+@@ -883,8 +887,8 @@ public class QuickContactActivity extends ContactsActivity {
+ 		public void onSensorChanged(SensorEvent event) {
+              float distance = event.values[0];
+              Log.d("SmartSomaticReaction", "Contacts --- proximity, event.values[0] = " + distance);
+-             if (distance == 0.0 && event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
+-				Log.d("SmartSomaticReaction", "Contacts --- proximity, distance = " + distance);
++             if (distance == 0.0 && event.sensor.getType() == Sensor.TYPE_PROXIMITY && IsDirectDial) {
++				Log.d("SmartSomaticReaction", "Contacts --- proximity, distance = " + distance + ",IsDirectDial =" + IsDirectDial);
+ 				String number = HelpUtils.getNumber();
+                 if (number == null || number.isEmpty()){
+ 					Log.d("SmartSomaticReaction", "Contacts --- proximity, number error!");
+@@ -1183,6 +1187,7 @@ public class QuickContactActivity extends ContactsActivity {
+                 .getQuickContactRcsScroller()
+                 .updateRcsContact(mContactLoader.getLookupUri(), false);
+         ///@}
++		isSupportDirectDial();
+     }
+ 
+     private void populateContactAndAboutCard(Cp2DataCardModel cp2DataCardModel) {
+@@ -2541,6 +2546,13 @@ public class QuickContactActivity extends ContactsActivity {
+                 });
+         builder.createContactShortcutIntent(mContactData.getLookupUri());
+     }
++	
++	private void isSupportDirectDial() {
++		boolean Direct_dial = Settings.Secure.getInt(this.getContentResolver(),
++               Settings.Secure.AEON_DIRECT_DIAL, 0) != 0;
++		Log.d("dy---","Direct_dial = " + Direct_dial);
++		IsDirectDial = Direct_dial;
++	}
+ 
+     private boolean isShortcutCreatable() {
+         if (mContactData == null || mContactData.isUserProfile() ||
+diff --git a/alps/packages/services/Telephony/res/values/strings.xml b/alps/packages/services/Telephony/res/values/strings.xml
+index b0a4cf2..ba072d4 100755
+--- a/alps/packages/services/Telephony/res/values/strings.xml
++++ b/alps/packages/services/Telephony/res/values/strings.xml
+@@ -1295,5 +1295,5 @@
+     <string name="callFailed_cdma_activation">
+         A SIM card has activated your service and updated your phone\'s roaming capabilities.
+     </string>
+-
++	<string name="direct_dial">direct dial</string>
+ </resources>
+diff --git a/alps/packages/services/Telephony/res/xml/phone_account_settings.xml b/alps/packages/services/Telephony/res/xml/phone_account_settings.xml
+old mode 100644
+new mode 100755
+index 0c5c211..1e7f2c9
+--- a/alps/packages/services/Telephony/res/xml/phone_account_settings.xml
++++ b/alps/packages/services/Telephony/res/xml/phone_account_settings.xml
+@@ -27,6 +27,11 @@
+             android:persistent="true"
+             android:summary="@string/hac_mode_summary"
+             android:title="@string/hac_mode_title" />
++			
++		<CheckBoxPreference
++            android:key="direct_dial"
++			android:defaultValue="false"
++            android:title="@string/direct_dial" />	
+ 
+         <!-- M: Add for [DualMic] -->
+         <CheckBoxPreference
+diff --git a/alps/packages/services/Telephony/src/com/android/phone/settings/PhoneAccountSettingsFragment.java b/alps/packages/services/Telephony/src/com/android/phone/settings/PhoneAccountSettingsFragment.java
+old mode 100644
+new mode 100755
+index 5959966..c721aa8
+--- a/alps/packages/services/Telephony/src/com/android/phone/settings/PhoneAccountSettingsFragment.java
++++ b/alps/packages/services/Telephony/src/com/android/phone/settings/PhoneAccountSettingsFragment.java
+@@ -562,11 +562,14 @@ public class PhoneAccountSettingsFragment extends PreferenceFragment
+     private CheckBoxPreference mButtonMagiConference;
+     /// Add for [HAC]
+     private CheckBoxPreference mButtonHAC;
++	/// add for direct dial
++	private CheckBoxPreference mButtonDirectDial;
+ 
+     private static final String BUTTON_DUAL_MIC_KEY = "button_dual_mic_key";
+     private static final String BUTTON_ANC_KEY = "button_anc_key";
+     private static final String BUTTON_MAGI_CONFERENCE_KEY = "button_magi_conference_key";
+     private static final String BUTTON_HAC_KEY = "button_hac_key";
++	private static final String BUTTON_DIRECT_DIAL = "direct_dial";
+ 
+     private void configCallFeatures() {
+         mButtonDualMic = (CheckBoxPreference) getPreferenceScreen()
+@@ -575,6 +578,10 @@ public class PhoneAccountSettingsFragment extends PreferenceFragment
+         mButtonMagiConference = (CheckBoxPreference) getPreferenceScreen().findPreference(
+                 BUTTON_MAGI_CONFERENCE_KEY);
+         mButtonHAC = (CheckBoxPreference) getPreferenceScreen().findPreference(BUTTON_HAC_KEY);
++		mButtonDirectDial = (CheckBoxPreference) getPreferenceScreen().findPreference(BUTTON_DIRECT_DIAL);
++		mButtonDirectDial.setChecked(Settings.Secure.getInt(getActivity().getContentResolver(),
++               Settings.Secure.AEON_DIRECT_DIAL, 0) != 0);
++		mButtonDirectDial.setOnPreferenceChangeListener(this);
+ 
+         Log.d(TAG, "MicSupport: " + FeatureOption.isMtkDualMicSupport());
+         Log.d(TAG, "ANCSupport: " + TelephonyUtils.isANCSupport());
+@@ -687,6 +694,14 @@ public class PhoneAccountSettingsFragment extends PreferenceFragment
+                     hac == SettingsConstants.HAC_ENABLED
+                             ? SettingsConstants.HAC_VAL_ON : SettingsConstants.HAC_VAL_OFF);
+             return true;
++        }else if (preference.getKey().equals(BUTTON_DIRECT_DIAL)) {
++            int direct = mButtonDirectDial.isChecked() ? 0 : 1;
++            Log.d(TAG, "onPreferenceChange mButtonDirectDial turn on : " + direct);
++
++            // Update value in Settings database
++            Settings.Secure.putInt(getActivity().getContentResolver(),
++                    Settings.Secure.AEON_DIRECT_DIAL, direct);
++            return true;
+         }
+         return false;
+     }
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
+index 327cddb..aaa9921 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
+@@ -333,7 +333,7 @@ public class ComposeMessageActivity extends Activity
+     private static final boolean DEBUG = false;
+     private static final boolean TRACE = false;
+     private static final boolean LOCAL_LOGV = false;
+-
++	private boolean IsDirectDial = false ;
+     // Menu ID
+     private static final int MENU_ADD_SUBJECT           = 0;
+     private static final int MENU_DELETE_THREAD         = 1;
+@@ -3076,6 +3076,7 @@ public class ComposeMessageActivity extends Activity
+         mStatusBarSelectorReceiver = new StatusBarSelectorReceiver(this);
+         IntentFilter statusBarSelectorIntentFilter = new IntentFilter(StatusBarSelectorReceiver.ACTION_MMS_ACCOUNT_CHANGED);
+         registerReceiver(mStatusBarSelectorReceiver, statusBarSelectorIntentFilter);
++		isSupportDirectDial();	
+     }
+    
+     public class EastaeonListener implements SensorEventListener {
+@@ -3087,7 +3088,7 @@ public class ComposeMessageActivity extends Activity
+         public void onSensorChanged(SensorEvent event) {
+ 			float distance = event.values[0];
+ 			Log.d("SmartSomaticReaction", "Mms --- proximity, event.values[0] = " + distance);
+-            if (distance == 0.0 && event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
++            if (distance == 0.0 && event.sensor.getType() == Sensor.TYPE_PROXIMITY && IsDirectDial) {
+ 				Log.d("SmartSomaticReaction", "Mms --- proximity, distance = " + distance);
+ 				String number = getRecipients().get(0).getNumber();
+ 				Intent dialIntent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + number));
+@@ -3098,6 +3099,13 @@ public class ComposeMessageActivity extends Activity
+         }
+ 
+     }
++	
++	private void isSupportDirectDial() {
++		boolean Direct_dial = Settings.Secure.getInt(this.getContentResolver(),
++               Settings.Secure.AEON_DIRECT_DIAL, 0) != 0;
++		Log.d("dy---","Direct_dial = " + Direct_dial);
++		IsDirectDial = Direct_dial;
++	}
+ 
+     private void showSubjectEditor(boolean show) {
+         if (Log.isLoggable(LogTag.APP, Log.VERBOSE)) {
+@@ -3852,7 +3860,7 @@ public class ComposeMessageActivity extends Activity
+         /// M: fix bug ALPS00444752, set false to enable to Show ContactPicker
+         mShowingContactPicker = false;
+         super.onResume();
+-
++		isSupportDirectDial();
+         mIsActivityPaused = false;
+         mNeedSaveDraftAfterStop = false;
+         boolean isSmsEnabled = MmsConfig.isSmsEnabled(this);
+-- 
+1.7.9.5
+

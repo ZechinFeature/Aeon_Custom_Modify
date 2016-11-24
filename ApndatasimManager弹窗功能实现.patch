@@ -1,0 +1,703 @@
+From fb43a6b29335293d1ae47967700b75f147188a7a Mon Sep 17 00:00:00 2001
+From: wangjian <wang.jian@eastaeon.com>
+Date: Mon, 14 Mar 2016 14:59:11 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=20Apn=20=E3=80=81data=E3=80=81?=
+ =?UTF-8?q?simManager=E5=BC=B9=E7=AA=97=E5=8A=9F=E8=83=BD=E5=AE=9E=E7=8E=B0?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ alps/packages/apps/Settings/AndroidManifest.xml    |   11 +-
+ .../res/layout/select_account_list_item.xml        |   10 +-
+ alps/packages/apps/Settings/res/values/strings.xml |   12 +
+ .../android/settings/sim/SimDialogActivity.java    |  307 +++++++++++++++++---
+ .../settings/sim/SimSelectNotification.java        |   80 ++++-
+ 5 files changed, 370 insertions(+), 50 deletions(-)
+ mode change 100644 => 100755 alps/packages/apps/Settings/src/com/android/settings/sim/SimDialogActivity.java
+ mode change 100644 => 100755 alps/packages/apps/Settings/src/com/android/settings/sim/SimSelectNotification.java
+
+diff --git a/alps/packages/apps/Settings/AndroidManifest.xml b/alps/packages/apps/Settings/AndroidManifest.xml
+index 4284636..a388bdd 100755
+--- a/alps/packages/apps/Settings/AndroidManifest.xml
++++ b/alps/packages/apps/Settings/AndroidManifest.xml
+@@ -85,7 +85,7 @@
+ 
+     <!-- M: SIM Settings, need this permission to check raido power state -->
+     <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
+-
++	<uses-permission android:name="android.permission.INTERNAL_SYSTEM_WINDOW" />
+     <application android:label="@string/settings_label"
+             android:icon="@mipmap/ic_launcher_settings"
+             android:taskAffinity=""
+@@ -122,7 +122,12 @@
+                 <category android:name="android.intent.category.LAUNCHER" />
+             </intent-filter>
+         </activity-alias>
+-
++		<activity android:name="com.android.phone.MobileNetworkSettings">
++			<intent-filter>
++				<action android:name="android.settings.MOBILE_NETWORK_SETTINGS" />
++				<category android:name="android.intent.category.DEFAULT" />
++			</intent-filter>
++		</activity>
+         <receiver android:name="ManagedProfileSetup">
+             <intent-filter>
+                 <action android:name="android.intent.action.USER_INITIALIZE"/>
+@@ -2561,7 +2566,7 @@
+         </receiver>
+ 
+         <receiver android:name=".sim.SimSelectNotification">
+-            <intent-filter>
++            <intent-filter android:priority="1000">
+                 <!-- /// M
+                 <action android:name="android.intent.action.SIM_STATE_CHANGED"></action>
+                 -->
+diff --git a/alps/packages/apps/Settings/res/layout/select_account_list_item.xml b/alps/packages/apps/Settings/res/layout/select_account_list_item.xml
+index 3587e55..65b9f7e 100644
+--- a/alps/packages/apps/Settings/res/layout/select_account_list_item.xml
++++ b/alps/packages/apps/Settings/res/layout/select_account_list_item.xml
+@@ -19,7 +19,8 @@
+     android:orientation="horizontal"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+-    android:background="?android:attr/selectableItemBackground" >
++    android:descendantFocusability="blocksDescendants"
++	android:background="?android:attr/selectableItemBackground" >
+ 
+     <ImageView android:id="@+id/icon"
+         android:layout_width="48dp"
+@@ -53,5 +54,10 @@
+             android:layout_below="@id/title"
+             android:textColor="?android:attr/textColorSecondary"
+             android:layout_alignStart="@id/title" />
+-    </LinearLayout>
++	</LinearLayout>
++	<RadioButton 
++		android:id="@+id/radio"
++		android:layout_width="48dp"
++		android:layout_height="48dp"
++		android:layout_gravity="center"/>
+ </LinearLayout>
+diff --git a/alps/packages/apps/Settings/res/values/strings.xml b/alps/packages/apps/Settings/res/values/strings.xml
+index 835ac4e..39bf0f4 100755
+--- a/alps/packages/apps/Settings/res/values/strings.xml
++++ b/alps/packages/apps/Settings/res/values/strings.xml
+@@ -7023,4 +7023,16 @@
+ 	<string name="home_wallpaper_settings_title">Homescreen</string>
+ 	<string name="lockscreen_wallpaper_settings_title">Lockscreen</string>
+ 	<string name="home_lockscreen_wallpaper_settings_title">Homescreen and Lockscreen</string>
++	<string name="apn_alert_title">APN Config</string>
++	<string name="apn_alert_chanage">Change</string>
++	<string name="apn_alert_close">Close</string>
++	<string name="apn_alert_message">In order to ensure full connectivity, please select default internet settings for your SIM-card. Please note that additional data costs may be charged by your operator when having an active data connection.</string>
++	<string name="newcard_manager_message">SIM cards have been exchanged.\nNow default settings are:\nVoice call: <xliff:g id="voice_call">%1$s</xliff:g>\nMessage: <xliff:g id="message">%2$s</xliff:g>\nData Connection: <xliff:g id="data_connection">%3$s</xliff:g></string>
++	<string name="newcard_manager_title">Available cards change</string>
++	<string name="newcard_manager_change">Change</string>
++	<string name="newcard_manager_close">Close</string>
++	<string name="data_service_title">Data services</string>
++	<string name="data_service_enable">Enable</string>
++	<string name="data_service_disable">Disable</string>
++	<string name="data_service_message">Mobile data connection enabled by default. Enabling mobile data connection may incur additional charges from operator, if you do not have an unlimited data plan.</string>
+ </resources>
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/sim/SimDialogActivity.java b/alps/packages/apps/Settings/src/com/android/settings/sim/SimDialogActivity.java
+old mode 100644
+new mode 100755
+index 22aa658..73646ec
+--- a/alps/packages/apps/Settings/src/com/android/settings/sim/SimDialogActivity.java
++++ b/alps/packages/apps/Settings/src/com/android/settings/sim/SimDialogActivity.java
+@@ -43,7 +43,7 @@ import android.widget.ImageView;
+ import android.widget.ListAdapter;
+ import android.widget.TextView;
+ import android.widget.Toast;
+-
++import android.widget.RadioButton;
+ import com.android.settings.R;
+ import com.mediatek.internal.telephony.DefaultSmsSimSettings;
+ /// M: Add for CT 6M.
+@@ -60,7 +60,13 @@ import com.mediatek.settings.sim.TelephonyUtils;
+ import java.util.ArrayList;
+ import java.util.Iterator;
+ import java.util.List;
+-
++import android.content.SharedPreferences;
++import android.os.Handler;
++import android.os.Message;
++import android.view.WindowManager;
++import com.android.internal.telephony.PhoneConstants;
++import android.widget.CompoundButton;
++import android.widget.CompoundButton.OnCheckedChangeListener;
+ public class SimDialogActivity extends Activity {
+     private static String TAG = "SimDialogActivity";
+ 
+@@ -71,7 +77,39 @@ public class SimDialogActivity extends Activity {
+     public static final int CALLS_PICK = 1;
+     public static final int SMS_PICK = 2;
+     public static final int PREFERRED_PICK = 3;
+-
++	public static final int APN_ALERT = 0;
++	public static final int DATA_ALERT = 1;
++	public static final int SIM_MANAGER_ALERT = 2;
++	//receive default data from simSettings
++	public static String DEFAULT_CALLID = "default_callid";
++	public static String DEFAULT_SMSID = "default_smsid";
++	public static String DEFAULT_DATAID = "default_dataid";
++	public static String SIM_NUM = "sim_number";
++	private SubscriptionManager mSubscriptionManager;
++	public Handler handler = new Handler(){
++		@Override
++		public void handleMessage(android.os.Message msg) {
++			int action = msg.what;
++			
++			switch (action) {
++			case DATA_ALERT:
++				handleSIMCardChangeDataServce(msg.arg1,msg.arg2);
++				break;
++			case APN_ALERT:
++				handleSIMCardChangeApn(msg.arg1, msg.arg2);
++				break;
++			case SIM_MANAGER_ALERT:
++				
++				handleSIMCardChangeSelector(msg.arg1,msg.arg2);
++				break;
++
++			default:
++				break;
++			}
++		}
++
++		
++	};
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+@@ -79,7 +117,7 @@ public class SimDialogActivity extends Activity {
+ 
+         /// M: [SIM Hot Swap]
+         setSimStateCheck();
+-
++		mSubscriptionManager = SubscriptionManager.from(SimDialogActivity.this);
+         /// M: for plug-in @{
+         mSimManagementExt = UtilsExt.getSimManagmentExtPlugin(getApplicationContext());
+         mMiscExt = UtilsExt.getMiscPlugin(getApplicationContext());
+@@ -87,14 +125,27 @@ public class SimDialogActivity extends Activity {
+         /// @}
+ 
+         final int dialogType = extras.getInt(DIALOG_TYPE_KEY, INVALID_PICK);
+-
++		int defaultSubId = -10;
++		Message msg = Message.obtain();
+         switch (dialogType) {
+             case DATA_PICK:
++				defaultSubId = extras.getInt(DEFAULT_DATAID, -10);
++				mDialog = createDialog(this, dialogType,defaultSubId);
++				Log.d(TAG,"mDialog starrt show");
++                mDialog.show();
++				break;
+             case CALLS_PICK:
++				defaultSubId = extras.getInt(DEFAULT_CALLID, -10);
++				mDialog = createDialog(this, dialogType,defaultSubId);
++				Log.d(TAG,"mDialog starrt show");
++                mDialog.show();
++				break;
+             case SMS_PICK:
+                 /// M: for AlPS02113443, avoid window leak @{
+                 // createDialog(this, dialogType).show();
+-                mDialog = createDialog(this, dialogType);
++				defaultSubId = extras.getInt(DEFAULT_SMSID, -10);
++                mDialog = createDialog(this, dialogType,defaultSubId);
++				Log.d(TAG,"mDialog starrt show");
+                 mDialog.show();
+                 break;
+             case PREFERRED_PICK:
+@@ -107,21 +158,26 @@ public class SimDialogActivity extends Activity {
+                     return;
+                 }
+                 /// @}
+-                displayPreferredDialog(extras.getInt(PREFERRED_SIM));
++				msg.what = DATA_ALERT;
++						msg.arg1 = extras.getInt(PREFERRED_SIM,-1);
++			            msg.arg2 = extras.getInt(SIM_NUM, 0);
++						msg.obj = dialogType;
++			            handler.sendMessageDelayed(msg, 2000);
++               // displayPreferredDialog(extras.getInt(PREFERRED_SIM));
+                 break;
+             default:
+                 throw new IllegalArgumentException("Invalid dialog type " + dialogType + " sent.");
+         }
+     }
+ 
+-    private void displayPreferredDialog(final int slotId) {
++    private void displayPreferredDialog(final int slotId,final int simCount) {
+         final Resources res = getResources();
+         final Context context = getApplicationContext();
+         final SubscriptionInfo sir = SubscriptionManager.from(context)
+                 .getActiveSubscriptionInfoForSimSlotIndex(slotId);
+ 
+-        if (sir != null) {
+-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
++        if (sir != null || simCount > 1) {
++            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+ 
+             /// M: for Plug-in @{
+             /*
+@@ -129,53 +185,71 @@ public class SimDialogActivity extends Activity {
+             alertDialogBuilder.setMessage(res.getString(
+                         R.string.sim_preferred_message, sir.getDisplayName()));
+             */
+-            int subId = SubscriptionManager.getSubIdUsingPhoneId(slotId);
++			
++
++			final int subId = (sir == null)? -1 : SubscriptionManager.getSubIdUsingPhoneId(slotId);
+             String title = mMiscExt.customizeSimDisplayString(res
+-                    .getString(R.string.sim_preferred_title), subId);
++                    .getString(R.string.newcard_manager_title), subId);
+             String message = mMiscExt.customizeSimDisplayString(res.getString(
+-                    R.string.sim_preferred_message, sir.getDisplayName()), subId);
++                    R.string.newcard_manager_message,callDisplayName(),smsDisplayName(),cellularDataDisplayName()), subId);
+             alertDialogBuilder.setTitle(title);
+             alertDialogBuilder.setMessage(message);
+             /// @}
+-
+-            alertDialogBuilder.setPositiveButton(R.string.yes, new
++			alertDialogBuilder.setCancelable(false);
++            alertDialogBuilder.setPositiveButton(R.string.newcard_manager_change, new
+                     DialogInterface.OnClickListener() {
+                 @Override
+                 public void onClick(DialogInterface dialog, int id) {
+-                    final int subId = sir.getSubscriptionId();
++                    /*final int subId = sir.getSubscriptionId();
+                     PhoneAccountHandle phoneAccountHandle =
+                             subscriptionIdToPhoneAccountHandle(subId);
+                     setDefaultDataSubId(context, subId);
+                     setDefaultSmsSubId(context, subId);
+                     setUserSelectedOutgoingPhoneAccount(phoneAccountHandle);
++					*/
++					Intent intent = new Intent("com.android.settings.sim.SIM_SUB_INFO_SETTINGS");
++					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
++					getBaseContext().startActivity(intent);
++					//sendMessage(subId,simCount,APN_ALERT,-1,4000);
+                     finish();
+                 }
+             });
+-            alertDialogBuilder.setNegativeButton(R.string.no, new
++            alertDialogBuilder.setNegativeButton(R.string.newcard_manager_close, new
+                     DialogInterface.OnClickListener() {
+                 @Override
+                 public void onClick(DialogInterface dialog,int id) {
+                     finish();
+                 }
+             });
+-
+-            /// M: for ALPS02345087, finish the activity if dialog dismissed @{
+-            alertDialogBuilder.setOnDismissListener(new OnDismissListener() {
+-                @Override
+-                public void onDismiss(DialogInterface dialog) {
+-                    finish();
+-                }
+-            });
+-            /// @}
+-
+-            /// M: for ALPS02422990 avoid window leak @{
+-            mDialog = alertDialogBuilder.create();
+-            mDialog.show();
+-            /// @}
++			AlertDialog simCardChangedDialog = alertDialogBuilder.create();
++			simCardChangedDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG);
++            simCardChangedDialog.show();
+         } else {
+             finish();
+         }
+     }
++	//to check sms state
++	private CharSequence smsDisplayName() {
++            SubscriptionInfo sir = mSubscriptionManager.getDefaultSmsSubscriptionInfo();     
++			return sir == null ? getResources().getString(R.string.sim_calls_ask_first_prefs_title) : sir.getDisplayName();
++    }
++	//to check cellularData state
++    private CharSequence cellularDataDisplayName() {
++            SubscriptionInfo sir = mSubscriptionManager.getDefaultDataSubscriptionInfo();
++			return sir == null ? getResources().getString(R.string.sim_selection_required_pref) : sir.getDisplayName();
++    }
++	//to check call state
++    private String callDisplayName() {
++		
++            final TelecomManager telecomManager = TelecomManager.from(getApplicationContext());
++            PhoneAccountHandle phoneAccount =
++                telecomManager.getUserSelectedOutgoingPhoneAccount();
++            final List<PhoneAccountHandle> allPhoneAccounts =
++                telecomManager.getCallCapablePhoneAccounts();
++            PhoneAccount defaultAccount = phoneAccount == null ? null : telecomManager
++                    .getPhoneAccount(phoneAccount);
++			return defaultAccount == null ? getResources().getString(R.string.sim_calls_ask_first_prefs_title) : (String)defaultAccount.getLabel();
++    }
+ 
+     private void setDefaultDataSubId(final Context context, final int subId) {
+         final SubscriptionManager subscriptionManager = SubscriptionManager.from(context);
+@@ -267,7 +341,7 @@ public class SimDialogActivity extends Activity {
+         return null;
+     }
+ 
+-    public Dialog createDialog(final Context context, final int id) {
++    public Dialog createDialog(final Context context, final int id ,final int defaultSubId) {
+         final ArrayList<String> list = new ArrayList<String>();
+         final SubscriptionManager subscriptionManager = SubscriptionManager.from(context);
+         final List<SubscriptionInfo> subInfoList =
+@@ -452,7 +526,7 @@ public class SimDialogActivity extends Activity {
+                 /// @}
+                 builder.getContext(),
+                 R.layout.select_account_list_item,
+-                arr, id);
++                arr, id ,defaultSubId);
+ 
+         switch (id) {
+             case DATA_PICK:
+@@ -492,14 +566,15 @@ public class SimDialogActivity extends Activity {
+         private int mDialogId;
+         private final float OPACITY = 0.54f;
+         private List<SubscriptionInfo> mSubInfoList;
+-
++		private int mDefaultSubId;
+         public SelectAccountListAdapter(List<SubscriptionInfo> subInfoList,
+-                Context context, int resource, String[] arr, int dialogId) {
++                Context context, int resource, String[] arr, int dialogId , int defaultSubId) {
+             super(context, resource, arr);
+             mContext = context;
+             mResId = resource;
+             mDialogId = dialogId;
+             mSubInfoList = subInfoList;
++			mDefaultSubId = defaultSubId;
+         }
+ 
+         @Override
+@@ -516,6 +591,8 @@ public class SimDialogActivity extends Activity {
+                 holder.title = (TextView) rowView.findViewById(R.id.title);
+                 holder.summary = (TextView) rowView.findViewById(R.id.summary);
+                 holder.icon = (ImageView) rowView.findViewById(R.id.icon);
++				holder.radioButton = (RadioButton) rowView.findViewById(R.id.radio);
++				holder.radioButton.setClickable(false);
+                 rowView.setTag(holder);
+             } else {
+                 rowView = convertView;
+@@ -536,6 +613,9 @@ public class SimDialogActivity extends Activity {
+                 }
+                 /// @}
+                 /// M: for plug-in
++				boolean ischecked = getDefaultData(mDialogId,sir);
++				Log.d(TAG, "ischecked 1= "+ischecked);
++				holder.radioButton.setChecked(ischecked);
+                 mSimManagementExt.setSmsAutoItemIcon(holder.icon, mDialogId, position);
+                 holder.icon.setAlpha(OPACITY);
+             } else {
+@@ -544,14 +624,36 @@ public class SimDialogActivity extends Activity {
+                 holder.icon.setImageBitmap(sir.createIconBitmap(mContext));
+                 /// M: when item numbers is over the screen, should set alpha 1.0f.
+                 holder.icon.setAlpha(1.0f);
++				//Log.d(TAG, "getDefaultData(mDialogId,sir):"+getDefaultData(mDialogId,sir));
++				boolean ischecked = getDefaultData(mDialogId,sir);
++				Log.d(TAG, "ischecked 2= "+ischecked);
++				holder.radioButton.setChecked(ischecked);
++				Log.d(TAG, "holder.radioButton.setChecked");
+             }
+             return rowView;
+         }
+-
++		//get default date for radioButton
++		private boolean getDefaultData(int id,SubscriptionInfo subInfo){
++
++			int currentSubId = -10;
++			if(subInfo == null && mDefaultSubId == -10){
++				return true;
++				
++			}else if(subInfo != null && mDefaultSubId == -10 || subInfo == null && mDefaultSubId != -10){
++				return false;
++				
++			}else{
++				currentSubId = subInfo.getSubscriptionId();
++			}
++			Log.d(TAG, "mDefaultSubId : " + mDefaultSubId +", currentSubId : "+currentSubId);
++			return currentSubId == mDefaultSubId;
++		}
++	
+         private class ViewHolder {
+             TextView title;
+             TextView summary;
+             ImageView icon;
++			RadioButton radioButton;
+         }
+ 
+         private void setPhoneAccountIcon(ViewHolder holder, int location) {
+@@ -768,4 +870,137 @@ public class SimDialogActivity extends Activity {
+                 + " targetValue: " + targetValue);
+         return isEqual;
+     }
++	private void handleSIMCardChangeSelector(int slotId , int simCount) {
++		// TODO Auto-generated method stub
++		displayPreferredDialog(slotId,simCount);
++		/*switch (simCount) {
++			case 1:
++				displayPreferredDialog(slotId);
++				break;
++			case 2:
++				mDialog = createDialog(this, dialogType);
++                mDialog.show();
++				break;
++			default:
++				break;
++			}*/
++	};
++	private boolean isFirstBoot(){
++		SharedPreferences sharedPreferences = this.getSharedPreferences("BOOT_STATE_LIBILAY", Context.MODE_PRIVATE);
++		boolean firstBoot = sharedPreferences.getBoolean("BOOT_STATE",true);
++		if(firstBoot){
++			SharedPreferences.Editor editor = sharedPreferences.edit();
++			editor.putBoolean("BOOT_STATE", false);
++			editor.commit();
++			return firstBoot;
++		}
++		return false;
++	}
++	private void handleSIMCardChangeDataServce(final int slotId,final int insertCount){
++
++		Log.d(TAG,"handleSIMCardChangeDataServce insertCount=" + insertCount); 
++		final int subId = SubscriptionManager.getSubIdUsingPhoneId(slotId);
++		if(isFirstBoot()){
++			
++			AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getBaseContext());
++			dialogBuilder.setCancelable(false);
++			dialogBuilder.setPositiveButton(R.string.data_service_enable,
++			        new AlertDialog.OnClickListener() { 
++			            public void onClick(DialogInterface arg0, int arg1) {
++			            //begin to call setting interface
++			            if(insertCount >= 2){
++						   final SubscriptionManager subscriptionManager = SubscriptionManager.from(getBaseContext());
++						   TelephonyManager telephonyManager = TelephonyManager.from(SimDialogActivity.this);
++						   int sub = SubscriptionManager.getSubIdUsingPhoneId(PhoneConstants.SIM_ID_1);
++						   int currSub = SubscriptionManager.getDefaultDataSubId();
++						   if(subscriptionManager.isValidSubscriptionId(sub)){
++								if(sub != currSub){
++									subscriptionManager.setDefaultDataSubId(sub);
++									telephonyManager.setDataEnabled(sub, true);
++								}else{
++									telephonyManager.setDataEnabled(sub, true);
++									Log.d(TAG,"sim data switch in this card,but not enable"); 
++								}
++						   }
++			            }else{
++			               //setDataEnabled(subId,true);
++						   final SubscriptionManager subscriptionManager = SubscriptionManager.from(SimDialogActivity.this);
++						   TelephonyManager telephonyManager = TelephonyManager.from(SimDialogActivity.this);
++						   if(subscriptionManager.isValidSubscriptionId(subId)){
++								subscriptionManager.setDefaultDataSubId(subId);
++								telephonyManager.setDataEnabled(subId, true);
++						   }
++						   
++			            }
++						sendMessage(slotId,insertCount,APN_ALERT,3000);
++			        }
++			});
++			dialogBuilder.setNegativeButton(R.string.data_service_disable, new AlertDialog.OnClickListener() {
++			    public void onClick(DialogInterface arg0, int arg1) {
++					sendMessage(slotId,insertCount,APN_ALERT,3000);
++			}});
++			dialogBuilder.setTitle(R.string.data_service_title);
++			dialogBuilder.setMessage(R.string.data_service_message);
++			AlertDialog mSimCardChangedDialog = dialogBuilder.create();
++			mSimCardChangedDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG);
++			mSimCardChangedDialog.show();
++		}else{
++		    sendMessage(slotId,insertCount,APN_ALERT,10);
++		}
++	    }
++		private void sendMessage(int Id,int insertCount,int what,int delay){
++			Message msg = Message.obtain();
++			if(what == APN_ALERT){
++				 msg.what = APN_ALERT;
++			     msg.arg1 = Id;      
++				 msg.arg2 = insertCount;
++			}else if(what == SIM_MANAGER_ALERT){
++				 msg.what = SIM_MANAGER_ALERT;
++			     msg.arg1 = Id;
++			     msg.arg2 = insertCount;
++			}
++		handler.sendMessageDelayed(msg, delay);
++		}
++		private void handleSIMCardChangeApn(final int slotId,final int insertCount){
++			final int msubId = slotId >= 0 ? SubscriptionManager.getSubIdUsingPhoneId(slotId) : -1;
++			Log.d(TAG,"handleSIMCardChangeApn()");
++			//shihongwei SimInfoManagerImpl error simConunt is null
++	        final int simConunt =  insertCount;
++	        Log.d(TAG,"handleSIMCardChangeDataServce simConunt=" + simConunt); 
++	        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getBaseContext());
++			dialogBuilder.setCancelable(false);
++	        dialogBuilder.setPositiveButton(R.string.apn_alert_chanage,
++	                new AlertDialog.OnClickListener(){ 
++	                    public void onClick(DialogInterface arg0, int arg1) {
++	                    //begin to call setting interface
++						if(insertCount == 1){
++							Intent intent_apnSettings = new Intent("android.settings.APN_SETTINGS");
++							intent_apnSettings.putExtra("sub_id",msubId);
++							Log.d(TAG,"subId:" + msubId);
++	                        intent_apnSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
++							Log.d(TAG,"startActivity" );
++							getBaseContext().startActivity(intent_apnSettings);
++						}else if(insertCount == 2){
++							final Intent intent_networkSettings = new Intent("android.settings.DATA_ROAMING_SETTINGS");
++							intent_networkSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
++							getBaseContext().startActivity(intent_networkSettings);
++						}
++	                       sendMessage(slotId,insertCount,SIM_MANAGER_ALERT,3000);
++	                }
++					
++	        });
++			
++	        dialogBuilder.setNegativeButton(R.string.apn_alert_close, new
++                    DialogInterface.OnClickListener() {
++                @Override
++                public void onClick(DialogInterface dialog,int id) {
++                    sendMessage(slotId,insertCount,SIM_MANAGER_ALERT,3000);
++                }
++            });
++	        dialogBuilder.setTitle(R.string.apn_alert_title);
++	        dialogBuilder.setMessage(R.string.apn_alert_message);
++	        AlertDialog mSimCardApnDialog = dialogBuilder.create();
++			mSimCardApnDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG);
++			mSimCardApnDialog.show();
++	    }
+ }
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/sim/SimSelectNotification.java b/alps/packages/apps/Settings/src/com/android/settings/sim/SimSelectNotification.java
+old mode 100644
+new mode 100755
+index 7cbbc00..d34e29e
+--- a/alps/packages/apps/Settings/src/com/android/settings/sim/SimSelectNotification.java
++++ b/alps/packages/apps/Settings/src/com/android/settings/sim/SimSelectNotification.java
+@@ -36,12 +36,16 @@ import android.telephony.SubscriptionInfo;
+ import android.telephony.SubscriptionManager;
+ import android.telephony.TelephonyManager;
+ import android.util.Log;
+-
++import android.telecom.PhoneAccount;
++import android.telecom.PhoneAccountHandle;
++import android.telecom.TelecomManager;
+ /// M: Add for CT 6M.
+ import com.mediatek.settings.FeatureOption;
+ 
+ import java.util.List;
+-
++import com.mediatek.settings.sim.TelephonyUtils;
++import java.util.Iterator;
++import com.android.internal.telephony.PhoneConstants;
+ public class SimSelectNotification extends BroadcastReceiver {
+     private static final String TAG = "SimSelectNotification";
+     private static final int NOTIFICATION_ID = 1;
+@@ -79,7 +83,8 @@ public class SimSelectNotification extends BroadcastReceiver {
+                 Settings.Global.DEVICE_PROVISIONED, 0) == 0;
+ 
+         // Do not create notifications on single SIM devices or when provisiong i.e. Setup Wizard.
+-        if (numSlots < 2 || isInProvisioning) {
++		/**|| isInProvisioning*/
++        if (numSlots < 2) {
+             return;
+         }
+ 
+@@ -134,7 +139,7 @@ public class SimSelectNotification extends BroadcastReceiver {
+         // If data and sms defaults are selected, dont show notification (Calls default is optional)
+         if (dataSelected && smsSelected) {
+             Log.d(TAG, "Data & SMS default sims are selected. No notification");
+-            return;
++            //return;
+         }
+ 
+         // Create a notification to tell the user that some defaults are missing
+@@ -142,21 +147,35 @@ public class SimSelectNotification extends BroadcastReceiver {
+ 
+         /// M: for plug-in and CT 6M
+         if (!isSimDialogNeeded(context)) {
+-            return;
++            //return;
+         }
+ 
+         if (sil.size() == 1) {
+-            // If there is only one subscription, ask if user wants to use if for everything
++			final SubscriptionInfo sir = SubscriptionManager.from(context)
++                .getActiveSubscriptionInfoForSimSlotIndex(sil.get(0).getSimSlotIndex());
++			final int subId = sir.getSubscriptionId();
++            PhoneAccountHandle phoneAccountHandle =
++                    subscriptionIdToPhoneAccountHandle(subId,context);
++            setDefaultSmsSubId(context, subId);
++			setDefaultDataSubId(context,subId);
++			setUserSelectedOutgoingPhoneAccount(phoneAccountHandle,context);
++
+             Intent newIntent = new Intent(context, SimDialogActivity.class);
+             newIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+             newIntent.putExtra(SimDialogActivity.DIALOG_TYPE_KEY, SimDialogActivity.PREFERRED_PICK);
+-            newIntent.putExtra(SimDialogActivity.PREFERRED_SIM, sil.get(0).getSimSlotIndex());
++			newIntent.putExtra(SimDialogActivity.PREFERRED_SIM, sil.get(0).getSimSlotIndex());
++            newIntent.putExtra(SimDialogActivity.SIM_NUM, 1);
+             context.startActivity(newIntent);
+-        } else if (!dataSelected) {
++        } else /**if (!dataSelected)*/ {
+             // If there are mulitple, ensure they pick default data
++			if(!dataSelected){
++				int sub = SubscriptionManager.getSubIdUsingPhoneId(PhoneConstants.SIM_ID_1);
++				setDefaultDataSubId(context,sub);				
++			}
+             Intent newIntent = new Intent(context, SimDialogActivity.class);
+             newIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+-            newIntent.putExtra(SimDialogActivity.DIALOG_TYPE_KEY, SimDialogActivity.DATA_PICK);
++            newIntent.putExtra(SimDialogActivity.DIALOG_TYPE_KEY, SimDialogActivity.PREFERRED_PICK);
++			newIntent.putExtra(SimDialogActivity.SIM_NUM, 2);
+             context.startActivity(newIntent);
+         }
+     }
+@@ -225,4 +244,47 @@ public class SimSelectNotification extends BroadcastReceiver {
+         }
+         return isNeeded;
+     }
++	private void setDefaultDataSubId(final Context context, final int subId) {
++		final SubscriptionManager subscriptionManager = SubscriptionManager.from(context);
++		if (subscriptionManager.isValidSubscriptionId(subId)){
++			subscriptionManager.setDefaultDataSubId(subId);
++		}	 
++	}
++	private static void setDefaultSmsSubId(final Context context, final int subId) {
++        final SubscriptionManager subscriptionManager = SubscriptionManager.from(context);
++
++            if (TelephonyUtils.setRadioCapability(context, subId)) {
++                subscriptionManager.setDefaultSmsSubId(subId);
++            }
++
++    }
++
++    private void setUserSelectedOutgoingPhoneAccount(PhoneAccountHandle phoneAccount,Context context) {
++        final TelecomManager telecomManager = TelecomManager.from(context);
++
++            int subId =
++                    TelephonyUtils.phoneAccountHandleTosubscriptionId(context, phoneAccount);
++            if (SubscriptionManager.isValidSubscriptionId(subId)
++                    && TelephonyUtils.setRadioCapability(context, subId)) {
++                telecomManager.setUserSelectedOutgoingPhoneAccount(phoneAccount);
++            }
++
++    }
++
++    private PhoneAccountHandle subscriptionIdToPhoneAccountHandle(final int subId,Context context) {
++        final TelecomManager telecomManager = TelecomManager.from(context);
++        final TelephonyManager telephonyManager = TelephonyManager.from(context);
++        final Iterator<PhoneAccountHandle> phoneAccounts =
++                telecomManager.getCallCapablePhoneAccounts().listIterator();
++
++        while (phoneAccounts.hasNext()) {
++            final PhoneAccountHandle phoneAccountHandle = phoneAccounts.next();
++            final PhoneAccount phoneAccount = telecomManager.getPhoneAccount(phoneAccountHandle);
++            if (subId == telephonyManager.getSubIdForPhoneAccount(phoneAccount)) {
++                return phoneAccountHandle;
++            }
++        }
++
++        return null;
++    }
+ }
+-- 
+1.7.9.5
+

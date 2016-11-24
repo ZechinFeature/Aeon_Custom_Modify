@@ -1,0 +1,40 @@
+From 763e626b4ec7e0d8b7cf7108a265f7f603fc3151 Mon Sep 17 00:00:00 2001
+From: "xia.youying" <xia.youying@eastaeon.com>
+Date: Fri, 19 Aug 2016 09:45:09 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91USB=E8=BF=9E=E7?=
+ =?UTF-8?q?=94=B5=E8=84=91=E6=98=AF=E7=8A=B6=E6=80=81=E6=A0=8F=E9=9C=80=E8=A6?=
+ =?UTF-8?q?=81=E6=9C=89=E5=9B=BE=E6=A0=87=E6=8F=90=E7=A4=BA-2?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../com/android/server/usb/UsbDeviceManager.java   |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/alps/frameworks/base/services/usb/java/com/android/server/usb/UsbDeviceManager.java b/alps/frameworks/base/services/usb/java/com/android/server/usb/UsbDeviceManager.java
+index fb0e418..61b60a7 100755
+--- a/alps/frameworks/base/services/usb/java/com/android/server/usb/UsbDeviceManager.java
++++ b/alps/frameworks/base/services/usb/java/com/android/server/usb/UsbDeviceManager.java
+@@ -1289,7 +1289,7 @@ public class UsbDeviceManager {
+                             intent, 0, null, UserHandle.CURRENT);
+ 
+                     Notification notification = new Notification.Builder(mContext)
+-                            .setSmallIcon(com.android.internal.R.drawable.stat_sys_adb)
++                            .setSmallIcon(com.android.internal.R.drawable.stat_notify_plug_usb)
+                             .setWhen(0)
+                             .setOngoing(true)
+                             .setTicker(title)
+@@ -1302,9 +1302,6 @@ public class UsbDeviceManager {
+                             .setContentIntent(pi)
+                             .setVisibility(Notification.VISIBILITY_PUBLIC)
+                             .build();
+-					//xiayy add 0818s
+-						notification.icon = com.android.internal.R.drawable.stat_notify_plug_usb;
+-					//xiayy add 0818e
+                     mNotificationManager.notifyAsUser(null, id, notification,
+                             UserHandle.ALL);
+                     mUsbNotificationId = id;
+-- 
+1.7.9.5
+

@@ -1,0 +1,683 @@
+From 9eb4c39c8940a504dff83524a35fd2504d759ea7 Mon Sep 17 00:00:00 2001
+From: xiezhenlin <xie.zhenlin@eastaeon.com>
+Date: Fri, 22 Apr 2016 13:57:55 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=E6=B7=BB=E5=8A=A0=E6=8E=A7=E5?=
+ =?UTF-8?q?=88=B6=E6=8C=89=E9=94=AE=E7=81=AF=E5=8A=9F=E8=83=BD?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ alps/frameworks/base/api/current.txt               |    1 +
+ alps/frameworks/base/api/system-current.txt        |    1 +
+ .../base/core/java/android/provider/Settings.java  |    7 ++
+ .../frameworks/base/core/res/res/values/config.xml |    1 +
+ .../base/core/res/res/values/symbols.xml           |    1 +
+ .../SettingsProvider/res/values/defaults.xml       |    1 +
+ .../android/providers/settings/DatabaseHelper.java |   55 +++++++++++-
+ .../android/server/policy/PhoneWindowManager.java  |    3 +
+ .../android/server/power/PowerManagerService.java  |   83 ++++++++++++++----
+ .../apps/Settings/res/values-de/arrays.xml         |    6 ++
+ alps/packages/apps/Settings/res/values/arrays.xml  |   18 ++++
+ alps/packages/apps/Settings/res/values/strings.xml |    6 ++
+ .../apps/Settings/res/xml/display_settings.xml     |    8 ++
+ .../src/com/android/settings/DisplaySettings.java  |   89 +++++++++++++++++++-
+ 14 files changed, 261 insertions(+), 19 deletions(-)
+ mode change 100644 => 100755 alps/frameworks/base/core/java/android/provider/Settings.java
+ mode change 100644 => 100755 alps/packages/apps/Settings/AndroidManifest.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/res/values-de/arrays.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/res/xml/display_settings.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/src/com/android/settings/DisplaySettings.java
+
+diff --git a/alps/frameworks/base/api/current.txt b/alps/frameworks/base/api/current.txt
+index 35196d2..c9cd69a 100644
+--- a/alps/frameworks/base/api/current.txt
++++ b/alps/frameworks/base/api/current.txt
+@@ -26677,6 +26677,7 @@ package android.provider {
+     field public static final java.lang.String HAPTIC_FEEDBACK_ENABLED = "haptic_feedback_enabled";
+     field public static final deprecated java.lang.String HTTP_PROXY = "http_proxy";
+     field public static final deprecated java.lang.String INSTALL_NON_MARKET_APPS = "install_non_market_apps";
++    field public static final java.lang.String KEYPAD_LIGHT_OFF_TIMEOUT = "keypad_light_off_timeout";
+     field public static final deprecated java.lang.String LOCATION_PROVIDERS_ALLOWED = "location_providers_allowed";
+     field public static final deprecated java.lang.String LOCK_PATTERN_ENABLED = "lock_pattern_autolock";
+     field public static final deprecated java.lang.String LOCK_PATTERN_TACTILE_FEEDBACK_ENABLED = "lock_pattern_tactile_feedback_enabled";
+diff --git a/alps/frameworks/base/api/system-current.txt b/alps/frameworks/base/api/system-current.txt
+index 5e707bf..f2b671b 100644
+--- a/alps/frameworks/base/api/system-current.txt
++++ b/alps/frameworks/base/api/system-current.txt
+@@ -28736,6 +28736,7 @@ package android.provider {
+     field public static final java.lang.String HAPTIC_FEEDBACK_ENABLED = "haptic_feedback_enabled";
+     field public static final deprecated java.lang.String HTTP_PROXY = "http_proxy";
+     field public static final deprecated java.lang.String INSTALL_NON_MARKET_APPS = "install_non_market_apps";
++    field public static final java.lang.String KEYPAD_LIGHT_OFF_TIMEOUT = "keypad_light_off_timeout";
+     field public static final deprecated java.lang.String LOCATION_PROVIDERS_ALLOWED = "location_providers_allowed";
+     field public static final deprecated java.lang.String LOCK_PATTERN_ENABLED = "lock_pattern_autolock";
+     field public static final deprecated java.lang.String LOCK_PATTERN_TACTILE_FEEDBACK_ENABLED = "lock_pattern_tactile_feedback_enabled";
+diff --git a/alps/frameworks/base/core/java/android/provider/Settings.java b/alps/frameworks/base/core/java/android/provider/Settings.java
+old mode 100644
+new mode 100755
+index 103dfc1..f70b259
+--- a/alps/frameworks/base/core/java/android/provider/Settings.java
++++ b/alps/frameworks/base/core/java/android/provider/Settings.java
+@@ -2413,6 +2413,10 @@ public final class Settings {
+         public static final String SCREEN_OFF_TIMEOUT = "screen_off_timeout";
+ 
+         private static final Validator SCREEN_OFF_TIMEOUT_VALIDATOR = sNonNegativeIntegerValidator;
++		
++        public static final String KEYPAD_LIGHT_OFF_TIMEOUT = "keypad_light_off_timeout";
++
++        private static final Validator KEYPAD_LIGHT_OFF_TIMEOUT_VALIDATOR = sNonNegativeIntegerValidator;
+ 
+         /**
+          * The screen backlight brightness between 0 and 255.
+@@ -3879,6 +3883,7 @@ public final class Settings {
+             BLUETOOTH_DISCOVERABILITY_TIMEOUT,
+             DIM_SCREEN,
+             SCREEN_OFF_TIMEOUT,
++			KEYPAD_LIGHT_OFF_TIMEOUT,
+             SCREEN_BRIGHTNESS,
+             SCREEN_BRIGHTNESS_MODE,
+             SCREEN_AUTO_BRIGHTNESS_ADJ,
+@@ -3934,6 +3939,7 @@ public final class Settings {
+             PUBLIC_SETTINGS.add(FONT_SCALE);
+             PUBLIC_SETTINGS.add(DIM_SCREEN);
+             PUBLIC_SETTINGS.add(SCREEN_OFF_TIMEOUT);
++            PUBLIC_SETTINGS.add(KEYPAD_LIGHT_OFF_TIMEOUT);
+             PUBLIC_SETTINGS.add(SCREEN_BRIGHTNESS);
+             PUBLIC_SETTINGS.add(SCREEN_BRIGHTNESS_MODE);
+             PUBLIC_SETTINGS.add(MODE_RINGER_STREAMS_AFFECTED);
+@@ -4098,6 +4104,7 @@ public final class Settings {
+             VALIDATORS.put(FONT_SCALE, FONT_SCALE_VALIDATOR);
+             VALIDATORS.put(DIM_SCREEN, DIM_SCREEN_VALIDATOR);
+             VALIDATORS.put(SCREEN_OFF_TIMEOUT, SCREEN_OFF_TIMEOUT_VALIDATOR);
++            VALIDATORS.put(KEYPAD_LIGHT_OFF_TIMEOUT, KEYPAD_LIGHT_OFF_TIMEOUT_VALIDATOR);
+             VALIDATORS.put(SCREEN_BRIGHTNESS, SCREEN_BRIGHTNESS_VALIDATOR);
+             VALIDATORS.put(SCREEN_BRIGHTNESS_MODE, SCREEN_BRIGHTNESS_MODE_VALIDATOR);
+             VALIDATORS.put(MODE_RINGER_STREAMS_AFFECTED, MODE_RINGER_STREAMS_AFFECTED_VALIDATOR);
+diff --git a/alps/frameworks/base/core/res/res/values/config.xml b/alps/frameworks/base/core/res/res/values/config.xml
+index 1e9ab6c..aa97b4a 100755
+--- a/alps/frameworks/base/core/res/res/values/config.xml
++++ b/alps/frameworks/base/core/res/res/values/config.xml
+@@ -1660,6 +1660,7 @@
+          fall asleep again as soon as it is awoken.
+     -->
+     <integer name="config_minimumScreenOffTimeout">10000</integer>
++    <integer name="config_minimumKeypadOffTimeout">1500</integer>
+ 
+     <!-- User activity timeout: Maximum screen dim duration in milliseconds.
+ 
+diff --git a/alps/frameworks/base/core/res/res/values/symbols.xml b/alps/frameworks/base/core/res/res/values/symbols.xml
+index a6cc32b..60b3bc7 100755
+--- a/alps/frameworks/base/core/res/res/values/symbols.xml
++++ b/alps/frameworks/base/core/res/res/values/symbols.xml
+@@ -1828,6 +1828,7 @@
+   <java-symbol type="bool" name="config_powerDecoupleAutoSuspendModeFromDisplay" />
+   <java-symbol type="bool" name="config_powerDecoupleInteractiveModeFromDisplay" />
+   <java-symbol type="integer" name="config_minimumScreenOffTimeout" />
++  <java-symbol type="integer" name="config_minimumKeypadOffTimeout" />
+   <java-symbol type="integer" name="config_maximumScreenDimDuration" />
+   <java-symbol type="fraction" name="config_maximumScreenDimRatio" />
+   <java-symbol type="string" name="config_customAdbPublicKeyConfirmationComponent" />
+diff --git a/alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml b/alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
+index 78c1a22..3ec52cb 100755
+--- a/alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
++++ b/alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
+@@ -19,6 +19,7 @@
+ <resources>
+     <bool name="def_dim_screen">true</bool>
+     <integer name="def_screen_off_timeout">60000</integer>
++    <integer name="def_keypad_light_off_timeout">1500</integer>
+     <integer name="def_sleep_timeout">-1</integer>
+     <bool name="def_airplane_mode_on">false</bool>
+     <bool name="def_theater_mode_on">false</bool>
+diff --git a/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java b/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+index d5e250b..58d96d1 100755
+--- a/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
++++ b/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+@@ -1956,6 +1956,20 @@ class DatabaseHelper extends SQLiteOpenHelper {
+             upgradeVersion = 118;
+         }
+ 
++        if (upgradeVersion == 119) {
++            /*
++             * Update the screen timeout value if set to never
++             */
++            db.beginTransaction();
++            try {
++                upgradekeypadlightTimeoutFromNever(db);
++                db.setTransactionSuccessful();
++            } finally {
++                db.endTransaction();
++            }
++
++            upgradeVersion = 119;
++        }
+         /*
+          * IMPORTANT: Do not add any more upgrade steps here as the global,
+          * secure, and system settings are no longer stored in a database
+@@ -2117,7 +2131,29 @@ class DatabaseHelper extends SQLiteOpenHelper {
+             c.close();
+         }
+     }
++    private void upgradekeypadlightTimeoutFromNever(SQLiteDatabase db) {
++        // See if the timeout is -1 (for "Never").
++        Cursor c = db.query(TABLE_SYSTEM, new String[] { "_id", "value" }, "name=? AND value=?",
++                new String[] { Settings.System.KEYPAD_LIGHT_OFF_TIMEOUT, "-1" },
++                null, null, null);
+ 
++        SQLiteStatement stmt = null;
++        if (c.getCount() > 0) {
++            c.close();
++            try {
++                stmt = db.compileStatement("INSERT OR REPLACE INTO system(name,value)"
++                        + " VALUES(?,?);");
++
++                // Set the timeout to 30 minutes in milliseconds
++                loadSetting(stmt, Settings.System.KEYPAD_LIGHT_OFF_TIMEOUT,
++                        Integer.toString(30 * 60 * 1000));
++            } finally {
++                if (stmt != null) stmt.close();
++            }
++        } else {
++            c.close();
++        }
++    }
+     private void upgradeVibrateSettingFromNone(SQLiteDatabase db) {
+         int vibrateSetting = getIntValueFromSystem(db, Settings.System.VIBRATE_ON, 0);
+         // If the ringer vibrate value is invalid, set it to the default
+@@ -2156,7 +2192,22 @@ class DatabaseHelper extends SQLiteOpenHelper {
+                 stmt.close();
+         }
+     }
+-
++    private void upgradekeypadlightTimeout(SQLiteDatabase db) {
++        // Change keypad timeout to current default
++        db.beginTransaction();
++        SQLiteStatement stmt = null;
++        try {
++            stmt = db.compileStatement("INSERT OR REPLACE INTO system(name,value)"
++                    + " VALUES(?,?);");
++            loadIntegerSetting(stmt, Settings.System.KEYPAD_LIGHT_OFF_TIMEOUT,
++                    R.integer.def_keypad_light_off_timeout);
++            db.setTransactionSuccessful();
++        } finally {
++            db.endTransaction();
++            if (stmt != null)
++                stmt.close();
++        }
++    }
+     private void upgradeAutoBrightness(SQLiteDatabase db) {
+         db.beginTransaction();
+         try {
+@@ -2381,6 +2432,8 @@ class DatabaseHelper extends SQLiteOpenHelper {
+                     R.bool.def_dim_screen);
+             loadIntegerSetting(stmt, Settings.System.SCREEN_OFF_TIMEOUT,
+                     R.integer.def_screen_off_timeout);
++            loadIntegerSetting(stmt, Settings.System.KEYPAD_LIGHT_OFF_TIMEOUT,
++                    R.integer.def_keypad_light_off_timeout);
+ 
+             // Set default cdma DTMF type
+             loadSetting(stmt, Settings.System.DTMF_TONE_TYPE_WHEN_DIALING, 0);
+diff --git a/alps/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java b/alps/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java
+index b409da6..e439a0f 100755
+--- a/alps/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java
++++ b/alps/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java
+@@ -736,6 +736,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+                     Settings.System.SCREEN_OFF_TIMEOUT), false, this,
+                     UserHandle.USER_ALL);
+             resolver.registerContentObserver(Settings.System.getUriFor(
++                    Settings.System.KEYPAD_LIGHT_OFF_TIMEOUT), false, this,
++                    UserHandle.USER_ALL);
++            resolver.registerContentObserver(Settings.System.getUriFor(
+                     Settings.System.POINTER_LOCATION), false, this,
+                     UserHandle.USER_ALL);
+             resolver.registerContentObserver(Settings.Secure.getUriFor(
+diff --git a/alps/frameworks/base/services/core/java/com/android/server/power/PowerManagerService.java b/alps/frameworks/base/services/core/java/com/android/server/power/PowerManagerService.java
+index 0acbba8..b466b20 100755
+--- a/alps/frameworks/base/services/core/java/com/android/server/power/PowerManagerService.java
++++ b/alps/frameworks/base/services/core/java/com/android/server/power/PowerManagerService.java
+@@ -109,6 +109,7 @@ public final class PowerManagerService extends SystemService
+     private static final int MSG_SANDMAN = 2;
+     // Message: Sent when the screen brightness boost expires.
+     private static final int MSG_SCREEN_BRIGHTNESS_BOOST_TIMEOUT = 3;
++    private static final int MSG_USER_KEYLIGHT_TIMEOUT = 4;
+ 
+     // Dirty bit: mWakeLocks changed
+     private static final int DIRTY_WAKE_LOCKS = 1 << 0;
+@@ -158,6 +159,7 @@ public final class PowerManagerService extends SystemService
+     // Default timeout in milliseconds.  This is only used until the settings
+     // provider populates the actual default value (R.integer.def_screen_off_timeout).
+     private static final int DEFAULT_SCREEN_OFF_TIMEOUT = 15 * 1000;
++    private static final int DEFAULT_KEYPAD_LIGHT_OFF_TIMEOUT=1500;
+     private static final int DEFAULT_SLEEP_TIMEOUT = -1;
+ 
+     // Screen brightness boost timeout.
+@@ -373,6 +375,7 @@ public final class PowerManagerService extends SystemService
+ 
+     // The minimum screen off timeout, in milliseconds.
+     private int mMinimumScreenOffTimeoutConfig;
++    private int mMinimumKeypadOffTimeoutConfig;
+ 
+     // The screen dim duration, in milliseconds.
+     // This is subtracted from the end of the screen off timeout so the
+@@ -390,6 +393,7 @@ public final class PowerManagerService extends SystemService
+ 
+     // The screen off timeout setting value in milliseconds.
+     private int mScreenOffTimeoutSetting;
++    private int mkeypadlightOffTimeoutSetting;
+ 
+     // The sleep timeout setting value in milliseconds.
+     private int mSleepTimeoutSetting;
+@@ -739,6 +743,9 @@ public final class PowerManagerService extends SystemService
+             resolver.registerContentObserver(Settings.System.getUriFor(
+                     Settings.System.SCREEN_OFF_TIMEOUT),
+                     false, mSettingsObserver, UserHandle.USER_ALL);
++            resolver.registerContentObserver(Settings.System.getUriFor(
++                    Settings.System.KEYPAD_LIGHT_OFF_TIMEOUT),
++                    false, mSettingsObserver, UserHandle.USER_ALL);
+             resolver.registerContentObserver(Settings.Secure.getUriFor(
+                     Settings.Secure.SLEEP_TIMEOUT),
+                     false, mSettingsObserver, UserHandle.USER_ALL);
+@@ -811,6 +818,8 @@ public final class PowerManagerService extends SystemService
+                 com.android.internal.R.bool.config_dozeAfterScreenOff);
+         mMinimumScreenOffTimeoutConfig = resources.getInteger(
+                 com.android.internal.R.integer.config_minimumScreenOffTimeout);
++        mMinimumKeypadOffTimeoutConfig = resources.getInteger(
++                com.android.internal.R.integer.config_minimumKeypadOffTimeout);
+         mMaximumScreenDimDurationConfig = resources.getInteger(
+                 com.android.internal.R.integer.config_maximumScreenDimDuration);
+         mMaximumScreenDimRatioConfig = resources.getFraction(
+@@ -834,6 +843,9 @@ public final class PowerManagerService extends SystemService
+                 Settings.Secure.SCREENSAVER_ACTIVATE_ON_DOCK,
+                 mDreamsActivatedOnDockByDefaultConfig ? 1 : 0,
+                 UserHandle.USER_CURRENT) != 0);
++        mkeypadlightOffTimeoutSetting = Settings.System.getIntForUser(resolver,
++                Settings.System.KEYPAD_LIGHT_OFF_TIMEOUT, DEFAULT_KEYPAD_LIGHT_OFF_TIMEOUT,
++                UserHandle.USER_CURRENT);
+         mScreenOffTimeoutSetting = Settings.System.getIntForUser(resolver,
+                 Settings.System.SCREEN_OFF_TIMEOUT, DEFAULT_SCREEN_OFF_TIMEOUT,
+                 UserHandle.USER_CURRENT);
+@@ -1818,6 +1830,7 @@ public final class PowerManagerService extends SystemService
+         if ((dirty & (DIRTY_WAKE_LOCKS | DIRTY_USER_ACTIVITY
+                 | DIRTY_WAKEFULNESS | DIRTY_SETTINGS)) != 0) {
+             mHandler.removeMessages(MSG_USER_ACTIVITY_TIMEOUT);
++            mHandler.removeMessages(MSG_USER_KEYLIGHT_TIMEOUT);
+ 
+             long nextTimeout = 0;
+ 
+@@ -1826,23 +1839,44 @@ public final class PowerManagerService extends SystemService
+                     || mWakefulness == WAKEFULNESS_DOZING) {
+                 final int sleepTimeout = getSleepTimeoutLocked();
+                 final int screenOffTimeout = getScreenOffTimeoutLocked(sleepTimeout);
++                final int keypadlightOffTimeout=getkeypadTimeoutLocked();
+                 final int screenDimDuration = getScreenDimDurationLocked(screenOffTimeout);
+-                final int screenButtonLightDuration = getButtonLightDurationLocked(screenOffTimeout);
++                final int screenButtonLightDuration = getButtonLightDurationLocked(keypadlightOffTimeout,screenOffTimeout);
+ 
+                 mUserActivitySummary = 0;
+                 if (mLastUserActivityTime >= mLastWakeTime) {
+-                    if ( (mLastUserActivityButtonTime >= mLastWakeTime) && (now < mLastUserActivityButtonTime + screenButtonLightDuration) ) {
+-                        mUserActivitySummary |= USER_ACTIVITY_BUTTON_BRIGHT;
++                    if ( (mLastUserActivityButtonTime >= mLastWakeTime) && (now < mLastUserActivityButtonTime + screenButtonLightDuration)) {
++                        Slog.d(TAG, "ahandleUserActivityTimeout");
++						mUserActivitySummary |= USER_ACTIVITY_BUTTON_BRIGHT;
+                         mUserActivitySummary |= USER_ACTIVITY_SCREEN_BRIGHT;
+                         nextTimeout = mLastUserActivityButtonTime + screenButtonLightDuration;
++						
++                        mButtonLight.setBrightness(mkeypadlightOffTimeoutSetting);
++                        Message msg = mHandler.obtainMessage(MSG_USER_KEYLIGHT_TIMEOUT);
++                        msg.setAsynchronous(true);
++                        mHandler.sendMessageAtTime(msg, mLastUserActivityButtonTime + screenButtonLightDuration);
++						
+                     } else if (now < mLastUserActivityTime + screenOffTimeout - screenDimDuration) {
++						Slog.d(TAG, "bhandleUserActivityTimeout");
+                         nextTimeout = mLastUserActivityTime + screenOffTimeout - screenDimDuration;
+                         mUserActivitySummary |= USER_ACTIVITY_SCREEN_BRIGHT;
++                        mUserActivitySummary |= USER_ACTIVITY_BUTTON_BRIGHT;
++						
++                        mButtonLight.setBrightness(mkeypadlightOffTimeoutSetting);
++                        Message msg = mHandler.obtainMessage(MSG_USER_KEYLIGHT_TIMEOUT);
++                        msg.setAsynchronous(true);
++                        mHandler.sendMessageAtTime(msg, mLastUserActivityTime + screenButtonLightDuration);
++					
+                     } else {
++						Slog.d(TAG, "cbhandleUserActivityTimeout");
+                         nextTimeout = mLastUserActivityTime + screenOffTimeout;
+-                        if (now < nextTimeout) {
++                        if (now < nextTimeout){
+                             mUserActivitySummary |= USER_ACTIVITY_SCREEN_DIM;
+-                        }
++                            Message msg = mHandler.obtainMessage(MSG_USER_KEYLIGHT_TIMEOUT);
++                            msg.setAsynchronous(true);
++                            mHandler.sendMessageAtTime(msg, nextTimeout);
++						}
++						
+                     }
+                 }
+                 if (mUserActivitySummary == 0
+@@ -1914,7 +1948,7 @@ public final class PowerManagerService extends SystemService
+             return -1;
+         }
+         return Math.max(timeout, mMinimumScreenOffTimeoutConfig);
+-    }
++    }	
+ 
+     private int getScreenOffTimeoutLocked(int sleepTimeout) {
+         int timeout = mScreenOffTimeoutSetting;
+@@ -1938,9 +1972,15 @@ public final class PowerManagerService extends SystemService
+                 (int)(screenOffTimeout * mMaximumScreenDimRatioConfig));
+     }
+ 
+-    private int getButtonLightDurationLocked(int screenOffTimeout) {
+-        return Math.min(SCREEN_BUTTON_LIGHT_DURATION,
+-                (int)(screenOffTimeout * MAXIMUM_SCREEN_BUTTON_RATIO));
++    private int getButtonLightDurationLocked(int keypadlightOffTimeout,int mScreenOffTimeoutSetting_) {
++        return Math.min(mScreenOffTimeoutSetting_,keypadlightOffTimeout);
++    }
++    private int getkeypadTimeoutLocked() {
++        int timeout = mkeypadlightOffTimeoutSetting;
++        if (timeout <= 0) {
++            return -1;
++        }
++        return Math.max(timeout, mMinimumKeypadOffTimeoutConfig);
+     }
+ 
+     /**
+@@ -2195,6 +2235,12 @@ public final class PowerManagerService extends SystemService
+     private boolean canDozeLocked() {
+         return mWakefulness == WAKEFULNESS_DOZING;
+     }
++	
++	public void setKeyLightEx(int klt){
++		if(mButtonLight != null){
++			mButtonLight.setBrightness(klt);
++		}
++	}
+ 
+     /**
+      * Updates the display power state asynchronously.
+@@ -2276,17 +2322,17 @@ public final class PowerManagerService extends SystemService
+ 
+             // Button backlight begin
+             if ((mDisplayPowerRequest.policy == DisplayPowerRequest.POLICY_BRIGHT) && (mWakefulness == WAKEFULNESS_AWAKE) && !mIPOShutdown && !mShutdownFlag) {
+-                if ( ( (mWakeLockSummary & WAKE_LOCK_BUTTON_BRIGHT) != 0 ) ||
+-                        ( (mUserActivitySummary & USER_ACTIVITY_BUTTON_BRIGHT) != 0) ) {
+-                    mButtonLight.setBrightness(screenBrightness);
+-                    Slog.i(TAG, "setBrightness mButtonLight, screenBrightness=" + screenBrightness);
++                if ( ( (mWakeLockSummary & WAKE_LOCK_BUTTON_BRIGHT) != 0 )/* ||
++                        ( (mUserActivitySummary & USER_ACTIVITY_BUTTON_BRIGHT) != 0)*/ ) {
++                    //mButtonLight.setBrightness(mkeypadlightOffTimeoutSetting);
++                    Slog.i(TAG, "setBrightness mButtonLight, mkeypadlightOffTimeoutSetting=" + mkeypadlightOffTimeoutSetting);
+                 } else {
+-                    mButtonLight.turnOff();
+-                    Slog.i(TAG, "setBrightness mButtonLight 0.");
++                    //mButtonLight.turnOff();
++                    Slog.i(TAG, "setBrightness mButtonLight 0.1");
+                 }
+             } else {
+                 mButtonLight.turnOff();
+-                Slog.i(TAG, "setBrightness mButtonLight 0.");
++                Slog.i(TAG, "setBrightness mButtonLight 0.2");
+             }
+             // Button backlight end
+ 
+@@ -3038,6 +3084,7 @@ public final class PowerManagerService extends SystemService
+             pw.println("  mMaximumScreenDimDurationConfig=" + mMaximumScreenDimDurationConfig);
+             pw.println("  mMaximumScreenDimRatioConfig=" + mMaximumScreenDimRatioConfig);
+             pw.println("  mScreenOffTimeoutSetting=" + mScreenOffTimeoutSetting);
++            pw.println("  mkeypadlightOffTimeoutSetting=" + mkeypadlightOffTimeoutSetting);
+             pw.println("  mSleepTimeoutSetting=" + mSleepTimeoutSetting);
+             pw.println("  mMaximumScreenOffTimeoutFromDeviceAdmin="
+                     + mMaximumScreenOffTimeoutFromDeviceAdmin + " (enforced="
+@@ -3223,6 +3270,10 @@ public final class PowerManagerService extends SystemService
+         @Override
+         public void handleMessage(Message msg) {
+             switch (msg.what) {
++                case MSG_USER_KEYLIGHT_TIMEOUT:
++                    if(mButtonLight != null)
++                        mButtonLight.turnOff();
++                    break;
+                 case MSG_USER_ACTIVITY_TIMEOUT:
+                     handleUserActivityTimeout();
+                     break;
+diff --git a/alps/packages/apps/Settings/AndroidManifest.xml b/alps/packages/apps/Settings/AndroidManifest.xml
+old mode 100644
+new mode 100755
+diff --git a/alps/packages/apps/Settings/res/values-de/arrays.xml b/alps/packages/apps/Settings/res/values-de/arrays.xml
+old mode 100644
+new mode 100755
+index ab3e0e9..e9ed215
+--- a/alps/packages/apps/Settings/res/values-de/arrays.xml
++++ b/alps/packages/apps/Settings/res/values-de/arrays.xml
+@@ -167,6 +167,12 @@
+     <item msgid="844721238536786870">"Nur wenn angeschlossen"</item>
+     <item msgid="1986753720941888596">"Nie"</item>
+   </string-array>
++    <string-array name="keypad_backlight_timeout_entries">
++        <item>1.5 Sekunden</item>
++        <item>6 Sekunden</item>
++        <item>Immer Aus</item>
++        <item>Immer Auf</item>
++    </string-array> 
+   <string-array name="wifi_sleep_policy_entries_wifi_only">
+     <item msgid="2124319326282651391">"Immer"</item>
+     <item msgid="7433294150916905997">"Nur wenn angeschlossen"</item>
+diff --git a/alps/packages/apps/Settings/res/values/arrays.xml b/alps/packages/apps/Settings/res/values/arrays.xml
+index c3f869a..bd77e21 100755
+--- a/alps/packages/apps/Settings/res/values/arrays.xml
++++ b/alps/packages/apps/Settings/res/values/arrays.xml
+@@ -67,7 +67,25 @@
+         <!-- Do not translate. -->
+         <item>1800000</item>
+     </string-array>
++    <!-- Display settings.  The delay in inactivity before the screen is turned off. These are shown in a list dialog. -->
++    <string-array name="keypad_backlight_timeout_entries">
++        <item>1.5 seconds</item>
++        <item>6 seconds</item>
++        <item>Always Off</item>
++        <item>Always On</item>
++    </string-array>
+ 
++    <!-- Do not translate. -->
++    <string-array name="keypad_backlight_timeout_values" translatable="false">
++        <!-- Do not translate. -->
++        <item>1500</item>
++        <!-- Do not translate. -->
++        <item>6000</item>
++        <!-- Do not translate. -->
++        <item>0</item>
++        <!-- Do not translate. -->
++        <item>1800000</item>
++    </string-array>
+     <!-- Display settings.  The delay in inactivity before the dream is shown. These are shown in a list dialog. -->
+     <string-array name="dream_timeout_entries">
+         <item>Never</item>
+diff --git a/alps/packages/apps/Settings/res/values/strings.xml b/alps/packages/apps/Settings/res/values/strings.xml
+index 3a37a32..93df0cc 100755
+--- a/alps/packages/apps/Settings/res/values/strings.xml
++++ b/alps/packages/apps/Settings/res/values/strings.xml
+@@ -2016,6 +2016,12 @@
+     <string name="screen_timeout_title">Screen turns off</string>
+     <!-- Sound & display settings screen, setting option summary to change screen timeout -->
+     <string name="screen_timeout_summary">After <xliff:g id="timeout_description">%1$s</xliff:g> of inactivity</string>
++    <!-- Sound & display settings screen, setting option name to change screen timeout -->
++    <string name="keypad_backlight_timeout">Touch key light duration</string>
++    <!-- Sound & display settings screen, setting option name to change screen timeout [CHAR LIMIT=30] -->
++    <string name="keypad_backlight_timeout_title">Key light turns off</string>
++    <!-- Sound & display settings screen, setting option summary to change screen timeout -->
++    <string name="keypad_backlight_timeout_summary">Touch key light duration</string>
+     <!-- Wallpaper settings title [CHAR LIMIT=30] -->
+     <string name="wallpaper_settings_title">Wallpaper</string>
+     <!-- Wallpaper settings fragment title [CHAR LIMIT=30] -->
+diff --git a/alps/packages/apps/Settings/res/xml/display_settings.xml b/alps/packages/apps/Settings/res/xml/display_settings.xml
+old mode 100644
+new mode 100755
+index ab39882..1718926
+--- a/alps/packages/apps/Settings/res/xml/display_settings.xml
++++ b/alps/packages/apps/Settings/res/xml/display_settings.xml
+@@ -57,6 +57,14 @@
+                 android:entries="@array/screen_timeout_entries"
+                 android:entryValues="@array/screen_timeout_values" />
+ 
++        <ListPreference
++                android:key="keypad_backlight_timeout"
++                android:title="@string/keypad_backlight_timeout"
++                android:summary="@string/keypad_backlight_timeout_summary"
++                android:persistent="false"
++                android:entries="@array/keypad_backlight_timeout_entries"
++                android:entryValues="@array/keypad_backlight_timeout_values" />
++
+         <PreferenceScreen
+                 android:key="screensaver"
+                 android:title="@string/screensaver_settings_title"
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/DisplaySettings.java b/alps/packages/apps/Settings/src/com/android/settings/DisplaySettings.java
+old mode 100644
+new mode 100755
+index 446aa56..cee1608
+--- a/alps/packages/apps/Settings/src/com/android/settings/DisplaySettings.java
++++ b/alps/packages/apps/Settings/src/com/android/settings/DisplaySettings.java
+@@ -29,6 +29,7 @@ import static android.provider.Settings.System.SCREEN_BRIGHTNESS_MODE;
+ import static android.provider.Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC;
+ import static android.provider.Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL;
+ import static android.provider.Settings.System.SCREEN_OFF_TIMEOUT;
++import static android.provider.Settings.System.KEYPAD_LIGHT_OFF_TIMEOUT;
+ 
+ import android.app.Activity;
+ import android.app.ActivityManagerNative;
+@@ -64,11 +65,13 @@ import java.util.List;
+ public class DisplaySettings extends SettingsPreferenceFragment implements
+         Preference.OnPreferenceChangeListener, OnPreferenceClickListener, Indexable {
+     private static final String TAG = "DisplaySettings";
+-
++ 
+     /** If there is no setting in the provider, use this. */
+     private static final int FALLBACK_SCREEN_TIMEOUT_VALUE = 30000;
++    private static final int FALLBACK_KEYPAD_LIGHT_OFF_VALUE = 1500;
+ 
+     private static final String KEY_SCREEN_TIMEOUT = "screen_timeout";
++    private static final String KEY_KEYPAD_LIGHT_TIMEOUT = "keypad_backlight_timeout";
+     private static final String KEY_FONT_SIZE = "font_size";
+     private static final String KEY_SCREEN_SAVER = "screensaver";
+     private static final String KEY_LIFT_TO_WAKE = "lift_to_wake";
+@@ -85,6 +88,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+     private final Configuration mCurConfig = new Configuration();
+ 
+     private ListPreference mScreenTimeoutPreference;
++    private ListPreference mKeypadLightOffPreference;
+     private ListPreference mNightModePreference;
+     private Preference mScreenSaverPreference;
+     private SwitchPreference mLiftToWakePreference;
+@@ -126,6 +130,13 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+         disableUnusableTimeouts(mScreenTimeoutPreference);
+         updateTimeoutPreferenceDescription(currentTimeout);
+ 
++        mKeypadLightOffPreference = (ListPreference) findPreference(KEY_KEYPAD_LIGHT_TIMEOUT);
++        final long keypadlightoff = Settings.System.getLong(resolver, KEYPAD_LIGHT_OFF_TIMEOUT,
++                FALLBACK_KEYPAD_LIGHT_OFF_VALUE);
++        mKeypadLightOffPreference.setValue(String.valueOf(keypadlightoff));
++        mKeypadLightOffPreference.setOnPreferenceChangeListener(this);
++        updatekeypadlightPreferenceDescription(keypadlightoff);		
++
+         mFontSizePref = (WarnedListPreference) findPreference(KEY_FONT_SIZE);
+         mFontSizePref.setOnPreferenceChangeListener(this);
+         mFontSizePref.setOnPreferenceClickListener(this);
+@@ -260,7 +271,32 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+         }
+         preference.setSummary(summary);
+     }
+-
++	
++    private void updatekeypadlightPreferenceDescription(long keypadlightoff) {
++        ListPreference preference = mKeypadLightOffPreference;
++        String summary;
++        if (keypadlightoff < 0) {
++            // Unsupported value
++            summary = "";
++        } else {
++            final CharSequence[] entries = preference.getEntries();
++            final CharSequence[] values = preference.getEntryValues();
++            if (entries == null || entries.length == 0) {
++                summary = "";
++            } else {
++                int best = 0;
++                for (int i = 0; i < values.length; i++) {
++                    long timeout = Long.parseLong(values[i].toString());
++                    if (keypadlightoff == timeout) {
++                        best = i;
++                    }
++                }
++                summary = entries[best].toString();
++            }
++        }
++        preference.setSummary(summary);
++    }
++	
+     private void disableUnusableTimeouts(ListPreference screenTimeoutPreference) {
+         final DevicePolicyManager dpm =
+                 (DevicePolicyManager) getActivity().getSystemService(
+@@ -301,6 +337,46 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+         }
+         screenTimeoutPreference.setEnabled(revisedEntries.size() > 0);
+     }
++    private void disableUnusablekeylightTimeouts(ListPreference mKeypadLightOffPreference) {
++        final DevicePolicyManager dpm =
++                (DevicePolicyManager) getActivity().getSystemService(
++                Context.DEVICE_POLICY_SERVICE);
++        final long maxTimeout = dpm != null ? dpm.getMaximumTimeToLock(null) : 0;
++        if (maxTimeout == 0) {
++            return; // policy not enforced
++        }
++        final CharSequence[] entries = mKeypadLightOffPreference.getEntries();
++        final CharSequence[] values = mKeypadLightOffPreference.getEntryValues();
++        ArrayList<CharSequence> revisedEntries = new ArrayList<CharSequence>();
++        ArrayList<CharSequence> revisedValues = new ArrayList<CharSequence>();
++        for (int i = 0; i < values.length; i++) {
++            long timeout = Long.parseLong(values[i].toString());
++            if (timeout <= maxTimeout) {
++                revisedEntries.add(entries[i]);
++                revisedValues.add(values[i]);
++            }
++        }
++        if (revisedEntries.size() != entries.length || revisedValues.size() != values.length) {
++            final int userPreference = Integer.parseInt(mKeypadLightOffPreference.getValue());
++            mKeypadLightOffPreference.setEntries(
++                    revisedEntries.toArray(new CharSequence[revisedEntries.size()]));
++            mKeypadLightOffPreference.setEntryValues(
++                    revisedValues.toArray(new CharSequence[revisedValues.size()]));
++            if (userPreference <= maxTimeout) {
++                mKeypadLightOffPreference.setValue(String.valueOf(userPreference));
++            } else if (revisedValues.size() > 0
++                    && Long.parseLong(revisedValues.get(revisedValues.size() - 1).toString())
++                    == maxTimeout) {
++                // If the last one happens to be the same as the max timeout, select that
++                mKeypadLightOffPreference.setValue(String.valueOf(maxTimeout));
++            } else {
++                // There will be no highlighted selection since nothing in the list matches
++                // maxTimeout. The user can still select anything less than maxTimeout.
++                // TODO: maybe append maxTimeout to the list and mark selected.
++            }
++        }
++        mKeypadLightOffPreference.setEnabled(revisedEntries.size() > 0);
++    }	
+ 
+     int floatToIndex(float val) {
+         String[] indices = getResources().getStringArray(R.array.entryvalues_font_size);
+@@ -429,6 +505,15 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+                 Log.e(TAG, "could not persist screen timeout setting", e);
+             }
+         }
++        if (KEY_KEYPAD_LIGHT_TIMEOUT.equals(key)) {
++            try {
++                int value = Integer.parseInt((String) objValue);
++                Settings.System.putInt(getContentResolver(), KEYPAD_LIGHT_OFF_TIMEOUT, value);
++                updatekeypadlightPreferenceDescription(value);	
++            } catch (NumberFormatException e) {
++                Log.e(TAG, "could not persist screen timeout setting", e);
++            }
++        }		
+         if (KEY_FONT_SIZE.equals(key)) {
+             writeFontSizePreference(objValue);
+         }
+-- 
+1.7.9.5
+

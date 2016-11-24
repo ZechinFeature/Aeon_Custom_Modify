@@ -1,0 +1,484 @@
+From 273e4bd8130fb93970fccfc3cb9bdc355c66bdc8 Mon Sep 17 00:00:00 2001
+From: "deng.yanjun" <deng.yanjun@eastaeon.com>
+Date: Fri, 21 Oct 2016 15:38:03 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82][=E7=9F=AD=E4=BF=A1]=E5=A2=9E?=
+ =?UTF-8?q?=E5=8A=A0=E7=9F=AD=E4=BF=A1=E8=81=8A=E5=A4=A9=E8=83=8C=E6=99=AF=E8?=
+ =?UTF-8?q?=AE=BE=E7=BD=AE=E3=80=82?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../compose_message_activity.xml                   |    1 -
+ .../Mms/res/layout/compose_message_activity.xml    |    1 -
+ .../packages/apps/Mms/res/xml/chatpreferences.xml  |   36 ++--
+ .../apps/Mms/res/xml/notificationpreferences.xml   |   32 ++-
+ .../apps/Mms/src/com/android/mms/MmsConfig.java    |    4 +
+ .../com/android/mms/ui/ComposeMessageActivity.java |  226 ++++++++++++++++++++
+ .../com/mediatek/ipmsg/util/IpMessageUtils.java    |    2 +-
+ .../setting/GeneralPreferenceActivity.java         |    2 +-
+ 8 files changed, 277 insertions(+), 27 deletions(-)
+ mode change 100644 => 100755 alps/vendor/mediatek/proprietary/packages/apps/Mms/res/layout/compose_message_activity.xml
+ mode change 100644 => 100755 alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
+
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/layout-finger-1080X720/compose_message_activity.xml b/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/layout-finger-1080X720/compose_message_activity.xml
+index 3a17ad1..7c87bab 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/layout-finger-1080X720/compose_message_activity.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/layout-finger-1080X720/compose_message_activity.xml
+@@ -111,7 +111,6 @@
+             android:fadingEdge="none"
+             android:layout_marginBottom="1dip"
+             android:cacheColorHint="#00000000"
+-            android:background="#f0f0f0"
+             android:scrollbarAlwaysDrawVerticalTrack="false"
+             android:scrollbarStyle="insideOverlay"
+             android:paddingBottom="@dimen/input_text_height_adjusted"
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/layout/compose_message_activity.xml b/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/layout/compose_message_activity.xml
+old mode 100644
+new mode 100755
+index b3e528f..7e12bab
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/layout/compose_message_activity.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/layout/compose_message_activity.xml
+@@ -111,7 +111,6 @@
+             android:fadingEdge="none"
+             android:layout_marginBottom="1dip"
+             android:cacheColorHint="#00000000"
+-            android:background="#f0f0f0"
+             android:scrollbarAlwaysDrawVerticalTrack="false"
+             android:scrollbarStyle="insideOverlay"
+             android:paddingBottom="@dimen/input_text_height_adjusted"
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/xml/chatpreferences.xml b/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/xml/chatpreferences.xml
+index 062b263..804d6e8 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/xml/chatpreferences.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/xml/chatpreferences.xml
+@@ -13,32 +13,44 @@
+     -->
+ <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+ 
+-    <PreferenceCategory android:title="@string/pref_title_display_settings"
++    <PreferenceCategory 
++        android:title="@string/pref_title_display_settings"
+     	android:key="pref_key_display_settings">
+-        <Preference android:key="pref_key_chat_wallpaper_for_chat"
++        <Preference 
++	   android:key="pref_key_chat_wallpaper_for_chat"
+             android:title="@string/pref_chat_wallpaper" />
+     </PreferenceCategory>
+ 
+-    <PreferenceCategory android:title="@string/pref_notification_settings_title">
++    <PreferenceCategory 
++        android:title="@string/pref_notification_settings_title">
+         <CheckBoxPreference android:key="pref_key_enable_notifications_for_chat"
+             android:title="@string/pref_title_notification_enabled"
+             android:defaultValue="true" />
+-        <ListPreference android:layout="?android:attr/preferenceLayoutChild"
+-            android:key="pref_key_mute_for_chat" android:dependency="pref_key_enable_notifications_for_chat"
+-            android:title="@string/pref_mute" android:dialogTitle="@string/pref_mute"
+-            android:defaultValue="0" android:entries="@array/pref_mute_choices"
++        <ListPreference 
++	    android:layout="?android:attr/preferenceLayoutChild"
++            android:key="pref_key_mute_for_chat" 
++	    android:dependency="pref_key_enable_notifications_for_chat"
++            android:title="@string/pref_mute" 
++	    android:dialogTitle="@string/pref_mute"
++            android:defaultValue="0" 
++	    android:entries="@array/pref_mute_choices"
+             android:entryValues="@array/pref_mute_values" />
+         <com.mediatek.setting.ChatRingtonePreference
+             android:layout="?android:attr/preferenceLayoutChild"
+             android:dependency="pref_key_enable_notifications_for_chat"
+-            android:key="pref_key_ringtone_for_chat" android:title="@string/pref_title_notification_ringtone"
+-            android:ringtoneType="notification" android:summary="@string/pref_summary_notification_ringtone"
++            android:key="pref_key_ringtone_for_chat" 
++	    android:title="@string/pref_title_notification_ringtone"
++            android:ringtoneType="notification" 
++	    android:summary="@string/pref_summary_notification_ringtone"
+             android:defaultValue=""
+             android:showSilent = "false"/>
+-        <CheckBoxPreference android:layout="?android:attr/preferenceLayoutChild"
+-            android:defaultValue="true" android:key="pref_key_vibrate_for_chat"
++        <CheckBoxPreference 
++	    android:layout="?android:attr/preferenceLayoutChild"
++            android:defaultValue="true" 
++	    android:key="pref_key_vibrate_for_chat"
+             android:dependency="pref_key_enable_notifications_for_chat"
+-            android:title="@string/pref_vibrate" android:summary="@string/pref_summary_vibrate" />
++            android:title="@string/pref_vibrate" 
++	    android:summary="@string/pref_summary_vibrate" />
+     </PreferenceCategory>
+ </PreferenceScreen>
+ 
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/xml/notificationpreferences.xml b/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/xml/notificationpreferences.xml
+index 7133e79..d7352cc 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/xml/notificationpreferences.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/xml/notificationpreferences.xml
+@@ -13,27 +13,37 @@
+     -->
+ <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+ 
+-    <PreferenceCategory android:title="@string/pref_notification_settings_title">
++    <PreferenceCategory 
++        android:title="@string/pref_notification_settings_title">
+         <CheckBoxPreference android:key="pref_key_enable_notifications"
+             android:title="@string/pref_title_notification_enabled"
+             android:defaultValue="true" />
+         <ListPreference android:layout="?android:attr/preferenceLayoutChild"
+-            android:key="pref_key_mute" android:dependency="pref_key_enable_notifications"
+-            android:defaultValue="0" android:title="@string/pref_mute"
+-            android:dialogTitle="@string/pref_mute" android:entries="@array/pref_mute_choices"
++            android:key="pref_key_mute" 
++	    android:dependency="pref_key_enable_notifications"            
++	    android:defaultValue="0" 	    
++	    android:title="@string/pref_mute"
++            android:dialogTitle="@string/pref_mute" 
++	    android:entries="@array/pref_mute_choices"
+             android:entryValues="@array/pref_mute_values"/>
+-        <RingtonePreference android:layout="?android:attr/preferenceLayoutChild"
+-            android:dependency="pref_key_enable_notifications" android:key="pref_key_ringtone"
++        <RingtonePreference
++	   android:layout="?android:attr/preferenceLayoutChild"
++            android:dependency="pref_key_enable_notifications" 
++	    android:key="pref_key_ringtone"
+             android:title="@string/pref_title_notification_ringtone"
+-            android:summary="@string/pref_summary_notification_ringtone"
+-            android:ringtoneType="notification" android:defaultValue="content://settings/system/notification_sound" />
++            android:summary="@string/pref_summary_notification_ringtone"            
++	    android:ringtoneType="notification" 
++	    android:defaultValue="content://settings/system/notification_sound" />
+         <CheckBoxPreference android:layout="?android:attr/preferenceLayoutChild"
+             android:defaultValue="true" android:key="pref_key_vibrate"
+-            android:dependency="pref_key_enable_notifications" android:title="@string/pref_vibrate"
++            android:dependency="pref_key_enable_notifications" 
++	    android:title="@string/pref_vibrate"
+             android:summary="@string/pref_summary_vibrate" />
+-        <CheckBoxPreference android:layout="?android:attr/preferenceLayoutChild"
++        <CheckBoxPreference 
++	    android:layout="?android:attr/preferenceLayoutChild"
+             android:defaultValue="true" android:key="pref_key_popup_notification"
+-            android:dependency="pref_key_enable_notifications" android:title="@string/pref_popup_notification"
++            android:dependency="pref_key_enable_notifications" 
++	    android:title="@string/pref_popup_notification"
+             android:summary="@string/pref_summary_popup_notification" />
+     </PreferenceCategory>
+ 
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/MmsConfig.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/MmsConfig.java
+index 590e8f0..c7813ac 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/MmsConfig.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/MmsConfig.java
+@@ -225,6 +225,10 @@ public class MmsConfig {
+         return preferences.getBoolean(SMS_PROMO_DISMISSED_KEY, false);
+     }
+ 
++	public static boolean isSupportAsyncUpdateWallpaper() {
++	return false;
++	}
++
+     public static void setSmsPromoDismissed(Context context) {
+         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+         SharedPreferences.Editor editor = preferences.edit();
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
+old mode 100644
+new mode 100755
+index 913fedf..ac0a810
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
+@@ -174,6 +174,7 @@ import com.android.mms.util.SendingProgressTokenManager;
+ import com.android.mms.util.StatusBarSelectorCreator;
+ import com.android.mms.util.ThumbnailManager;
+ 
++import com.mediatek.setting.NotificationPreferenceActivity;
+ 
+ 
+ 
+@@ -548,6 +549,10 @@ public class ComposeMessageActivity extends Activity
+     private boolean mIsActivityStoped = true;
+ 
+     private StatusBarSelectorReceiver mStatusBarSelectorReceiver;
++	private ImageView mWallPaper; //wall_paper
++	private Handler mSetWallPaperHandler = null;
++	private static final int SET_WALLPAPER_FROM_RESOURCE = 10001;
++    private static final int SET_WALLPAPER_FROM_BITMAP   = 10002;
+ 
+     private void dismissProgressDialog() {
+         Log.d(TAG, "Composer reduce mAsyncTaskNum = " + (--mAsyncTaskNum));
+@@ -3049,7 +3054,31 @@ public class ComposeMessageActivity extends Activity
+         /// M: Code analyze 007, Get information from Sub or save message to Sub.(Get all Sub info) @{
+         mGetSubInfoRunnable.run();
+         /// @} for ALPS00475359 end
++        if (MmsConfig.isSupportAsyncUpdateWallpaper()) 
++        {
++		    mSetWallPaperHandler = new Handler()
++			{
++                @Override
++                public void handleMessage(Message msg) {
++                    switch(msg.what) {
++                    case SET_WALLPAPER_FROM_RESOURCE:
++                        mWallPaper.setImageResource(msg.arg1);
++                        break;
++                    case SET_WALLPAPER_FROM_BITMAP:
++                        mWallPaper.setImageDrawable((BitmapDrawable) msg.obj);
++                        break;
++                    default:
++                        break;
++                    }
++                }
++            };
++        }
++		else
++		{
++			android.util.Log.i("HAOHAO", " <onCreate> BBBB");
++		}
+ 
++		changeWallPaper();
+         this.registerReceiver(mSubReceiver, intentFilter);
+         /// @}
+     }
+@@ -3523,6 +3552,9 @@ public class ComposeMessageActivity extends Activity
+         }
+         loadMessageContent();
+ 
++		 if (!isRecipientsEditorVisible()) {
++            changeWallPaper();
++        }
+         if (mMsgListAdapter != null && mMsgListAdapter.getCount() == 0) {
+             showKeyBoard(true);
+             if (mRecipientsEditor != null) {
+@@ -3585,6 +3617,11 @@ public class ComposeMessageActivity extends Activity
+                 invalidateOptionsMenu();
+             }
+         }
++		if (!isRecipientsEditorVisible()) 
++		{
++            changeWallPaper();
++        }
++		
+     }
+ 
+     @Override
+@@ -6689,8 +6726,197 @@ public class ComposeMessageActivity extends Activity
+         mOpComposeExt.initResourceRefs((LinearLayout) findViewById(R.id.button_with_counter),
+                 (TextView) findViewById(R.id.ct_text_counter),
+                 mAttachmentEditor.mOpAttachmentEditorExt);
++		mWallPaper = (ImageView) findViewById(R.id.wall_paper);
++    }
++
++
++	
++	private boolean setWallPaper(long threadId) 
++	{
++		  android.util.Log.i("HAOHAO", "setWallPaper(): threadId = " + threadId);
++		   Uri tempuri = Uri.withAppendedPath(Telephony.MmsSms.CONTENT_URI, "thread_settings");
++		   Cursor cursor = getContentResolver().query(tempuri,
++			   new String[] {Telephony.ThreadSettings._ID, Telephony.ThreadSettings.WALLPAPER},
++			   Telephony.ThreadSettings.THREAD_ID + " = " + threadId, null, null);
++		   long threadSettingId = 0L;
++		   String filePath = null;
++		   if (null != cursor)
++		   {
++			   if (cursor.moveToFirst())
++			   {
++				   threadSettingId = cursor.getLong(0);
++				   filePath = cursor.getString(1);
++			   }
++			   cursor.close();
++		   }
++		   if (TextUtils.isEmpty(filePath)) {
++			   return false;
++		   }
++		   android.util.Log.i("HAOHAO", "setWallPaper(): threadSettingId = " + threadSettingId + ", filePath = " + filePath);
++		   if (filePath.startsWith("content://") || filePath.startsWith("file://")) 
++		   {
++			   Uri imageUri = Uri.parse(filePath);
++			   InputStream is = null;
++			   try
++			   {
++				   is = this.getContentResolver().openInputStream(imageUri);
++				   BitmapDrawable bd = new BitmapDrawable(is);
++				   // mHeightChangedLinearLayout.setBackgroundDrawable(bd);
++				   /// M: for ALPS00475359 op01 only, fix ANR when edit mms with deleting 1500 messages @{
++				   if (MmsConfig.isSupportAsyncUpdateWallpaper())
++				   {
++					   Message msg = mSetWallPaperHandler.obtainMessage(SET_WALLPAPER_FROM_BITMAP, bd);
++					   msg.sendToTarget();
++				   } 
++				   else 
++				   {
++					   mWallPaper.setImageDrawable(bd);
++				   }
++				   /// @}
++				   return true;
++			   } 
++			   catch (FileNotFoundException e)
++			   {
++				  android.util.Log.i("HAOHAO", "Unknown wall paper resource! filePath = " + filePath);
++			   } 
++			   catch (OutOfMemoryError e)
++			   {
++				  android.util.Log.i("HAOHAO", "OutOfMemoryError."+ e);
++			   }
++			   finally
++			   {
++				   if (null != is) 
++				   {
++					   try 
++					   {
++						   is.close();
++					   }
++					   catch (IOException e)
++					   {
++						   android.util.Log.i("HAOHAO", "IOException happened when close InputStream."+ e);
++					   }
++				   }
++			   }
++		   } 
++		   else if (filePath.startsWith(IpMessageUtils.WALLPAPER_PATH)) 
++		   {
++			   Uri imageUri = ContentUris.withAppendedId(tempuri, threadId);
++			   InputStream is = null;
++			   try {
++				   is = this.getContentResolver().openInputStream(imageUri);
++				   BitmapDrawable bd = new BitmapDrawable(is);
++				   /// M: for ALPS00475359 op01 only, fix ANR when edit mms with deleting 1500 messages @{
++				   if (MmsConfig.isSupportAsyncUpdateWallpaper()) 
++				   {
++					   Message msg = mSetWallPaperHandler.obtainMessage(SET_WALLPAPER_FROM_BITMAP, bd);
++					   msg.sendToTarget();
++				   } 
++				   else
++				   {
++					   // mHeightChangedLinearLayout.setBackgroundDrawable(bd);
++					   mWallPaper.setImageDrawable(bd);
++				   }
++				   /// @}
++				   return true;
++			   }
++			   catch (FileNotFoundException e)
++			   {
++				   android.util.Log.i("HAOHAO",  "Unknown wall paper resource! filePath = " + filePath+ e);
++			   } 
++			   catch (NullPointerException e)
++			   {
++				    android.util.Log.i("HAOHAO",  "NullPointerException."+ e);
++			   }
++			   catch (OutOfMemoryError e) 
++			   {
++				  android.util.Log.i("HAOHAO", "OutOfMemoryError."+e);
++			   }
++			   finally 
++			   {
++				   if (null != is) 
++				   {
++					   try
++					   {
++						   is.close();
++					   }
++					   catch (IOException e)
++					   {
++						    android.util.Log.i("HAOHAO", "IOException happened when close InputStream."+ e);
++					   }
++					   android.util.Log.i("HAOHAO", "Unknown wall paper resource! filePath = " + filePath);
++				   }
++			   }
++		   } 
++		   else if (TextUtils.isDigitsOnly(filePath)) 
++		   {
++			   int resId = 0;
++			   try {
++				   resId = Integer.parseInt(filePath);
++				   if (resId > 0)
++				   {
++					   /// M: for ALPS00475359 op01 only, fix ANR when edit mms with deleting 1500 messages @{
++					   if (MmsConfig.isSupportAsyncUpdateWallpaper())
++					   {
++						   Message msg = mSetWallPaperHandler.obtainMessage(SET_WALLPAPER_FROM_RESOURCE, resId, 0);
++						   msg.sendToTarget();
++					   }
++					   else 
++					   {
++						   // mHeightChangedLinearLayout.setBackgroundResource(resId);
++						   mWallPaper.setImageResource(resId);
++					   }
++					   /// @}
++					   return true;
++				   }
++			   } catch (NumberFormatException e) {
++				  android.util.Log.i("HAOHAO", "Unknown wall paper resource id! resourceId = " + resId);
++			   }
++			   android.util.Log.i("HAOHAO", "Unknown wall paper resource! filePath = " + filePath);
++		   }
++		   return false;
++	   }
++
++	 private void asyncUpdateWallPaper() 
++	 {
++        new Thread(new Runnable()
++		{
++            public void run()
++			{
++                android.util.Log.i("HAOHAO", "<asyncUpdateWallPaper>: thread id = " + mConversation.getThreadId());
++                if ((mConversation.getThreadId() > 0 && setWallPaper(mConversation.getThreadId())) || setWallPaper(0L))
++				{
++					 android.util.Log.i("HAOHAO", " <asyncUpdateWallPaper> BBBB");
++                    return;
++                }
++                Message msg = mSetWallPaperHandler.obtainMessage(SET_WALLPAPER_FROM_RESOURCE, R.color.list_background, 0);
++                msg.sendToTarget();
++            }
++        }, "AsyncChangeWallPaper").start();
++    }
++
++	private void changeWallPaper() 
++	{
++       android.util.Log.i("HAOHAO", "changeWallPaper(): thread id = " + mConversation.getThreadId());
++        /// M: for ALPS00475359 op01 only, fix ANR when edit mms with deleting 1500 messages @{
++        if (MmsConfig.isSupportAsyncUpdateWallpaper())
++		{
++		    android.util.Log.i("HAOHAO", " <changeWallPaper> AAAA");
++            asyncUpdateWallPaper();
++        } 
++		else
++		{
++            //if ((mConversation.getThreadId() > 0 && setWallPaper(mConversation.getThreadId())) || setWallPaper(0L)) 
++            if(setWallPaper(0L))
++            {
++            	 android.util.Log.i("HAOHAO", " <changeWallPaper> BBBB");
++                return;
++            }
++			 android.util.Log.i("HAOHAO", " <changeWallPaper> CCCCC");
++            mWallPaper.setImageResource(R.color.list_background);
++        }
+     }
+ 
++
+     private void confirmDeleteDialog(OnClickListener listener, boolean locked) {
+         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+         /// M: Code analyze 027,Add for deleting one message.@{
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/ipmsg/util/IpMessageUtils.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/ipmsg/util/IpMessageUtils.java
+index 1243ed6..6de705e 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/ipmsg/util/IpMessageUtils.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/ipmsg/util/IpMessageUtils.java
+@@ -40,7 +40,7 @@ import com.mediatek.setting.NotificationPreferenceActivity;
+ 
+ public class IpMessageUtils implements IUtilsCallback {
+     private static final String TAG = "Mms/ipmsg/utils";
+-
++	public static final String WALLPAPER_PATH = "/data/data/com.android.providers.telephony/app_wallpaper";
+     /// M: add for ipmessage {@
+     public static IIpMessagePluginExt sIpMessagePlugin = null;
+ 
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/setting/GeneralPreferenceActivity.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/setting/GeneralPreferenceActivity.java
+index 4d12a2f..80498cf 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/setting/GeneralPreferenceActivity.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/setting/GeneralPreferenceActivity.java
+@@ -302,7 +302,7 @@ public class GeneralPreferenceActivity extends PreferenceActivity
+         mFontSize.setSummary(mFontSizeChoices[getPreferenceValueInt(FONT_SIZE_SETTING, 0)]);
+         mChatWallpaperPref = findPreference(GENERAL_CHAT_WALLPAPER);
+         // if (FeatureOption.MTK_GMO_ROM_OPTIMIZE) {
+-        removeWallPaperSetting();
++        //removeWallPaperSetting();
+         // }
+         mCBsettingPref = findPreference(CELL_BROADCAST);
+         if (SimStateMonitor.getInstance().getSubCount() < 1) {
+-- 
+1.7.9.5
+

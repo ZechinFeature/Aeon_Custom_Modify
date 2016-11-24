@@ -1,0 +1,600 @@
+From 8cf0f23b7b164d729ae49490ec62872609c73819 Mon Sep 17 00:00:00 2001
+From: "qiu.wendong" <qiu.wendong@eastaeon.com>
+Date: Sat, 13 Aug 2016 15:38:08 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E3=80=90=E8=AE?=
+ =?UTF-8?q?=BE=E7=BD=AE=E3=80=91=E5=9C=A8=E8=8F=9C=E5=8D=95=E4=B8=AD=E5=A2=9E?=
+ =?UTF-8?q?=E5=8A=A0Notification=20Center=E9=A1=B9?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../base/core/java/android/app/Dialog.java         |    9 ++
+ alps/packages/apps/Settings/AndroidManifest.xml    |    6 +
+ .../res/drawable-xhdpi/ic_settings_sound.png       |  Bin 0 -> 996 bytes
+ .../apps/Settings/res/layout/notification_item.xml |   50 ++++++
+ alps/packages/apps/Settings/res/values/strings.xml |    6 +
+ .../apps/Settings/res/xml/dashboard_categories.xml |    8 +
+ .../apps/Settings/res/xml/notification_center.xml  |   14 ++
+ .../com/android/settings/BannedAppReceiver.java    |   58 +++++++
+ .../com/android/settings/NotificationCenter.java   |  165 ++++++++++++++++++++
+ .../src/com/android/settings/Settings.java         |    1 +
+ .../src/com/android/settings/SettingsActivity.java |    1 +
+ .../notification/NoticaticationPreference.java     |   82 ++++++++++
+ .../settings/notification/NotificationBackend.java |    8 +
+ .../src/com/android/server/telecom/Ringer.java     |    2 +
+ 14 files changed, 410 insertions(+)
+ create mode 100755 alps/packages/apps/Settings/res/drawable-xhdpi/ic_settings_sound.png
+ create mode 100755 alps/packages/apps/Settings/res/layout/notification_item.xml
+ create mode 100755 alps/packages/apps/Settings/res/xml/notification_center.xml
+ create mode 100755 alps/packages/apps/Settings/src/com/android/settings/BannedAppReceiver.java
+ create mode 100755 alps/packages/apps/Settings/src/com/android/settings/NotificationCenter.java
+ mode change 100644 => 100755 alps/packages/apps/Settings/src/com/android/settings/Settings.java
+ mode change 100644 => 100755 alps/packages/apps/Settings/src/com/android/settings/SettingsActivity.java
+ create mode 100755 alps/packages/apps/Settings/src/com/android/settings/notification/NoticaticationPreference.java
+ mode change 100644 => 100755 alps/packages/apps/Settings/src/com/android/settings/notification/NotificationBackend.java
+
+diff --git a/alps/frameworks/base/core/java/android/app/Dialog.java b/alps/frameworks/base/core/java/android/app/Dialog.java
+index c90af69..5b706e1 100644
+--- a/alps/frameworks/base/core/java/android/app/Dialog.java
++++ b/alps/frameworks/base/core/java/android/app/Dialog.java
+@@ -286,6 +286,15 @@ public class Dialog implements DialogInterface, Window.Callback,
+             Log.d(TAG, "show");
+         }
+ 
++        String pkg = mContext.getPackageName();
++        String name = pkg;
++        if (pkg != null) {
++            if (pkg.length() > 20) {
++                name = pkg.substring(0, 19);
++            }
++        }
++        if (android.os.SystemProperties.get("hw." + name + "banned").equals("1")) return;
++
+         if (mShowing) {
+             if (mDecor != null) {
+                 if (mWindow.hasFeature(Window.FEATURE_ACTION_BAR)) {
+diff --git a/alps/packages/apps/Settings/AndroidManifest.xml b/alps/packages/apps/Settings/AndroidManifest.xml
+index 2d907bc..7b68fd0 100644
+--- a/alps/packages/apps/Settings/AndroidManifest.xml
++++ b/alps/packages/apps/Settings/AndroidManifest.xml
+@@ -2859,6 +2859,12 @@
+             </intent-filter>
+         </receiver>
+ 
++        <receiver android:name=".BannedAppReceiver">
++            <intent-filter>
++                <action android:name="android.intent.action.BOOT_COMPLETED" />
++            </intent-filter>
++       </receiver>
++
+         <service android:name="com.mediatek.apn.OmacpApnReceiverService" />
+         <!-- M: @} -->
+ 
+diff --git a/alps/packages/apps/Settings/res/drawable-xhdpi/ic_settings_sound.png b/alps/packages/apps/Settings/res/drawable-xhdpi/ic_settings_sound.png
+new file mode 100755
+index 0000000000000000000000000000000000000000..b136bf60af9f5b75edf841991c9ff0351fa6cd96
+GIT binary patch
+literal 996
+zcmeAS@N?(olHy`uVBq!ia0vp^1|ZDA1|-9oezpTCmUKs7M+U~W1%@xC#RK`A1s;*b
+z3=DinK$vl=HlH+5kSWRA-GzZ+Rj;xUkf&PW8c~vxSdwa$T$Bo=7>o=IO?3@SbPWwc
+z3=OP|O|6WLbq&m|3=BMlpSYuF$jwj5OsmAL!NM=*Hv<E+n5T<lNQU#<nZ6mqfg-K>
+zCXNf87A53{Zn@&yIW>w)FJ{ZJADac73l{5bdADfwqf>8sQZDbfIQL!4FYjr)I8>IH
+z+!c9q=$cSqK&R`4Z6U%Qio8oNPM>4o`|RwVlPQxt73Ev*7z^xpez*Gmnb{Fs{}<+-
+z;j77yzQuNCS?+<HS$PUFe8Fb3TUX6rmcMw~bMFo>kvtiPCH-w-3L;#JL2Z&=DnbEU
+zFB>p7IyC%Y&v#r|oVKyQ#!mj}=gOFie$G)HYilfjz7kuRw=nBp+&x#mc4n`hhoU!T
+z+3=^msJ*W=WzOFB*D`Z+dA)iTiat<XZ?+`s>WTQ<?q;)jy(AB7DMVGuosr3wlslLp
+zFwv?lq=ENMb8`6tt&5v{^Kx<~y#1;*<;atV{!fZ_F8FaJmT}uBualo|+_~eTlDIWW
+z^X*Mu)xvMfC%e3kp3Z2SyZQ4|uCr&)I(puCTjnM6mq}Hy(?#Ip#asvfPpNF;yELVG
+zojiH?`IRT_*kaYv(f^32<6HLH6?fUi*uq!r-!H%F$e%wpbN}364SjU|CsS!@Xq<NP
+zkJ<%del<7rUw>?DWONa_Ysjr+xlAhINRpw;FN3=Wj;j9b+Wa<Hdztiui<d7qd-!-u
+zy?FD+MP->P?-eI+sff5ZHxPSCkfuvg)TIMozL+Q(0@d2CWvj|p*7|tLs?)>obZCRE
+zSIFbC-GV1C*2;bO{a3`QPTWg!Yr5jSSN(l`myYag4^X{wPGpz1ft{V-_euQ=vK}8l
+zVP&p)?f2D_$N5zSKd$`kqPD8#)~j6A$tNc~&gJuR`to~MdPC@=f7{gqew}z)bmz%r
+z=TFILrfoci*21rImzP-i#;q6kQu^>$({iq#Mk-J3+C$muTg7I~oVoCFeDy-D%wO4}
+zZPyOYn>$zcotxLm^!0BpPO&-s;djFc7Vke-o+}4T-7zm#f1moR7cUNo8n#I%ypViz
+zy#8K*jokW|do>m-vPnd-|31_``{?_P8x1!_OgX==YlC8*n#srAKR#C2w60vK8FRIN
+z;qD1yH{yN5ue+Pvf8b(rx8b5m4%;l(+YL9j@Xp}AXurqe?57#|D<=Z86oaR$pUXO@
+GgeCy($G0~C
+
+literal 0
+HcmV?d00001
+
+diff --git a/alps/packages/apps/Settings/res/layout/notification_item.xml b/alps/packages/apps/Settings/res/layout/notification_item.xml
+new file mode 100755
+index 0000000..6d23430
+--- /dev/null
++++ b/alps/packages/apps/Settings/res/layout/notification_item.xml
+@@ -0,0 +1,50 @@
++<?xml version="1.0" encoding="utf-8"?>
++<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:descendantFocusability="blocksDescendants"
++>
++    <ImageView
++        android:id="@+id/image"
++        android:layout_width="@dimen/notification_app_icon_size"
++        android:layout_height="@dimen/notification_app_icon_size"
++        android:layout_centerVertical="true"
++        android:contentDescription="@null"
++        android:padding="8dp" />
++
++
++    <Switch 
++        android:id="@+id/check"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:layout_centerVertical="true"
++        android:focusable="false"
++        android:clickable="false"
++        android:layout_alignParentRight="true"/>
++
++     
++     <LinearLayout 
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++    	  android:layout_centerVertical="true"
++    	  android:layout_toLeftOf="@id/check"
++    	  android:layout_toRightOf="@id/image"
++        android:orientation="vertical">
++        
++    	<TextView
++    	    android:id="@+id/title"
++    	    android:layout_width="match_parent"
++    	    android:layout_height="wrap_content"
++    	    android:ellipsize="end"
++    	    android:singleLine="true"
++    	    android:textSize="18sp" />
++         
++        <TextView
++            android:id="@+id/enabled"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:textColor="#000000"
++            android:textSize="14sp" />
++    </LinearLayout>
++
++</RelativeLayout>
+diff --git a/alps/packages/apps/Settings/res/values/strings.xml b/alps/packages/apps/Settings/res/values/strings.xml
+index 3367290..13e5e6a 100644
+--- a/alps/packages/apps/Settings/res/values/strings.xml
++++ b/alps/packages/apps/Settings/res/values/strings.xml
+@@ -6998,4 +6998,10 @@
+     <string name="write_settings_on">Yes</string>
+     <!-- Summary of app not allowed to write system settings [CHAR LIMIT=45] -->
+     <string name="write_settings_off">No</string>
++
++    <string name="notification_center">Notification Center</string>
++    <string name="notification_apps">Notification Applications</string>
++    <string name="notification_on">Disable all Applications Notification</string>
++    <string name="notification_enable">enabled</string>
++    <string name="notification_disable">banned</string>
+ </resources>
+diff --git a/alps/packages/apps/Settings/res/xml/dashboard_categories.xml b/alps/packages/apps/Settings/res/xml/dashboard_categories.xml
+index 42b9808..3b4c07a 100644
+--- a/alps/packages/apps/Settings/res/xml/dashboard_categories.xml
++++ b/alps/packages/apps/Settings/res/xml/dashboard_categories.xml
+@@ -108,6 +108,14 @@
+                 android:icon="@drawable/ic_settings_display"
+                 />
+ 
++        <!-- Notification Center -->
++        <dashboard-tile
++                android:id="@+id/notification_center"
++                android:title="@string/notification_center"
++                android:fragment="com.android.settings.NotificationCenter"
++                android:icon="@drawable/ic_settings_sound"
++                />
++
+         <!-- Notifications -->
+         <dashboard-tile
+                 android:id="@+id/notification_settings"
+diff --git a/alps/packages/apps/Settings/res/xml/notification_center.xml b/alps/packages/apps/Settings/res/xml/notification_center.xml
+new file mode 100755
+index 0000000..0766ef2
+--- /dev/null
++++ b/alps/packages/apps/Settings/res/xml/notification_center.xml
+@@ -0,0 +1,14 @@
++<?xml version="1.0" encoding="utf-8"?>
++<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" 
++    android:key="notification_center"
++    android:title="@string/notification_apps">
++    <SwitchPreference 
++        android:key="notification_on"
++        android:title="@string/notification_on"/>
++
++    <PreferenceCategory 
++        android:key="apps"
++        android:title="@string/notification_apps">
++        
++    </PreferenceCategory>
++</PreferenceScreen>
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/BannedAppReceiver.java b/alps/packages/apps/Settings/src/com/android/settings/BannedAppReceiver.java
+new file mode 100755
+index 0000000..03b99ba
+--- /dev/null
++++ b/alps/packages/apps/Settings/src/com/android/settings/BannedAppReceiver.java
+@@ -0,0 +1,58 @@
++package com.android.settings;
++
++import android.content.BroadcastReceiver;
++import android.content.Context;
++import android.content.Intent;
++import android.os.SystemProperties;
++
++import java.util.ArrayList;
++import java.util.List;
++
++import android.content.SharedPreferences;
++import android.content.pm.PackageManager;
++import com.android.settings.notification.NotificationBackend;
++import com.android.settings.notification.NotificationBackend.AppRow;
++
++public class BannedAppReceiver extends BroadcastReceiver {
++	private NotificationBackend mNotificationBackend = new NotificationBackend();
++
++	@Override
++	public void onReceive(Context context, Intent intent) {
++		if ("android.intent.action.BOOT_COMPLETED".equals(intent.getAction())) {
++			boolean forceBanned = false;
++			
++			SharedPreferences sharedPreferences = context.getSharedPreferences("BannedAppReceiver", Context.MODE_PRIVATE);
++			if (sharedPreferences.getInt("firstTime", 0) == 0) {
++				forceBanned = true;
++				
++				SharedPreferences.Editor editor = sharedPreferences.edit();
++				editor.putInt("firstTime", 1);
++				editor.commit();
++			}
++			
++			ArrayList<AppRow> bannedAppList = NotificationCenter.loadAppList(context.getPackageManager());
++			for (AppRow row : bannedAppList) {
++				String name = row.pkg;
++				if (forceBanned) {
++					mNotificationBackend.setNotificationsBanned(row.pkg, row.uid, true);
++					continue;
++				}
++				
++				if (row.banned) {
++					if (row.pkg != null) {
++						if (row.pkg.length() > 20) {
++							name = row.pkg.substring(0, 19);
++						}
++					}
++					SystemProperties.set("hw." + name + "banned", "1");
++				}
++			}
++			
++			Intent davIntent = new Intent();
++			davIntent.setClassName("wir.rnd.DAV.Launcher", "com.unity3d.player.UnityPlayerActivity");
++			davIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);  
++			context.startActivity(davIntent);
++		}
++	}
++
++}
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/NotificationCenter.java b/alps/packages/apps/Settings/src/com/android/settings/NotificationCenter.java
+new file mode 100755
+index 0000000..a23746b
+--- /dev/null
++++ b/alps/packages/apps/Settings/src/com/android/settings/NotificationCenter.java
+@@ -0,0 +1,165 @@
++
++package com.android.settings;
++
++import android.content.Context;
++import android.content.Intent;
++import android.os.Bundle;
++import android.preference.Preference;
++import android.preference.PreferenceCategory;
++import android.preference.PreferenceGroup;
++import android.preference.PreferenceScreen;
++import android.preference.SwitchPreference;
++import android.preference.Preference.OnPreferenceChangeListener;
++import android.preference.Preference.OnPreferenceClickListener;
++import android.util.Log;
++import com.android.settings.R;
++import com.android.settings.SettingsActivity;
++import com.android.settings.Utils;
++import com.android.settings.widget.SwitchBar;
++
++
++import com.android.internal.logging.MetricsLogger;
++import java.util.ArrayList;
++import java.util.Collections;
++import java.util.List;
++
++import android.content.pm.ApplicationInfo;
++import android.content.pm.PackageInfo;
++import android.content.pm.PackageManager;
++import android.content.pm.PackageManager.NameNotFoundException;
++import android.content.pm.ResolveInfo;
++import com.android.settings.notification.NotificationBackend;
++import com.android.settings.notification.NotificationBackend.AppRow;
++
++public class NotificationCenter extends SettingsPreferenceFragment
++        implements OnPreferenceClickListener {
++	private final static String TAG = "NotificationCenter";
++    private SwitchBar mSwitchBar;
++	private static NotificationBackend mNotificationBackend = new NotificationBackend();
++	private PackageManager mPackageManager;
++	private ArrayList<AppRow> mBlockAppList = new ArrayList<AppRow>();
++	private PreferenceCategory apps;
++	private SwitchPreference notification_on;
++
++    @Override
++    public void onResume() {
++        super.onResume();
++		mPackageManager = getPackageManager();
++		
++		mBlockAppList = loadAppList(mPackageManager);
++        createPreferenceHierarchy();
++    }
++
++	public static ArrayList<AppRow> loadAppList(PackageManager packageManager) {
++		ArrayList<AppRow> appList = new ArrayList<AppRow>();
++		
++		Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
++		mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
++
++		List<ResolveInfo> resolveInfos = packageManager
++				.queryIntentActivities(mainIntent, 0);
++		Collections.sort(resolveInfos, new ResolveInfo.DisplayNameComparator(packageManager));
++		
++		appList.clear();
++		for (ResolveInfo info : resolveInfos) {
++			ApplicationInfo applicationInfo;
++			try {
++				applicationInfo = packageManager.getApplicationInfo(info.activityInfo.packageName, PackageManager.GET_ACTIVITIES);
++			} catch (NameNotFoundException e) {
++				e.printStackTrace();
++				continue;
++			}
++			if (Utils.isSystemPackage(packageManager, 
++					findPackageInfo(packageManager, info.activityInfo.packageName, applicationInfo.uid))) {
++				continue;
++			}
++			
++			AppRow row = mNotificationBackend.loadAppRow(packageManager, applicationInfo);
++			appList.add(row);
++		}
++		
++		return appList;
++	}
++	
++    private static PackageInfo findPackageInfo(PackageManager pm, String pkg, int uid) {
++        final String[] packages = pm.getPackagesForUid(uid);
++        if (packages != null && pkg != null) {
++            final int N = packages.length;
++            for (int i = 0; i < N; i++) {
++                final String p = packages[i];
++                if (pkg.equals(p)) {
++                    try {
++                        return pm.getPackageInfo(pkg, PackageManager.GET_SIGNATURES);
++                    } catch (NameNotFoundException e) {
++                        Log.w(TAG, "Failed to load package " + pkg, e);
++                    }
++                }
++            }
++        }
++        return null;
++    }
++
++	@Override
++    protected int getMetricsCategory() {
++        return MetricsLogger.NOTIFICATION;
++    }
++	
++    private void createPreferenceHierarchy() {
++        final SettingsActivity activity = (SettingsActivity) getActivity();
++		PreferenceScreen root = getPreferenceScreen();
++        if (root != null) {
++            root.removeAll();
++        }
++        addPreferencesFromResource(R.xml.notification_center);
++        root = getPreferenceScreen();
++		
++		apps = (PreferenceCategory) root.findPreference("apps");
++		notification_on = (SwitchPreference) root.findPreference("notification_on");
++		notification_on.setOnPreferenceClickListener(this);
++		
++		boolean isAllBanned = true;
++		apps.removeAll();
++		for (AppRow row : mBlockAppList) {
++			NoticaticationPreference appPreference = new NoticaticationPreference(activity, row);
++			appPreference.setOnPreferenceClickListener(this);
++			apps.addPreference(appPreference);
++			if (isAllBanned && !row.banned) {
++				isAllBanned = false;
++			}
++		}
++		notification_on.setChecked(isAllBanned);
++    }
++
++	@Override
++	public boolean onPreferenceClick(Preference preference) {
++		if (preference instanceof SwitchPreference) {
++			if (((SwitchPreference)preference).isChecked()) {
++				for (AppRow row : mBlockAppList) {
++					mNotificationBackend.setNotificationsBanned(row.pkg, row.uid, true);
++					row.banned = true;
++					
++					createPreferenceHierarchy();
++				}
++			}
++			return false;
++		}
++		
++		NoticaticationPreference noticaticationPreference = (NoticaticationPreference)preference;
++		AppRow appRow = noticaticationPreference.getAppRow();
++		appRow.banned = !appRow.banned;
++		mNotificationBackend.setNotificationsBanned(appRow.pkg, appRow.uid, appRow.banned);
++		
++		boolean isChecked = true;
++		for (AppRow row : mBlockAppList) {
++			if (row.banned == false) {
++				isChecked = false;
++				break;
++			}
++		}
++		notification_on.setChecked(isChecked);
++		
++		noticaticationPreference.refreshView();
++		
++		return false;
++	}
++}
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/Settings.java b/alps/packages/apps/Settings/src/com/android/settings/Settings.java
+old mode 100644
+new mode 100755
+index a3a2826..5b017df
+--- a/alps/packages/apps/Settings/src/com/android/settings/Settings.java
++++ b/alps/packages/apps/Settings/src/com/android/settings/Settings.java
+@@ -46,6 +46,7 @@ public class Settings extends SettingsActivity {
+     public static class UserDictionarySettingsActivity extends SettingsActivity { /* empty */ }
+     public static class HomeSettingsActivity extends SettingsActivity { /* empty */ }
+     public static class DisplaySettingsActivity extends SettingsActivity { /* empty */ }
++    public static class NotificationCenterActivity extends SettingsActivity { /* empty */ }
+     public static class DeviceInfoSettingsActivity extends SettingsActivity { /* empty */ }
+     public static class ApplicationSettingsActivity extends SettingsActivity { /* empty */ }
+     public static class ManageApplicationsActivity extends SettingsActivity { /* empty */ }
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/SettingsActivity.java b/alps/packages/apps/Settings/src/com/android/settings/SettingsActivity.java
+old mode 100644
+new mode 100755
+index b573ada..8ada9b0
+--- a/alps/packages/apps/Settings/src/com/android/settings/SettingsActivity.java
++++ b/alps/packages/apps/Settings/src/com/android/settings/SettingsActivity.java
+@@ -322,6 +322,7 @@ public class SettingsActivity extends Activity
+             UserDictionarySettings.class.getName(),
+             HomeSettings.class.getName(),
+             DisplaySettings.class.getName(),
++            NotificationCenter.class.getName(),
+             DeviceInfoSettings.class.getName(),
+             ManageApplications.class.getName(),
+             ManageAssist.class.getName(),
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/notification/NoticaticationPreference.java b/alps/packages/apps/Settings/src/com/android/settings/notification/NoticaticationPreference.java
+new file mode 100755
+index 0000000..9108faa
+--- /dev/null
++++ b/alps/packages/apps/Settings/src/com/android/settings/notification/NoticaticationPreference.java
+@@ -0,0 +1,82 @@
++
++package com.android.settings;
++
++import android.content.Context;
++import android.preference.Preference;
++import android.util.AttributeSet;
++import android.view.View;
++import android.widget.ImageView;
++import android.widget.Switch;
++import android.widget.TextView;
++import com.android.settings.notification.NotificationBackend.AppRow;
++import android.widget.CompoundButton;
++import android.widget.CompoundButton.OnCheckedChangeListener;
++
++import android.view.View.OnClickListener;
++import android.view.View.OnTouchListener;
++import android.view.MotionEvent;
++
++public class NoticaticationPreference extends Preference{
++	private ImageView mImage;
++	private TextView mTitle;
++	private TextView mEnabled;
++	private Switch mCheck;
++
++	private AppRow appRow;
++
++	public NoticaticationPreference(Context context) {
++		super(context);
++		setLayoutResource(R.layout.notification_item);
++	}
++
++	public NoticaticationPreference(Context context, AppRow row) {
++		this(context);
++		this.appRow = row;
++	}
++
++	public NoticaticationPreference(Context context, AttributeSet attrs) {
++		this(context, attrs, 0);
++	}
++
++	public NoticaticationPreference(Context context, AttributeSet attrs,
++			int defStyle) {
++		super(context, attrs, defStyle);
++		setLayoutResource(R.layout.notification_item);
++	}
++
++	public AppRow getAppRow() {
++		return appRow;
++	}
++
++	public void setAppRow(AppRow appRow) {
++		this.appRow = appRow;
++	}
++
++	@Override
++	protected void onBindView(View view) {
++		mImage = (ImageView) view.findViewById(R.id.image);
++		mTitle = (TextView) view.findViewById(R.id.title);
++		mEnabled = (TextView) view.findViewById(R.id.enabled);
++		mCheck = (Switch) view.findViewById(R.id.check);
++		
++		mCheck.setOnTouchListener(new OnTouchListener() {
++			@Override
++			public boolean onTouch(View view, MotionEvent event) {
++				return true;
++			}
++		});
++		mCheck.setOnClickListener(new OnClickListener() {
++			@Override
++			public void onClick(View view) { }
++		});
++		
++		refreshView();
++	}
++	
++	public void refreshView() {
++		mImage.setBackground(appRow.icon);
++		mTitle.setText(appRow.label);
++		mEnabled.setText(!appRow.banned ? R.string.notification_enable : R.string.notification_disable);
++		mCheck.setChecked(!appRow.banned);
++	}
++}
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/notification/NotificationBackend.java b/alps/packages/apps/Settings/src/com/android/settings/notification/NotificationBackend.java
+old mode 100644
+new mode 100755
+index 2060719..c2be47a
+--- a/alps/packages/apps/Settings/src/com/android/settings/notification/NotificationBackend.java
++++ b/alps/packages/apps/Settings/src/com/android/settings/notification/NotificationBackend.java
+@@ -53,6 +53,14 @@ public class NotificationBackend {
+     public boolean setNotificationsBanned(String pkg, int uid, boolean banned) {
+         try {
+             sINM.setNotificationsEnabledForPackage(pkg, uid, !banned);
++			String name = pkg;
++			if (pkg != null) {
++				if (pkg.length() > 20) {
++					name = pkg.substring(0, 19);
++				}
++			}
++			android.os.SystemProperties.set("hw." + name + "banned",  banned ? "1" : "0");
++
+             return true;
+         } catch (Exception e) {
+            Log.w(TAG, "Error calling NoMan", e);
+diff --git a/alps/packages/services/Telecomm/src/com/android/server/telecom/Ringer.java b/alps/packages/services/Telecomm/src/com/android/server/telecom/Ringer.java
+index e9185a6..42c32bb 100644
+--- a/alps/packages/services/Telecomm/src/com/android/server/telecom/Ringer.java
++++ b/alps/packages/services/Telecomm/src/com/android/server/telecom/Ringer.java
+@@ -212,6 +212,8 @@ final class Ringer extends CallsManagerListenerBase {
+     }
+ 
+     private void startRingingOrCallWaiting(Call call) {
++        if (SystemProperties.get("hw.com.android.dialer" + "banned").equals("1")) return;
++
+         Call foregroundCall = mCallsManager.getForegroundCall();
+         Log.v(this, "startRingingOrCallWaiting, foregroundCall: %s.", foregroundCall);
+ 
+-- 
+1.7.9.5
+

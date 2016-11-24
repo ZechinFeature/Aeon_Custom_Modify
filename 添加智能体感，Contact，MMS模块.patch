@@ -1,0 +1,315 @@
+From 4dea3ecc553e3a4113a0dc8d6b51ad021d0f877d Mon Sep 17 00:00:00 2001
+From: guoxiaolin <guo.xiaolin@eastaeon.com>
+Date: Wed, 9 Mar 2016 14:44:40 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E6=B7=BB=E5=8A?=
+ =?UTF-8?q?=A0=E6=99=BA=E8=83=BD=E4=BD=93=E6=84=9F=EF=BC=8CContact=EF=BC=8CM?=
+ =?UTF-8?q?MS=E6=A8=A1=E5=9D=97?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../quickcontact/ExpandingEntryCardView.java       |   13 ++++-
+ .../quickcontact/QuickContactActivity.java         |   60 +++++++++++++++++++-
+ .../src/com/android/contacts/util/HelpUtils.java   |   31 ++++++++++
+ .../com/android/mms/ui/ComposeMessageActivity.java |   53 ++++++++++++++++-
+ 4 files changed, 152 insertions(+), 5 deletions(-)
+ mode change 100644 => 100755 alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/ExpandingEntryCardView.java
+ mode change 100644 => 100755 alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/QuickContactActivity.java
+ mode change 100644 => 100755 alps/packages/apps/Contacts/src/com/android/contacts/util/HelpUtils.java
+
+diff --git a/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/ExpandingEntryCardView.java b/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/ExpandingEntryCardView.java
+old mode 100644
+new mode 100755
+index 0f68124..71d9f77
+--- a/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/ExpandingEntryCardView.java
++++ b/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/ExpandingEntryCardView.java
+@@ -59,7 +59,8 @@ import com.mediatek.contacts.util.Log;
+ 
+ import java.util.ArrayList;
+ import java.util.List;
+-
++import com.android.contacts.util.HelpUtils;
++import java.util.regex.Pattern;
+ /**
+  * Display entries in a LinearLayout that can be expanded to show all entries.
+  */
+@@ -719,6 +720,11 @@ public class ExpandingEntryCardView extends CardView {
+         }
+         final TextView header = (TextView) view.findViewById(R.id.header);
+         if (!TextUtils.isEmpty(entry.getHeader())) {
++			 //Log.d("SmartSomaticReaction", "Contacts --- proximity, getHeader = " + entry.getHeader());
++             if (!HelpUtils.getHadHeader() && isNumber(entry.getHeader())) {
++                 HelpUtils.setNumber(entry.getHeader().replace(" ", ""));
++                 HelpUtils.setHadHeader(true);
++             }
+             header.setText(entry.getHeader());
+         } else {
+             header.setVisibility(View.GONE);
+@@ -833,6 +839,11 @@ public class ExpandingEntryCardView extends CardView {
+ 
+         return view;
+     }
++	
++	private boolean isNumber(String str) {
++		Pattern pattern = Pattern.compile("[0-9]*");
++		return pattern.matcher(str.replace(" ", "")).matches();
++	}
+ 
+     private void updateExpandCollapseButton(CharSequence buttonText, long duration) {
+         if (mIsExpanded) {
+diff --git a/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/QuickContactActivity.java b/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/QuickContactActivity.java
+old mode 100644
+new mode 100755
+index 1a53b47..782cd52
+--- a/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/QuickContactActivity.java
++++ b/alps/packages/apps/Contacts/src/com/android/contacts/quickcontact/QuickContactActivity.java
+@@ -179,7 +179,12 @@ import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.concurrent.ConcurrentHashMap;
+-
++import android.hardware.Sensor;
++import android.hardware.SensorEvent;
++import android.hardware.SensorEventListener;
++import android.hardware.SensorManager;
++import android.os.Vibrator;
++import com.android.contacts.util.HelpUtils;
+ /**
+  * Mostly translucent {@link Activity} that shows QuickContact dialog. It loads
+  * data asynchronously, and then shows a popup with details centered around
+@@ -343,6 +348,11 @@ public class QuickContactActivity extends ContactsActivity {
+         new ConcurrentHashMap<>(4, 0.9f, 1);
+ 
+     private static final String FRAGMENT_TAG_SELECT_ACCOUNT = "select_account_fragment";
++	
++	private SensorManager mSensorManager;
++	private Sensor mProximitySensor;
++	private EastaeonListener mEastaeonListener;
++	private boolean mIsRegister;
+ 
+     final OnClickListener mEntryClickHandler = new OnClickListener() {
+         @Override
+@@ -859,8 +869,37 @@ public class QuickContactActivity extends ContactsActivity {
+         }
+ 
+         Trace.endSection();
++		
++		HelpUtils.setHadHeader(false);
++		mIsRegister = false;
++		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
++		mProximitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+     }
+ 
++    public class EastaeonListener implements SensorEventListener {
++		public void onAccuracyChanged(Sensor sensor, int accuracy) {
++        
++		}
++        
++		public void onSensorChanged(SensorEvent event) {
++             float distance = event.values[0];
++             Log.d("SmartSomaticReaction", "Contacts --- proximity, event.values[0] = " + distance);
++             if (distance == 0.0 && event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
++				Log.d("SmartSomaticReaction", "Contacts --- proximity, distance = " + distance);
++				String number = HelpUtils.getNumber();
++                if (number == null || number.isEmpty()){
++					Log.d("SmartSomaticReaction", "Contacts --- proximity, number error!");
++                } else {
++					Intent dialIntent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + number));
++                    Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
++                    startActivity(dialIntent);
++                    vibrator.vibrate(100);
++                 }
++              }
++        }
++
++   }
++
+     @Override
+     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+         if (requestCode == REQUEST_CODE_CONTACT_EDITOR_ACTIVITY &&
+@@ -1127,7 +1166,12 @@ public class QuickContactActivity extends ContactsActivity {
+             mHasIntentLaunched = false;
+             populateContactAndAboutCard(mCachedCp2DataCardModel);
+         }
+-
++        if (!mIsRegister) {
++			mEastaeonListener = new EastaeonListener();
++			mSensorManager.registerListener(mEastaeonListener, mProximitySensor, SensorManager.SENSOR_DELAY_NORMAL);
++			mIsRegister = true;
++			Log.d("SmartSomaticReaction", "Contacts --- proximity, registerListener;");
++        }
+         // When exiting the activity and resuming, we want to force a full reload of all the
+         // interaction data in case something changed in the background. On screen rotation,
+         // we don't need to do this. And, mCachedCp2DataCardModel will be null, so we won't.
+@@ -2328,7 +2372,17 @@ public class QuickContactActivity extends ContactsActivity {
+         };
+         mRecentDataTask.execute();
+     }
+-
++	
++	@Override
++    protected void onPause() {
++		super.onPause();
++		if (mIsRegister) {
++			mSensorManager.unregisterListener(mEastaeonListener, mProximitySensor);
++			mIsRegister = false;
++			Log.d("SmartSomaticReaction", "Contacts --- proximity, unregisterListener;");
++		}
++    }
++	
+     @Override
+     protected void onStop() {
+         super.onStop();
+diff --git a/alps/packages/apps/Contacts/src/com/android/contacts/util/HelpUtils.java b/alps/packages/apps/Contacts/src/com/android/contacts/util/HelpUtils.java
+old mode 100644
+new mode 100755
+index 56b60cb..622f3db
+--- a/alps/packages/apps/Contacts/src/com/android/contacts/util/HelpUtils.java
++++ b/alps/packages/apps/Contacts/src/com/android/contacts/util/HelpUtils.java
+@@ -27,6 +27,7 @@ import android.view.MenuItem;
+ import com.mediatek.contacts.util.Log;
+ 
+ import java.util.Locale;
++import android.app.Activity;
+ 
+ /**
+  * Functions to easily prepare contextual help menu option items with an intent that opens up the
+@@ -49,6 +50,9 @@ public class HelpUtils {
+      * Cached version code to prevent repeated calls to the package manager.
+      */
+     private static String sCachedVersionCode = null;
++	
++	private static String number = "";
++	private static boolean mHadHeader = false;
+ 
+     /** Static helper that is not instantiable*/
+     private HelpUtils() { }
+@@ -139,4 +143,31 @@ public class HelpUtils {
+         // Build the full uri and return it
+         return builder.build();
+     }
++	
++	public static boolean isHelpAndFeedbackAvailable() {
++        return false;
++    }
++	
++	public static void launchHelpAndFeedbackForMainScreen(Activity activity) { }
++
++    public static void launchHelpAndFeedbackForContactScreen(Activity activity) { }
++	
++	public static void setNumber(String str) {
++		number = str;
++		Log.d("SmartSomaticReaction", "Contacts --- proximity, setNumber = " + number);
++	}
++
++	public static String getNumber() {
++		return number;
++	}
++
++	public static void setHadHeader(boolean flag) {
++		mHadHeader = flag;	
++		Log.d("SmartSomaticReaction", "Contacts --- proximity, setHadHeader = " + mHadHeader);
++	}
++
++	public static boolean getHadHeader() {
++		return mHadHeader;
++	}
++	
+ }
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
+index d057948..9d1cf33 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
+@@ -283,6 +283,11 @@ import com.mediatek.storage.StorageManagerEx;
+ import com.mediatek.internal.telephony.CellConnMgr;
+ import com.android.mms.util.StatusBarSelectorReceiver;
+ import com.mediatek.internal.telephony.DefaultSmsSimSettings;
++import android.hardware.Sensor;
++import android.hardware.SensorEvent;
++import android.hardware.SensorEventListener;
++import android.hardware.SensorManager;
++import android.os.Vibrator;
+ 
+ /**
+  * This is the main UI for:
+@@ -546,8 +551,13 @@ public class ComposeMessageActivity extends Activity
+ 
+     private boolean mIsActivityPaused = true;
+     private boolean mIsActivityStoped = true;
+-
++	private boolean mShouldprompt = false;
+     private StatusBarSelectorReceiver mStatusBarSelectorReceiver;
++	
++	private SensorManager mSensorManager;
++	private Sensor mProximitySensor;
++	private EastaeonListener mEastaeonListener;
++	private boolean mIsRegister;
+ 
+     private void dismissProgressDialog() {
+         Log.d(TAG, "Composer reduce mAsyncTaskNum = " + (--mAsyncTaskNum));
+@@ -3059,6 +3069,34 @@ public class ComposeMessageActivity extends Activity
+ 
+         this.registerReceiver(mSubReceiver, intentFilter);
+         /// @}
++		mIsRegister = false;
++        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
++        mProximitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
++
++        mStatusBarSelectorReceiver = new StatusBarSelectorReceiver(this);
++        IntentFilter statusBarSelectorIntentFilter = new IntentFilter(StatusBarSelectorReceiver.ACTION_MMS_ACCOUNT_CHANGED);
++        registerReceiver(mStatusBarSelectorReceiver, statusBarSelectorIntentFilter);
++    }
++   
++    public class EastaeonListener implements SensorEventListener {
++
++		public void onAccuracyChanged(Sensor sensor, int accuracy) {
++        
++		}
++
++        public void onSensorChanged(SensorEvent event) {
++			float distance = event.values[0];
++			Log.d("SmartSomaticReaction", "Mms --- proximity, event.values[0] = " + distance);
++            if (distance == 0.0 && event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
++				Log.d("SmartSomaticReaction", "Mms --- proximity, distance = " + distance);
++				String number = getRecipients().get(0).getNumber();
++				Intent dialIntent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + number));
++				Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
++				startActivity(dialIntent);
++                vibrator.vibrate(100);
++            }
++        }
++
+     }
+ 
+     private void showSubjectEditor(boolean show) {
+@@ -3869,6 +3907,13 @@ public class ComposeMessageActivity extends Activity
+         //Contact.startPresenceObserver();
+ 
+         addRecipientsListeners();
++		
++		if (!mIsRegister) {
++			mEastaeonListener = new EastaeonListener();
++			mSensorManager.registerListener(mEastaeonListener, mProximitySensor, SensorManager.SENSOR_DELAY_NORMAL);
++			mIsRegister = true;
++			Log.d("SmartSomaticReaction", "Mms --- proximity, registerListener;");
++        }
+ 
+         if (Log.isLoggable(LogTag.APP, Log.VERBOSE)) {
+             log("onResume: update title, mConversation=" + mConversation.toString());
+@@ -3948,6 +3993,12 @@ public class ComposeMessageActivity extends Activity
+         StatusBarSelectorCreator.getInstance(this).hideStatusBar();
+         /// @}
+ 
++		if (mIsRegister) {
++			mSensorManager.unregisterListener(mEastaeonListener, mProximitySensor);
++			mIsRegister = false;
++			Log.d("SmartSomaticReaction", "Mms --- proximity, unregisterListener;");
++        }
++		
+         removeRecipientsListeners();
+ 
+         // remove any callback to display a progress spinner
+-- 
+1.7.9.5
+

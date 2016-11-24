@@ -1,0 +1,240 @@
+From d4e8e170d68b68685d0469ccc89864eed587d552 Mon Sep 17 00:00:00 2001
+From: zhangjuntao <zhang.juntao@eastaeon.com>
+Date: Fri, 15 Apr 2016 14:49:07 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82][=E5=BD=95=E9=9F=B3=E6=9C=BA]?=
+ =?UTF-8?q?=E6=B7=BB=E5=8A=A0=E6=94=B6=E9=9F=B3=E6=9C=BA=E7=9A=84=E5=BD=95=E9?=
+ =?UTF-8?q?=9F=B3=E6=A0=BC=E5=BC=8F=E9=80=89=E9=A1=B9?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../apps/FMRadio/res/menu/fm_action_bar.xml        |    4 ++
+ .../apps/FMRadio/res/values-zh-rCN/strings.xml     |    3 ++
+ alps/packages/apps/FMRadio/res/values/strings.xml  |    3 ++
+ .../src/com/android/fmradio/FmMainActivity.java    |   57 +++++++++++++++++++-
+ .../src/com/android/fmradio/FmRecorder.java        |   23 ++++++--
+ 5 files changed, 86 insertions(+), 4 deletions(-)
+ mode change 100644 => 100755 alps/packages/apps/FMRadio/res/menu/fm_action_bar.xml
+ mode change 100644 => 100755 alps/packages/apps/FMRadio/res/values-zh-rCN/strings.xml
+ mode change 100644 => 100755 alps/packages/apps/FMRadio/res/values/strings.xml
+ mode change 100644 => 100755 alps/packages/apps/FMRadio/src/com/android/fmradio/FmMainActivity.java
+
+diff --git a/alps/packages/apps/FMRadio/res/menu/fm_action_bar.xml b/alps/packages/apps/FMRadio/res/menu/fm_action_bar.xml
+old mode 100644
+new mode 100755
+index 492ad66..2751c7d
+--- a/alps/packages/apps/FMRadio/res/menu/fm_action_bar.xml
++++ b/alps/packages/apps/FMRadio/res/menu/fm_action_bar.xml
+@@ -38,6 +38,10 @@
+         android:id="@+id/fm_start_record"
+         android:showAsAction ="never"
+         android:title="@string/fm_over_start_record" />
++	<item
++        android:id="@+id/fm_record_format"
++        android:showAsAction ="never"
++        android:title="@string/recorder_format"  />
+     <item
+         android:id="@+id/fm_record_list"
+         android:showAsAction ="never"
+diff --git a/alps/packages/apps/FMRadio/res/values-zh-rCN/strings.xml b/alps/packages/apps/FMRadio/res/values-zh-rCN/strings.xml
+old mode 100644
+new mode 100755
+index 88f8a64..1f60335
+--- a/alps/packages/apps/FMRadio/res/values-zh-rCN/strings.xml
++++ b/alps/packages/apps/FMRadio/res/values-zh-rCN/strings.xml
+@@ -64,4 +64,7 @@
+     <string name="toast_record_not_saved" msgid="6526674547687611282">"录音未保存"</string>
+     <string name="toast_listen" msgid="2014315478895754055">"收听"</string>
+     <string name="toast_station_renamed" msgid="2185292052267585710">"此电台已重新命名"</string>
++	<string name="btn_cancel">"Cancel"</string>
++	<string name="recorder_format" >"录音格式"</string>
++	<string name="btn_ok">"OK"</string>
+ </resources>
+diff --git a/alps/packages/apps/FMRadio/res/values/strings.xml b/alps/packages/apps/FMRadio/res/values/strings.xml
+old mode 100644
+new mode 100755
+index 37e4c66..d965dee
+--- a/alps/packages/apps/FMRadio/res/values/strings.xml
++++ b/alps/packages/apps/FMRadio/res/values/strings.xml
+@@ -156,4 +156,7 @@
+     <string name="FMR_EM_CMD_title" translatable="false">CMD EXPAND</string>
+     <string name="FMR_EM_CMD_return" translatable="false">CMD EXPAND RETURN VALUE</string>
+     <string name="FMR_EM_DEFAULT_VALUE" translatable="false">0</string>
++	<string name="btn_cancel">"Cancel"</string>
++	<string name="recorder_format" >"Recorder Format"</string>
++	<string name="btn_ok">"OK"</string>
+ </resources>
+diff --git a/alps/packages/apps/FMRadio/src/com/android/fmradio/FmMainActivity.java b/alps/packages/apps/FMRadio/src/com/android/fmradio/FmMainActivity.java
+old mode 100644
+new mode 100755
+index af6620e..fe4585a
+--- a/alps/packages/apps/FMRadio/src/com/android/fmradio/FmMainActivity.java
++++ b/alps/packages/apps/FMRadio/src/com/android/fmradio/FmMainActivity.java
+@@ -68,7 +68,9 @@ import com.android.fmradio.views.FmSnackBar;
+ import com.mediatek.fmradio.ext.ExtensionHelper;
+ import com.mediatek.fmradio.ext.IFavoriteExt;
+ /// @}
+-
++import android.app.AlertDialog;
++import android.content.DialogInterface;
++import android.content.SharedPreferences;
+ /**
+  * This class interact with user, provide FM basic function.
+  */
+@@ -137,6 +139,8 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
+     private MenuItem mMenuItemHeadset = null;
+ 
+     private MenuItem mMenuItemStartRecord = null;
++	
++	private MenuItem mMenuItemRecordFormat = null;
+ 
+     private MenuItem mMenuItemRecordList = null;
+ 
+@@ -172,6 +176,8 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
+ 
+     private FmScroller.EventListener mEventListener;
+ 
++	private static final String REFS_NAME = "FMRecord";
++	
+     // Service listener
+     private FmListener mFmRadioListener = new FmListener() {
+         @Override
+@@ -855,7 +861,9 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
+         inflater.inflate(R.menu.fm_action_bar, menu);
+         mMenuItemStationlList = menu.findItem(R.id.fm_station_list);
+         mMenuItemHeadset = menu.findItem(R.id.fm_headset);
++		mMenuItemRecordFormat = menu.findItem(R.id.fm_record_format);
+         mMenuItemStartRecord = menu.findItem(R.id.fm_start_record);
++		
+         mMenuItemRecordList = menu.findItem(R.id.fm_record_list);
+         if (null != mMenuItemHeadset) {
+             mMenuItemHeadset.setTitle(R.string.optmenu_earphone);
+@@ -937,6 +945,9 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
+             case R.id.fm_record_list:
+                 openSavedRecordings();
+                 break;
++			case R.id.fm_record_format:
++                showFormatDialog();
++                break;
+             default:
+                 Log.e(TAG, "onOptionsItemSelected, invalid options menu item.");
+                 break;
+@@ -944,6 +955,49 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
+         return super.onOptionsItemSelected(item);
+     }
+ 
++	// create dialog for choice format option
++       AlertDialog.Builder builder;
++       int selectedWhich;
++       private void showFormatDialog(){
++               SharedPreferences sharedPreferences = getSharedPreferences(REFS_NAME, 0);
++               int which=sharedPreferences.getInt("record_format",0);
++               selectedWhich=0;
++               final String[] fmOpt=new String[] {"mp3","amr","3gpp"};
++               if(builder==null){
++                       builder=new AlertDialog.Builder(this);
++               }
++               builder.setTitle(mContext.getResources().getString(R.string.recorder_format));
++               // builder.setIcon(android.R.drawable.ic_dialog_info)
++               builder.setSingleChoiceItems(fmOpt, which, dlClickListener);
++               builder.setNegativeButton(R.string.btn_cancel, null);
++               builder.setPositiveButton(R.string.btn_ok, okClickListener);
++               builder.show();
++               Log.d(TAG,"------lych show format dialog---which--->>"+which);
++       }
++
++       // dialog listener 
++       private DialogInterface.OnClickListener dlClickListener=new DialogInterface.OnClickListener() {
++  
++                       public void onClick(DialogInterface dialog, int which) {
++                                 selectedWhich=which;
++                       }
++       };
++       // dialog listener 
++       private DialogInterface.OnClickListener okClickListener=new DialogInterface.OnClickListener() {
++  
++                       public void onClick(DialogInterface dialog, int which) {
++                                   editFormatSharedPreferences(selectedWhich);
++                                       dialog.dismiss();
++                       }
++       };
++       // param format 0 -- mp3, 1-- amr,2--3gpp  
++       private void editFormatSharedPreferences(int format) {
++        SharedPreferences sharedPreferences = getSharedPreferences(REFS_NAME, 0);
++        SharedPreferences.Editor editor = sharedPreferences.edit();
++        editor.putInt("record_format", format);
++        editor.commit();
++    }
++	
+     /**
+      * Check whether antenna is available
+      *
+@@ -1132,6 +1186,7 @@ public class FmMainActivity extends Activity implements FmFavoriteEditDialog.Edi
+     private void refreshPopupMenuItem(boolean enabled) {
+         if (null != mMenuItemStationlList) {
+             mMenuItemStartRecord.setEnabled(enabled);
++			mMenuItemRecordFormat.setEnabled(enabled);
+         }
+     }
+ 
+diff --git a/alps/packages/apps/FMRadio/src/com/android/fmradio/FmRecorder.java b/alps/packages/apps/FMRadio/src/com/android/fmradio/FmRecorder.java
+index 53a7e23..631f955 100755
+--- a/alps/packages/apps/FMRadio/src/com/android/fmradio/FmRecorder.java
++++ b/alps/packages/apps/FMRadio/src/com/android/fmradio/FmRecorder.java
+@@ -35,7 +35,7 @@ import java.io.IOException;
+ import java.text.SimpleDateFormat;
+ import java.util.Date;
+ import java.util.Locale;
+-
++import android.content.SharedPreferences;
+ /**
+  * This class provider interface to recording, stop recording, save recording
+  * file, play recording file
+@@ -45,10 +45,10 @@ public class FmRecorder implements MediaRecorder.OnErrorListener, MediaRecorder.
+     // file prefix
+     public static final String RECORDING_FILE_PREFIX = "FM";
+     // file extension
+-    public static final String RECORDING_FILE_EXTENSION = ".3gpp";
++    public static /*final*/ String RECORDING_FILE_EXTENSION = ".mp3";
+     // recording file folder
+     public static final String FM_RECORD_FOLDER = "FM Recording";
+-    private static final String RECORDING_FILE_TYPE = "audio/3gpp";
++    private static /*final*/ String RECORDING_FILE_TYPE = "audio/mp3";
+     private static final String RECORDING_FILE_SOURCE = "FM Recordings";
+     // error type no sdcard
+     public static final int ERROR_SDCARD_NOT_PRESENT = 0;
+@@ -91,6 +91,8 @@ public class FmRecorder implements MediaRecorder.OnErrorListener, MediaRecorder.
+     public void startRecording(Context context) {
+         mRecordTime = 0;
+ 
++		updateRecordFormat(context);
++		
+         // Check external storage
+         if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+             Log.e(TAG, "startRecording, no external storage available");
+@@ -176,6 +178,21 @@ public class FmRecorder implements MediaRecorder.OnErrorListener, MediaRecorder.
+         setState(STATE_RECORDING);
+     }
+ 
++	private void updateRecordFormat(Context context){
++	   SharedPreferences sharedPreferences = context.getSharedPreferences("FMRecord", 0);
++	   int format=sharedPreferences.getInt("record_format",0);
++	   if(format==1){
++			   RECORDING_FILE_EXTENSION=".amr";
++			   RECORDING_FILE_TYPE="audio/amr";
++	   }else if(format==2){
++			   RECORDING_FILE_EXTENSION=".3gpp";
++			   RECORDING_FILE_TYPE="audio/3gpp";
++	   }else{
++			   RECORDING_FILE_EXTENSION=".mp3";
++			   RECORDING_FILE_TYPE="audio/mp3";
++	   }
++    }
++
+     /**
+      * Stop recording, compute recording time and update FM recorder state
+      */
+-- 
+1.7.9.5
+

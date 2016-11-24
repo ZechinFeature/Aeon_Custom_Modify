@@ -1,0 +1,257 @@
+From d831394b65ea3d753bf0a6386b687ea6eb6a7cb8 Mon Sep 17 00:00:00 2001
+From: limin <li.min1@eastaeon.com>
+Date: Tue, 22 Mar 2016 21:17:35 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=20=E6=B7=BB=E5=8A=A0=E9=9F=B3?=
+ =?UTF-8?q?=E9=87=8F=E4=B8=8A=E9=94=AE=E5=90=AF=E5=8A=A8camera?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../android/internal/logging/MetricsConstants.java |    1 +
+ .../android/server/policy/PhoneWindowManager.java  |   61 +++++++++++++++++++-
+ .../apps/Settings/res/values-vi/strings.xml        |    2 +
+ alps/packages/apps/Settings/res/values/strings.xml |    6 +-
+ .../Settings/res/xml/accessibility_settings.xml    |    5 ++
+ 5 files changed, 72 insertions(+), 3 deletions(-)
+ mode change 100644 => 100755 alps/frameworks/base/core/java/com/android/internal/logging/MetricsConstants.java
+ mode change 100644 => 100755 alps/packages/apps/Settings/res/values-vi/strings.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/res/xml/accessibility_settings.xml
+
+diff --git a/alps/frameworks/base/core/java/com/android/internal/logging/MetricsConstants.java b/alps/frameworks/base/core/java/com/android/internal/logging/MetricsConstants.java
+old mode 100644
+new mode 100755
+index b90cb36..a373593
+--- a/alps/frameworks/base/core/java/com/android/internal/logging/MetricsConstants.java
++++ b/alps/frameworks/base/core/java/com/android/internal/logging/MetricsConstants.java
+@@ -262,6 +262,7 @@ public interface MetricsConstants {
+     public static final int TUNER_DEMO_MODE_ON = 236;
+     public static final int TUNER_BATTERY_PERCENTAGE = 237;
+     public static final int FUELGAUGE_INACTIVE_APPS = 238;
++	public static final int ACCESSIBILITY_TOGGLE_GLOBAL_VOLUMEUP_PRESS = 239;
+ 
+     // These constants must match those in the analytic pipeline, do not edit.
+     // Add temporary values to the top of MetricsLogger instead.
+diff --git a/alps/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java b/alps/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java
+index aa3aaa6..db094ec9 100755
+--- a/alps/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java
++++ b/alps/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java
+@@ -27,6 +27,8 @@ import android.app.ProgressDialog;
+ import android.app.SearchManager;
+ import android.app.StatusBarManager;
+ import android.app.UiModeManager;
++import android.app.KeyguardManager;
++import android.app.KeyguardManager.KeyguardLock;
+ import android.content.ActivityNotFoundException;
+ import android.content.BroadcastReceiver;
+ import android.content.ComponentName;
+@@ -203,12 +205,17 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+     static final int APPLICATION_PANEL_SUBLAYER = 1;
+     static final int APPLICATION_SUB_PANEL_SUBLAYER = 2;
+     static final int APPLICATION_ABOVE_SUB_PANEL_SUBLAYER = 3;
++    private static int sDismissCameraDelay = -1;
++	
+ 
+     static public final String SYSTEM_DIALOG_REASON_KEY = "reason";
+     static public final String SYSTEM_DIALOG_REASON_GLOBAL_ACTIONS = "globalactions";
+     static public final String SYSTEM_DIALOG_REASON_RECENT_APPS = "recentapps";
+     static public final String SYSTEM_DIALOG_REASON_HOME_KEY = "homekey";
+     static public final String SYSTEM_DIALOG_REASON_ASSIST = "assist";
++	private static final Intent SECURE_CAMERA_INTENT =
++            new Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA_SECURE)
++                    .addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+ 
+     /**
+      * These are the system UI flags that, when changing, can cause the layout
+@@ -1196,6 +1203,23 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+             takeScreenshot();
+         }
+     };
++	
++	  private Intent getCameraIntent() {
++       return  SECURE_CAMERA_INTENT ;
++    }
++
++	
++		//add for tcl screen recorder start
++    private final Runnable mVCameraRunnable = new Runnable() {
++        @Override
++        public void run() {
++			Intent intent = getCameraIntent();
++		
++			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
++            mContext.startActivity(intent);
++        }
++    };
++	//end	
+ 
+     @Override
+     public void showGlobalActions() {
+@@ -4981,6 +5005,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+     /** {@inheritDoc} */
+     @Override
+     public int interceptKeyBeforeQueueing(KeyEvent event, int policyFlags) {
++	     Log.d("limin", "event.getKeyCode() "+ event.getKeyCode() );
+         if (!mSystemBooted) {
+             // If we have not yet booted, don't let key events do anything.
+             return 0;
+@@ -5003,6 +5028,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+         final boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
+         final boolean canceled = event.isCanceled();
+         final int keyCode = event.getKeyCode();
++		
+ 
+         final boolean isInjected = (policyFlags & WindowManagerPolicy.FLAG_INJECTED) != 0;
+ 
+@@ -5041,6 +5067,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+             // to wake the device but don't pass the key to the application.
+             result = 0;
+             if (isWakeKey && (!down || !isWakeKeyWhenScreenOff(keyCode))) {
++			      Log.d("limin", "isWakeKey"+ isWakeKey);
+                 isWakeKey = false;
+             }
+         }
+@@ -5075,15 +5102,19 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+ 
+         // Handle special keys.
+         switch (keyCode) {
++		     
+             case KeyEvent.KEYCODE_VOLUME_DOWN:
+             case KeyEvent.KEYCODE_VOLUME_UP:
+             case KeyEvent.KEYCODE_VOLUME_MUTE: {
++			      Log.d("limin", "keyCode3"+ keyCode);
+                 if (mUseTvRouting) {
+                     // On TVs volume keys never go to the foreground app
+                     result &= ~ACTION_PASS_TO_USER;
+                 }
+                 if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
++				
+                     if (down) {
++
+                         if (interactive && !mScreenshotChordVolumeDownKeyTriggered
+                                 && (event.getFlags() & KeyEvent.FLAG_FALLBACK) == 0) {
+                             mScreenshotChordVolumeDownKeyTriggered = true;
+@@ -5097,18 +5128,43 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+                         cancelPendingScreenshotChordAction();
+                     }
+                 } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
++				       Log.d("limin", "down"+ down);
+                     /// M: Key remapping
++				//	KeyguardManager keyguardManager = (KeyguardManager) this.getSystemService(Context.KEYGUARD_SERVICE);
++				//	 KeyguardManager = (KeyguardManager)mContext.getSystemService(Context.KEYGUARD_SERVICE);
++			//		KeyguardLock keyguardLock = keyguardManager.newKeyguardLock("limin");
++			//		keyguardLock.disableKeyguard();
+                     if ((false == IS_USER_BUILD)
+                                 && SystemProperties.get("persist.sys.anr_sys_key").equals("1")) {
+                         mHandler.postDelayed(mKeyRemappingVolumeDownLongPress_Test, 0);
+                     }
+                     if (down) {
+-                        if (interactive && !mScreenshotChordVolumeUpKeyTriggered
++					   //   Log.d("limin", "interactive"+ interactive);
++					//	 Log.d("limin", "mScreenshotChordVolumeDownKeyTriggered"+ mScreenshotChordVolumeDownKeyTriggered);
++				//		 Log.d("limin", "event.getFlags()"+ event.getFlags());
++				//		 Log.d("limin", "KeyEvent.FLAG_FALLBACK"+ KeyEvent.FLAG_FALLBACK);
++
++                        if (!interactive && !mScreenshotChordVolumeUpKeyTriggered
+                                 && (event.getFlags() & KeyEvent.FLAG_FALLBACK) == 0) {
++						   final boolean mediaPlaying = AudioSystem.isStreamActive(AudioSystem.STREAM_MUSIC, 0) ;
+                             mScreenshotChordVolumeUpKeyTriggered = true;
+                             cancelPendingPowerKeyAction();
+                             cancelPendingScreenshotChordAction();
++						Log.d("limin", "mediaPlaying"+ mediaPlaying);
++				     	Log.d("limin", "interceptKeyBeforeQueueing KEYCODE_VOLUME_UP");
++							Log.d("limin", "volumeup"+  SystemProperties.get("persist.sys.volumeup.press","0"));
++						
++						//  SystemProperties.set("persist.sys.volume.up", "1"); 
++						if ("1".equals(SystemProperties.get("persist.sys.volumeup.press","0")))
++						{
++						    if (!mediaPlaying)
++							{
++						   mBroadcastWakeLock.acquire();
++						   mPowerManager.wakeUp(SystemClock.uptimeMillis());
++						   mHandler.postDelayed(mVCameraRunnable, sDismissCameraDelay);
++						   }
+                         }
++						}
+                     } else {
+                         mScreenshotChordVolumeUpKeyTriggered = false;
+                         cancelPendingScreenshotChordAction();
+@@ -5361,13 +5417,14 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+      * is always considered a wake key.
+      */
+     private boolean isWakeKeyWhenScreenOff(int keyCode) {
++	         Log.d("limin", "keyCode" + keyCode);
+         switch (keyCode) {
+             // ignore volume keys unless docked
++             // ignore volume keys unless docked
+             case KeyEvent.KEYCODE_VOLUME_UP:
+             case KeyEvent.KEYCODE_VOLUME_DOWN:
+             case KeyEvent.KEYCODE_VOLUME_MUTE:
+                 return mDockMode != Intent.EXTRA_DOCK_STATE_UNDOCKED;
+-
+             // ignore media and camera keys
+             case KeyEvent.KEYCODE_MUTE:
+             case KeyEvent.KEYCODE_HEADSETHOOK:
+diff --git a/alps/packages/apps/Settings/res/values-vi/strings.xml b/alps/packages/apps/Settings/res/values-vi/strings.xml
+old mode 100644
+new mode 100755
+index afe6e24..db77085
+--- a/alps/packages/apps/Settings/res/values-vi/strings.xml
++++ b/alps/packages/apps/Settings/res/values-vi/strings.xml
+@@ -2869,6 +2869,7 @@
+     <string name="filter_overlay_apps" msgid="6965969283342557573">"Các ứng dụng có quyền"</string>
+     <string name="system_alert_window_on" msgid="2939489395109048888">"Có"</string>
+     <string name="system_alert_window_off" msgid="6189115687233061992">"Không"</string>
++	<string name="accessibility_global_Volume_Key_Press_preference_description">Nhấn &amp; giữ nút volume + để truy cập nhanh camera</string>
+     <string name="write_settings" msgid="4797457275727195681">"Sửa đổi cài đặt hệ thống"</string>
+     <string name="keywords_write_settings" msgid="6415597272561105138">"ghi/sửa đổi cài đặt hệ thống"</string>
+     <string name="write_settings_summary" msgid="4302268998611412696">"<xliff:g id="COUNT_0">%d</xliff:g> / <xliff:g id="COUNT_1">%d</xliff:g> được phép sửa đổi cài đặt hệ thống"</string>
+@@ -2880,4 +2881,5 @@
+     <string name="write_settings_description" msgid="6868293938839954623">"Quyền này cho phép ứng dụng sửa đổi cài đặt hệ thống."</string>
+     <string name="write_settings_on" msgid="8230580416068832239">"Có"</string>
+     <string name="write_settings_off" msgid="5156104383386336233">"Không"</string>
++	
+ </resources>
+diff --git a/alps/packages/apps/Settings/res/values/strings.xml b/alps/packages/apps/Settings/res/values/strings.xml
+index 11dbfd3..495078c 100755
+--- a/alps/packages/apps/Settings/res/values/strings.xml
++++ b/alps/packages/apps/Settings/res/values/strings.xml
+@@ -3776,6 +3776,7 @@
+     <string name="accessibility_screen_magnification_summary">When this feature is turned on, you can zoom in and out by triple-tapping the screen.\n\nWhile zoomed in, you can:\n<ul><li>Pan: Drag two or more fingers across the screen.</li>\n<li>Adjust zoom level: Pinch two or more fingers together or spread them apart.</li></ul>\n\nYou can also temporarily magnify what\u2019s under your finger by triple-tapping and holding. In this magnified state, you can drag your finger to explore different parts of the screen. Lift your finger to return to your previous state.\n\nNote: Triple-tap for magnification works everywhere except the keyboard and navigation bar.</string>
+     <!-- Title for the preference to enable the global geture that turns on accessibility. [CHAR LIMIT=35] -->
+     <string name="accessibility_global_gesture_preference_title">Accessibility shortcut</string>
++
+     <!-- Summary for the preference to enable the global geture that turns on accessibility (on state). [CHAR LIMIT=60] -->
+     <string name="accessibility_global_gesture_preference_summary_on">On</string>
+     <!-- Summary for the preference screen to enable the global geture that turns on accessibility (off state). [CHAR LIMIT=35] -->
+@@ -7018,5 +7019,8 @@
+ 	<string name="auto_switch_answer_enable_summary">Switch the phone from hand free mode to handset mode by putting the phone to your ear</string>
+ 	<string name="auto_take_calls_enable_title">Smart call</string>
+ 	<string name="auto_take_calls_enable_summary">Put the phone close to the ear to call the contact when you are reading contact detail or message</string>
+-
++    <string name="accessibility_Volume_Key_Press_preference_title">System</string>
++	<string name="accessibility_Volume_Key_up_Press_preference_title">Volume up to access camera</string>
++	<string name="accessibility_global_Volume_Key_Press_preference_description">Press and hold the volume up to quick access camera when phone is sleep mode  </string>
++	
+ </resources>
+diff --git a/alps/packages/apps/Settings/res/xml/accessibility_settings.xml b/alps/packages/apps/Settings/res/xml/accessibility_settings.xml
+old mode 100644
+new mode 100755
+index 892bde6..113887d
+--- a/alps/packages/apps/Settings/res/xml/accessibility_settings.xml
++++ b/alps/packages/apps/Settings/res/xml/accessibility_settings.xml
+@@ -67,6 +67,11 @@
+                 android:fragment="com.android.settings.accessibility.ToggleGlobalGesturePreferenceFragment"
+                 android:key="enable_global_gesture_preference_screen"
+                 android:title="@string/accessibility_global_gesture_preference_title"/>
++				
++		<PreferenceScreen
++                android:fragment="com.android.settings.accessibility.VolumeKeyPressPreferenceFragment"
++                android:key="Volume_Key_Press_preference_screen"
++                android:title="@string/accessibility_Volume_Key_Press_preference_title"/>
+ 
+         <PreferenceScreen android:key="tts_settings_preference"
+                 android:fragment="com.android.settings.tts.TextToSpeechSettings"
+-- 
+1.7.9.5
+

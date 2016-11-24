@@ -1,0 +1,147 @@
+From 4188f8107e7d7cffb4470e893d815fcea3155e41 Mon Sep 17 00:00:00 2001
+From: xieyuanfu <xie.yuanfu@eastaeon.com>
+Date: Tue, 3 May 2016 10:19:51 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E5=AE=A2=E6=88?=
+ =?UTF-8?q?=B7=E8=A6=81=E6=B1=82=E5=B0=8F=E5=8C=BA=E5=B9=BF=E6=92=AD=E9=A2=84?=
+ =?UTF-8?q?=E7=BD=AE=E9=A2=91=E6=AE=B550?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../packages/apps/Mms/AndroidManifest.xml          |   12 +++-
+ .../mediatek/cb/cbsettings/DoInsertService.java    |   67 ++++++++++++++++++++
+ .../cb/cbsettings/InsertChannelReciver.java        |   17 +++++
+ 3 files changed, 94 insertions(+), 2 deletions(-)
+ create mode 100755 alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/cb/cbsettings/DoInsertService.java
+ create mode 100755 alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/cb/cbsettings/InsertChannelReciver.java
+
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/AndroidManifest.xml b/alps/vendor/mediatek/proprietary/packages/apps/Mms/AndroidManifest.xml
+index 29495c1..8b3d597 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/AndroidManifest.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/AndroidManifest.xml
+@@ -23,7 +23,7 @@
+         android:sharedUserLabel="@string/app_label">
+ 
+     <original-package android:name="com.android.mms" />
+-
++    <uses-permission android:name="android.permission.BOOT_COMPLETED"/>
+     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+     <uses-permission android:name="android.permission.CALL_PHONE" />
+     <uses-permission android:name="android.permission.READ_CONTACTS" />
+@@ -756,7 +756,15 @@
+         <service android:name="com.mediatek.mwi.MwiReceiverService"
+             android:exported="true" />
+         <!-- mwi end -->
+-
++        <!-- lichao add for CellBroadcast begin -->
++        <service  android:name="com.mediatek.cb.cbsettings.DoInsertService">
++        </service>
++        <receiver android:name="com.mediatek.cb.cbsettings.InsertChannelReciver">
++            <intent-filter android:priority="1000">
++                <action android:name="android.intent.action.BOOT_COMPLETED"/>         
++            </intent-filter>
++        </receiver>
++        <!-- lichao add for CellBroadcast end -->
+         <service android:name="com.mediatek.rcs.EmptyService"
+             android:exported="true" >
+             <intent-filter>
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/cb/cbsettings/DoInsertService.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/cb/cbsettings/DoInsertService.java
+new file mode 100755
+index 0000000..aab5223
+--- /dev/null
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/cb/cbsettings/DoInsertService.java
+@@ -0,0 +1,67 @@
++package com.mediatek.cb.cbsettings;
++
++import android.app.Service;
++import android.content.ContentValues;
++import android.content.Context;
++import android.content.Intent;
++import android.content.SharedPreferences;
++import android.content.SharedPreferences.Editor;
++import android.net.Uri;
++import android.os.IBinder;
++import android.telephony.TelephonyManager;
++import android.util.Log;
++import com.mediatek.cb.cbsettings.CellBroadcastChannel;
++public class DoInsertService extends Service {
++    private String NAME = "name";
++    private String NUMBER = "number";
++    private String ENABLE = "enable";
++    private static final String SUBID = "sub_id";
++    private static final int SUBID_1 = 1;
++    private static final int SUBID_2 = 2;
++    
++    private static final Uri CHANNEL_URI = Uri.parse("content://cb/channel");
++	
++	@Override
++	public void onCreate() {
++	    Log.e("DoInsertService","##############I am comming");
++		SharedPreferences preferences = getSharedPreferences("channel", 0);
++		String string  =  preferences.getString("status", "");
++		if(!string.equals("inserted")|| string.equals("")){
++		    CellBroadcastChannel channel1_50 = new CellBroadcastChannel(50, "Area", true, SUBID_1);
++		   // CellBroadcastChannel channel1_60 = new CellBroadcastChannel(60, "Channel No", true, SUBID_1);
++		    CellBroadcastChannel channel2_50 = new CellBroadcastChannel(50, "Area", true, SUBID_2);
++		  //  CellBroadcastChannel channel2_60 = new CellBroadcastChannel(60, "Channel No", true, SUBID_2);
++		    doInsertChannel(channel1_50);
++		   // doInsertChannel(channel1_60);
++		    doInsertChannel(channel2_50);
++		  //  doInsertChannel(channel2_60);
++			Log.e("DoInsertService","##############have inserted channel");
++			SharedPreferences preferences2 = getSharedPreferences("channel", 0);
++			Editor editor =preferences2.edit();
++			editor.putString("status", "inserted");
++			editor.commit();
++			Log.e("DoInsertService","########deal");
++		}
++		stopSelf();
++	}
++    private void doInsertChannel(CellBroadcastChannel channel) {
++    	
++    	ContentValues values = new ContentValues();
++    	values.put(NAME, channel.getChannelName());
++    	values.put(NUMBER, channel.getChannelId());
++    	values.put(ENABLE, channel.getChannelState());
++        values.put(SUBID, channel.getChannelSubId());
++
++    	
++    	try {
++    		getContentResolver().insert(CHANNEL_URI, values);
++		} catch (Exception e) {
++		}
++	}
++    
++	@Override
++	public IBinder onBind(Intent intent) {
++		return null;
++	}
++
++}
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/cb/cbsettings/InsertChannelReciver.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/cb/cbsettings/InsertChannelReciver.java
+new file mode 100755
+index 0000000..494cc6c
+--- /dev/null
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/cb/cbsettings/InsertChannelReciver.java
+@@ -0,0 +1,17 @@
++package com.mediatek.cb.cbsettings;
++
++import android.content.BroadcastReceiver;
++import android.content.Context;
++import android.content.Intent;
++import android.util.Log;
++import com.mediatek.cb.cbsettings.DoInsertService;
++public class InsertChannelReciver extends BroadcastReceiver {
++
++	@Override
++	public void onReceive(Context context, Intent intent) {
++          Log.e("InsertChannelReciver","#########jieshoudaolekaiji#########s");
++         Intent myIntent = new Intent(context,DoInsertService.class);
++         context.startService(myIntent);
++	}
++
++}
+-- 
+1.7.9.5
+

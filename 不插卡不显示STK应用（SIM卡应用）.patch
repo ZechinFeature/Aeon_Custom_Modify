@@ -1,0 +1,48 @@
+From 311d8e1d7c8ca216c231dad49ad15573bfca0dc6 Mon Sep 17 00:00:00 2001
+From: liuyuanchang <liu.yuanchang@eastaeon.com>
+Date: Wed, 23 Mar 2016 09:12:59 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=20=E4=B8=8D=E6=8F=92=E5=8D=A1?=
+ =?UTF-8?q?=E4=B8=8D=E6=98=BE=E7=A4=BASTK=E5=BA=94=E7=94=A8=EF=BC=88SIM=E5=8D?=
+ =?UTF-8?q?=A1=E5=BA=94=E7=94=A8=EF=BC=89?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../src/com/android/launcher3/LauncherModel.java   |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/alps/packages/apps/Launcher3/src/com/android/launcher3/LauncherModel.java b/alps/packages/apps/Launcher3/src/com/android/launcher3/LauncherModel.java
+index 00b3756..a647054 100755
+--- a/alps/packages/apps/Launcher3/src/com/android/launcher3/LauncherModel.java
++++ b/alps/packages/apps/Launcher3/src/com/android/launcher3/LauncherModel.java
+@@ -85,6 +85,7 @@ import java.util.Iterator;
+ import java.util.List;
+ import java.util.Map.Entry;
+ import java.util.Set;
++import android.telephony.TelephonyManager;
+ 
+ /**
+  * Maintains in-memory state of the Launcher. It is expected that there should be only one
+@@ -2987,6 +2988,18 @@ public class LauncherModel extends BroadcastReceiver
+                 // Create the ApplicationInfos
+                 for (int i = 0; i < apps.size(); i++) {
+                     LauncherActivityInfoCompat app = apps.get(i);
++					// add fot hide stk when has not sim card
++
++                    TelephonyManager iTel = (TelephonyManager)mContext.getSystemService(mContext.TELEPHONY_SERVICE);
++                    if(null != app.getComponentName() && null != app.getComponentName().getPackageName()){
++                        if(app.getComponentName().getPackageName().equals("com.android.stk")){
++                            if(iTel.getSimState()!= TelephonyManager.SIM_STATE_READY){
++                                continue;
++                            }
++                        }
++                    }
++                    // add end
++
+                     // This builds the icon bitmaps.
+                     mBgAllAppsList.add(new AppInfo(mContext, app, user, mIconCache));
+                 }
+-- 
+1.7.9.5
+

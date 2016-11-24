@@ -1,0 +1,39 @@
+From 3d7b6e28358208316ef570d9fb5cc69451de8d65 Mon Sep 17 00:00:00 2001
+From: guoxiaolin <guo.xiaolin@eastaeon.com>
+Date: Tue, 8 Mar 2016 14:43:56 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E6=89=8B=E6=9C?=
+ =?UTF-8?q?=BA=E9=98=B2=E7=9B=97=E5=8E=BB=E6=8E=89=E9=80=9A=E7=9F=A5=E6=A0=8F?=
+ =?UTF-8?q?=E6=8F=90=E7=A4=BA?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../src/com/mediatek/ppl/PlatformManager.java      |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+ mode change 100644 => 100755 alps/vendor/mediatek/proprietary/packages/apps/PrivacyProtectionLock/src/com/mediatek/ppl/PlatformManager.java
+
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/PrivacyProtectionLock/src/com/mediatek/ppl/PlatformManager.java b/alps/vendor/mediatek/proprietary/packages/apps/PrivacyProtectionLock/src/com/mediatek/ppl/PlatformManager.java
+old mode 100644
+new mode 100755
+index 16ac3f0..f894a39
+--- a/alps/vendor/mediatek/proprietary/packages/apps/PrivacyProtectionLock/src/com/mediatek/ppl/PlatformManager.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/PrivacyProtectionLock/src/com/mediatek/ppl/PlatformManager.java
+@@ -237,12 +237,12 @@ public class PlatformManager {
+         Notification notification = new Notification.Builder(service)
+                 .setSmallIcon(R.drawable.security).build();
+         notification.flags |= Notification.FLAG_HIDE_NOTIFICATION;
+-        service.startForeground(1, notification);
++       // service.startForeground(1, notification);
+     }
+ 
+     public void leaveForeground(Service service) {
+         Log.d(TAG, "Exec stopForeground with para true.");
+-        service.stopForeground(true);
++        //service.stopForeground(true);
+     }
+ 
+     /**
+-- 
+1.7.9.5
+

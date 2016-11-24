@@ -1,0 +1,142 @@
+From 26d8c1eb29d477f56a61fb1744c7b282df09a21b Mon Sep 17 00:00:00 2001
+From: limin <li.min1@eastaeon.com>
+Date: Wed, 23 Mar 2016 10:18:53 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=20=E6=B7=BB=E5=8A=A0=E9=9F=B3?=
+ =?UTF-8?q?=E9=87=8F=E4=B8=8A=E9=94=AE=E5=90=AF=E5=8A=A8camera=20II?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../Settings/res/xml/volumekey_press_settings.xml  |   28 +++++++
+ .../VolumeKeyPressPreferenceFragment.java          |   83 ++++++++++++++++++++
+ 2 files changed, 111 insertions(+)
+ create mode 100755 alps/packages/apps/Settings/res/xml/volumekey_press_settings.xml
+ create mode 100755 alps/packages/apps/Settings/src/com/android/settings/accessibility/VolumeKeyPressPreferenceFragment.java
+
+diff --git a/alps/packages/apps/Settings/res/xml/volumekey_press_settings.xml b/alps/packages/apps/Settings/res/xml/volumekey_press_settings.xml
+new file mode 100755
+index 0000000..6bddef3
+--- /dev/null
++++ b/alps/packages/apps/Settings/res/xml/volumekey_press_settings.xml
+@@ -0,0 +1,28 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!-- Copyright (C) 2010 The Android Open Source Project
++
++     Licensed under the Apache License, Version 2.0 (the "License");
++     you may not use this file except in compliance with the License.
++     You may obtain a copy of the License at
++
++          http://www.apache.org/licenses/LICENSE-2.0
++
++     Unless required by applicable law or agreed to in writing, software
++     distributed under the License is distributed on an "AS IS" BASIS,
++     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++     See the License for the specific language governing permissions and
++     limitations under the License.
++-->
++
++
++<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
++                  xmlns:settings="http://schemas.android.com/apk/res/com.android.settings"
++        android:title="@string/accessibility_Volume_Key_Press_preference_title" >
++		
++        <SwitchPreference
++                android:key="Volume_Key_up_Press_preference_screen"
++                android:title="@string/accessibility_Volume_Key_up_Press_preference_title"
++				android:summary="@string/accessibility_global_Volume_Key_Press_preference_description"
++                android:persistent="false" />
++
++</PreferenceScreen>
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/accessibility/VolumeKeyPressPreferenceFragment.java b/alps/packages/apps/Settings/src/com/android/settings/accessibility/VolumeKeyPressPreferenceFragment.java
+new file mode 100755
+index 0000000..6cc8f08
+--- /dev/null
++++ b/alps/packages/apps/Settings/src/com/android/settings/accessibility/VolumeKeyPressPreferenceFragment.java
+@@ -0,0 +1,83 @@
++/*
++ * Copyright (C) 2013 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package com.android.settings.accessibility;
++
++import android.provider.Settings;
++import android.os.SystemProperties;
++import com.android.settings.R;
++import com.android.settings.SettingsPreferenceFragment;
++import android.os.Bundle;
++import android.preference.SwitchPreference;
++import android.preference.Preference;
++import android.preference.Preference.OnPreferenceChangeListener;
++import android.preference.PreferenceScreen;
++
++import com.android.internal.logging.MetricsLogger;
++import com.android.settings.widget.ToggleSwitch;
++import com.android.settings.widget.ToggleSwitch.OnBeforeCheckedChangeListener;
++
++public class VolumeKeyPressPreferenceFragment
++        extends SettingsPreferenceFragment implements OnPreferenceChangeListener{
++		
++	private static final String KEY_Volume_Key_Press = "Volume_Key_up_Press_preference_screen";
++	    private SwitchPreference mVolumeKeyPress;	
++		
++		
++		    public void onCreate(Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++		addPreferencesFromResource(R.xml.volumekey_press_settings);
++	    mVolumeKeyPress = (SwitchPreference)getPreferenceScreen().findPreference(KEY_Volume_Key_Press);
++		mVolumeKeyPress.setOnPreferenceChangeListener(this);
++		mVolumeKeyPress.setChecked("1".equals(SystemProperties.get("persist.sys.volumeup.press","0") ));
++        
++    }
++	
++
++	
++	
++	   public void onResume() {
++		super.onResume();
++	    mVolumeKeyPress.setChecked("1".equals(SystemProperties.get("persist.sys.volumeup.press","0") ));
++		}
++	
++	
++	   public boolean onPreferenceChange(Preference preference, Object value) {
++	       boolean isChecked =  (Boolean) value;
++		      
++	    if (preference.getKey().equals(KEY_Volume_Key_Press)) {
++	         if(isChecked)
++			 {
++          	 SystemProperties.set("persist.sys.volumeup.press", "1");
++			
++			 }
++			 else
++			 {
++			  SystemProperties.set("persist.sys.volumeup.press", "0");
++			 }
++			 
++        }	
++	       return true;
++	   }
++	
++	
++	
++	
++	    protected int getMetricsCategory() {
++        return MetricsLogger.ACCESSIBILITY_TOGGLE_GLOBAL_VOLUMEUP_PRESS;
++    }
++ 
++}
+-- 
+1.7.9.5
+

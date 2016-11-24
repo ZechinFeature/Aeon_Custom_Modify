@@ -1,0 +1,266 @@
+From b946eaf28caea48d3a2968e22043a2aaf83ff5e7 Mon Sep 17 00:00:00 2001
+From: liuyuanchang <liu.yuanchang@eastaeon.com>
+Date: Fri, 15 Apr 2016 16:48:01 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E5=9C=A8=E8=AE?=
+ =?UTF-8?q?=BE=E7=BD=AE=E4=B8=AD=E6=B7=BB=E5=8A=A0=E6=97=A5=E6=9C=9F=E6=A0=BC?=
+ =?UTF-8?q?=E5=BC=8F=E9=80=89=E9=A1=B9?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Conflicts:
+
+	alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
+	alps/packages/apps/Settings/res/values/strings.xml
+---
+ .../com/android/keyguard/KeyguardStatusView.java   |    4 +-
+ .../SettingsProvider/res/values/defaults.xml       |    4 ++
+ .../android/providers/settings/DatabaseHelper.java |    5 +-
+ .../apps/Settings/res/values-zh-rCN/strings.xml    |    1 +
+ alps/packages/apps/Settings/res/values/arrays.xml  |   10 ++++
+ alps/packages/apps/Settings/res/values/strings.xml |    5 ++
+ .../apps/Settings/res/xml/date_time_prefs.xml      |    8 ++++
+ .../src/com/android/settings/DateTimeSettings.java |   48 ++++++++++++++++----
+ 8 files changed, 74 insertions(+), 11 deletions(-)
+ mode change 100644 => 100755 alps/frameworks/base/packages/Keyguard/src/com/android/keyguard/KeyguardStatusView.java
+ mode change 100644 => 100755 alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
+ mode change 100644 => 100755 alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+ mode change 100644 => 100755 alps/packages/apps/Settings/res/values-zh-rCN/strings.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/res/values/arrays.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/res/values/strings.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/res/xml/date_time_prefs.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/src/com/android/settings/DateTimeSettings.java
+
+diff --git a/alps/frameworks/base/packages/Keyguard/src/com/android/keyguard/KeyguardStatusView.java b/alps/frameworks/base/packages/Keyguard/src/com/android/keyguard/KeyguardStatusView.java
+old mode 100644
+new mode 100755
+index 86244b8..07ddd6e
+--- a/alps/frameworks/base/packages/Keyguard/src/com/android/keyguard/KeyguardStatusView.java
++++ b/alps/frameworks/base/packages/Keyguard/src/com/android/keyguard/KeyguardStatusView.java
+@@ -41,6 +41,7 @@ import com.android.internal.widget.LockPatternUtils;
+ import com.mediatek.keyguard.Clock.ClockView;
+ 
+ import java.util.Locale;
++import android.provider.Settings;
+ 
+ public class KeyguardStatusView extends GridLayout {
+     private static final boolean DEBUG = KeyguardConstants.DEBUG;
+@@ -268,7 +269,8 @@ public class KeyguardStatusView extends GridLayout {
+             final String key = locale.toString() + dateViewSkel + clockView12Skel + clockView24Skel;
+             if (key.equals(cacheKey)) return;
+ 
+-            dateView = DateFormat.getBestDateTimePattern(locale, dateViewSkel);
++            //dateView = DateFormat.getBestDateTimePattern(locale, dateViewSkel);
++            dateView = Settings.System.getString(context.getContentResolver(),Settings.System.DATE_FORMAT);// modified by lych
+ 
+             clockView12 = DateFormat.getBestDateTimePattern(locale, clockView12Skel);
+             // CLDR insists on adding an AM/PM indicator even though it wasn't in the skeleton
+diff --git a/alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml b/alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
+old mode 100644
+new mode 100755
+index 1cd2908..09b56ac
+--- a/alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
++++ b/alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
+@@ -212,4 +212,8 @@
+ 
+     <!-- Default for Settings.Secure.NFC_PAYMENT_COMPONENT -->
+     <string name="def_nfc_payment_component"></string>
++	
++	<!-- Default dateformate -->
++	<string name="default_date_format" translatable="false">dd/MM/yyyy</string>
++	<string name="time_12_24" translatable="false">24</string>
+ </resources>
+diff --git a/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java b/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+old mode 100644
+new mode 100755
+index be664ae..13b4e05
+--- a/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
++++ b/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+@@ -2388,7 +2388,10 @@ class DatabaseHelper extends SQLiteOpenHelper {
+ 
+             // Set default tty mode
+             loadSetting(stmt, Settings.System.TTY_MODE, 0);
+-
++            //Set default data format
++			loadStringSetting(stmt, Settings.System.DATE_FORMAT,R.string.default_date_format);
++			//Set default time format
++			loadStringSetting(stmt, Settings.System.TIME_12_24, R.string.time_12_24);
+             loadIntegerSetting(stmt, Settings.System.SCREEN_BRIGHTNESS,
+                     R.integer.def_screen_brightness);
+ 
+diff --git a/alps/packages/apps/Settings/res/values-zh-rCN/strings.xml b/alps/packages/apps/Settings/res/values-zh-rCN/strings.xml
+old mode 100644
+new mode 100755
+index 94e27ea..bc7854c
+--- a/alps/packages/apps/Settings/res/values-zh-rCN/strings.xml
++++ b/alps/packages/apps/Settings/res/values-zh-rCN/strings.xml
+@@ -288,6 +288,7 @@
+     <string name="date_time_set_timezone" msgid="5045627174274377814">"选择时区"</string>
+     <string name="date_time_set_date_title" msgid="6928286765325608604">"日期"</string>
+     <string name="date_time_set_date" msgid="7021491668550232105">"设置日期"</string>
++    <string name="date_time_date_format" msgid="6951498879879281102">"选择日期格式"</string>
+     <string name="zone_list_menu_sort_alphabetically" msgid="5683377702671088588">"按字母顺序排序"</string>
+     <string name="zone_list_menu_sort_by_timezone" msgid="2720190443744884114">"按时区排序"</string>
+     <string name="date_picker_title" msgid="1338210036394128512">"日期"</string>
+diff --git a/alps/packages/apps/Settings/res/values/arrays.xml b/alps/packages/apps/Settings/res/values/arrays.xml
+old mode 100644
+new mode 100755
+index 40a26f9..c3f869a
+--- a/alps/packages/apps/Settings/res/values/arrays.xml
++++ b/alps/packages/apps/Settings/res/values/arrays.xml
+@@ -1392,4 +1392,14 @@
+         <item>0</item>
+     </string-array>
+ 
++	<string-array name="date_format_values" translatable="false">
++        <!-- The blank item means to use whatever the locale calls for. -->
++        <item>MM/dd/yyyy</item>
++        <item>dd/MM/yyyy</item>
++        <item>yyyy/MM/dd</item>
++        <item>EE, MMM d yyyy</item>
++        <item>EE, d MMM yyyy</item>
++        <item>yyyy MMM d, EE</item>
++    </string-array>
++
+ </resources>
+diff --git a/alps/packages/apps/Settings/res/values/strings.xml b/alps/packages/apps/Settings/res/values/strings.xml
+old mode 100644
+new mode 100755
+index 4d9ee59..09ab6fb
+--- a/alps/packages/apps/Settings/res/values/strings.xml
++++ b/alps/packages/apps/Settings/res/values/strings.xml
+@@ -7024,4 +7024,9 @@
+ 	<string name="accessibility_Volume_Key_up_Press_preference_title">Volume up to access camera</string>
+ 	<string name="accessibility_global_Volume_Key_Press_preference_description">Press and hold the volume up to quick access camera when phone is sleep mode  </string>
+ 	<string name="battery_percent">Battery Precentage</string>
++   <string name="show_battery_perent">Battery percentage in notification bar</string>
++	<!-- add by lych 201511208 -->
++
++   <string name="date_time_date_format">Choose date format</string>
++   <string name="default_date_format"><xliff:g id="default_date_format">MM/dd/yyyy</xliff:g></string>
+ </resources>
+diff --git a/alps/packages/apps/Settings/res/xml/date_time_prefs.xml b/alps/packages/apps/Settings/res/xml/date_time_prefs.xml
+old mode 100644
+new mode 100755
+index 39d8743..6855200
+--- a/alps/packages/apps/Settings/res/xml/date_time_prefs.xml
++++ b/alps/packages/apps/Settings/res/xml/date_time_prefs.xml
+@@ -53,4 +53,12 @@
+         android:title="@string/date_time_24hour"
+         />
+ 
++	<!-- add for choose date format by lych -->
++	<ListPreference
++        android:key="date_format"
++        android:title="@string/date_time_date_format"
++        android:summary="mm/dd/yyyy"
++		android:entries="@array/date_format_values"
++		android:entryValues="@array/date_format_values"/>
++
+ </PreferenceScreen>
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/DateTimeSettings.java b/alps/packages/apps/Settings/src/com/android/settings/DateTimeSettings.java
+old mode 100644
+new mode 100755
+index 0215dfb..637d772
+--- a/alps/packages/apps/Settings/src/com/android/settings/DateTimeSettings.java
++++ b/alps/packages/apps/Settings/src/com/android/settings/DateTimeSettings.java
+@@ -73,6 +73,10 @@ public class DateTimeSettings extends SettingsPreferenceFragment
+     // have we been launched from the setup wizard?
+     protected static final String EXTRA_IS_FIRST_RUN = "firstRun";
+ 
++	//@@ add begin by lych
++	private static final String KEY_DATE_FORMAT = "date_format";
++	private ListPreference mDateFormat;
++	//@@ add end
+ 
+     // /M: modify as MTK add GPS time Sync feature
+     private ListPreference mAutoTimePref;
+@@ -151,8 +155,10 @@ public class DateTimeSettings extends SettingsPreferenceFragment
+         mTime24Pref = findPreference("24 hour");
+         mTimeZone = findPreference("timezone");
+         mDatePref = findPreference("date");
++		mDateFormat = (ListPreference) findPreference(KEY_DATE_FORMAT);
+         if (isFirstRun) {
+             getPreferenceScreen().removePreference(mTime24Pref);
++			getPreferenceScreen().removePreference(mDateFormat);
+         }
+ 
+         // /M: modify as MTK add GPS time Sync feature
+@@ -179,6 +185,8 @@ public class DateTimeSettings extends SettingsPreferenceFragment
+         getActivity().registerReceiver(mIntentReceiver, filter, null, null);
+ 
+         updateTimeAndDateDisplay(getActivity());
++
++		updateDateFormatEntries(); // add by lych
+     }
+ 
+     @Override
+@@ -191,15 +199,16 @@ public class DateTimeSettings extends SettingsPreferenceFragment
+ 
+     public void updateTimeAndDateDisplay(Context context) {
+         final Calendar now = Calendar.getInstance();
+-        mDummyDate.setTimeZone(now.getTimeZone());
+-        // We use December 31st because it's unambiguous when demonstrating the date format.
+-        // We use 13:00 so we can demonstrate the 12/24 hour options.
+-        mDummyDate.set(now.get(Calendar.YEAR), 11, 31, 13, 0, 0);
+-        Date dummyDate = mDummyDate.getTime();
+-        mDatePref.setSummary(DateFormat.getLongDateFormat(context).format(now.getTime()));
+-        mTimePref.setSummary(DateFormat.getTimeFormat(getActivity()).format(now.getTime()));
+-        mTimeZone.setSummary(ZoneGetter.getTimeZoneOffsetAndName(now.getTimeZone(), now.getTime()));
+-        mTime24Pref.setSummary(DateFormat.getTimeFormat(getActivity()).format(dummyDate));
++			mDummyDate.setTimeZone(now.getTimeZone());
++			// We use December 31st because it's unambiguous when demonstrating the date format.
++			// We use 13:00 so we can demonstrate the 12/24 hour options.
++			mDummyDate.set(now.get(Calendar.YEAR), 11, 31, 13, 0, 0);
++			Date dummyDate = mDummyDate.getTime();
++			//mDatePref.setSummary(DateFormat.getLongDateFormat(context).format(now.getTime()));
++			mDatePref.setSummary(DateFormat.format(getDateFormat(),now));
++			mTimePref.setSummary(DateFormat.getTimeFormat(getActivity()).format(now.getTime()));
++			mTimeZone.setSummary(ZoneGetter.getTimeZoneOffsetAndName(now.getTimeZone(), now.getTime()));
++			mTime24Pref.setSummary(DateFormat.getTimeFormat(getActivity()).format(dummyDate));
+     }
+ 
+     @Override
+@@ -208,6 +217,7 @@ public class DateTimeSettings extends SettingsPreferenceFragment
+         if (activity != null) {
+             setDate(activity, year, month, day);
+             updateTimeAndDateDisplay(activity);
++			updateDateFormatEntries(); // add by lych
+         }
+     }
+ 
+@@ -254,6 +264,13 @@ public class DateTimeSettings extends SettingsPreferenceFragment
+                     getContentResolver(), Settings.Global.AUTO_TIME_ZONE, autoZoneEnabled ? 1 : 0);
+             mTimeZone.setEnabled(!autoZoneEnabled);
+         }
++		// add by lych
++		else if (key.equals(KEY_DATE_FORMAT)) {
++            String format = preferences.getString(key,"dd/MM/yyyy");
++            Settings.System.putString(getContentResolver(),
++            Settings.System.DATE_FORMAT, format);
++            updateTimeAndDateDisplay(getActivity());
++		}
+     }
+ 
+     @Override
+@@ -464,4 +481,17 @@ public class DateTimeSettings extends SettingsPreferenceFragment
+         reSetAutoTimePref();
+     }
+     // /@}
++
++	//@@ add begin for choose date format by lych
++	private void updateDateFormatEntries() {
++        String formatted =getDateFormat();
++        mDateFormat.setValue(formatted);
++		mDateFormat.setSummary(formatted);
++    }
++
++	private String getDateFormat() {
++        return Settings.System.getString(getContentResolver(),
++                Settings.System.DATE_FORMAT);
++    }
++	//@@ add end
+ }
+-- 
+1.7.9.5
+

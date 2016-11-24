@@ -1,0 +1,57 @@
+From 2e3ae37f6a19e50f68779571d2675f0aa468e470 Mon Sep 17 00:00:00 2001
+From: xieyuanfu <xie.yuanfu@eastaeon.com>
+Date: Wed, 9 Nov 2016 15:26:06 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E5=AE=A2=E6=88?=
+ =?UTF-8?q?=B7=E9=9C=80=E6=B1=82Serial.=20No=20=E5=BA=8F=E5=88=97=E5=8F=B7=E6?=
+ =?UTF-8?q?=88=90=E5=8A=9F=E7=83=A7=E5=BD=95?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../bootable/bootloader/lk/app/mt_boot/mt_boot.c   |    2 +-
+ .../bootloader/lk/platform/mt6735/load_image.c     |    9 ++++++++-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
+ mode change 100644 => 100755 alps/vendor/mediatek/proprietary/bootable/bootloader/lk/app/mt_boot/mt_boot.c
+ mode change 100644 => 100755 alps/vendor/mediatek/proprietary/bootable/bootloader/lk/platform/mt6735/load_image.c
+
+diff --git a/alps/vendor/mediatek/proprietary/bootable/bootloader/lk/app/mt_boot/mt_boot.c b/alps/vendor/mediatek/proprietary/bootable/bootloader/lk/app/mt_boot/mt_boot.c
+old mode 100644
+new mode 100755
+index 325b021..cf7a008
+--- a/alps/vendor/mediatek/proprietary/bootable/bootloader/lk/app/mt_boot/mt_boot.c
++++ b/alps/vendor/mediatek/proprietary/bootable/bootloader/lk/app/mt_boot/mt_boot.c
+@@ -127,7 +127,7 @@ u8 g_oemkey[OEM_PUBK_SZ] = {OEM_PUBK};
+  * Support read barcode from /dev/pro_info to be serial number.
+  * Then pass the serial number from cmdline to kernel.
+  */
+-/* #define SERIAL_NUM_FROM_BARCODE */
++ #define SERIAL_NUM_FROM_BARCODE 
+ 
+ #if defined(CONFIG_MTK_USB_UNIQUE_SERIAL) || (defined(MTK_SECURITY_SW_SUPPORT) && defined(MTK_SEC_FASTBOOT_UNLOCK_SUPPORT))
+ #define SERIALNO_LEN    38  /* from preloader */
+diff --git a/alps/vendor/mediatek/proprietary/bootable/bootloader/lk/platform/mt6735/load_image.c b/alps/vendor/mediatek/proprietary/bootable/bootloader/lk/platform/mt6735/load_image.c
+old mode 100644
+new mode 100755
+index 09ccd26..0065fe8
+--- a/alps/vendor/mediatek/proprietary/bootable/bootloader/lk/platform/mt6735/load_image.c
++++ b/alps/vendor/mediatek/proprietary/bootable/bootloader/lk/platform/mt6735/load_image.c
+@@ -982,7 +982,14 @@ int mboot_recovery_load_raw_part(char *part_name, unsigned long *addr, unsigned
+ 
+ #ifdef MTK_EMMC_SUPPORT
+ #ifdef MTK_NEW_COMBO_EMMC_SUPPORT
+-	len = dev->read(dev, start_addr,(uchar*)addr, size, part->part_id);
++    if(strcmp(part_name, "proinfo") == 0)
++    {
++        len = dev->read(dev, start_addr + 116,(uchar*)addr, size, part->part_id);
++    }
++    else
++    {
++        len = dev->read(dev, start_addr,(uchar*)addr, size, part->part_id);
++    }
+ #else
+ 	len = dev->read(dev, start_addr,(uchar*)addr, size);
+ #endif
+-- 
+1.7.9.5
+

@@ -1,0 +1,76 @@
+From 6392eb907e864da442c8f9620bd683a3469f6299 Mon Sep 17 00:00:00 2001
+From: liuyuanchang <liu.yuanchang@eastaeon.com>
+Date: Wed, 23 Mar 2016 09:31:22 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=E9=BB=98=E8=AE=A4MTP=E8=BF=9E?=
+ =?UTF-8?q?=E6=8E=A5?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../systemui/statusbar/phone/PhoneStatusBar.java   |   13 +++++++++++++
+ .../com/android/server/usb/UsbDeviceManager.java   |    4 ++--
+ 2 files changed, 15 insertions(+), 2 deletions(-)
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
+ mode change 100644 => 100755 alps/frameworks/base/services/usb/java/com/android/server/usb/UsbDeviceManager.java
+
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
+old mode 100644
+new mode 100755
+index 3d7def9..9c20e6d
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
+@@ -201,6 +201,7 @@ import com.android.systemui.recents.RecentsActivity;
+ import com.mediatek.common.multiwindow.IMWSystemUiCallback;
+ import com.mediatek.multiwindow.MultiWindowProxy;
+ /// @}
++import android.hardware.usb.UsbManager;
+ 
+ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
+         DragDownHelper.DragDownCallback, ActivityStarter, OnUnlockMethodChangedListener,
+@@ -390,6 +391,18 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
+                     Settings.Secure.USER_SETUP_COMPLETE,
+                     0 /*default */,
+                     mCurrentUserId);
++
++			Log.d(TAG,"userSetup = " + userSetup);
++		    if(userSetup){
++				   Intent i = new Intent();
++				   i.setClassName("com.android.settings", "com.android.settings.CopyService");
++				   mContext.startService(i);
++				   Log.d(TAG,"startService CopyService");
++				   UsbManager usbManager = (UsbManager) mContext.getSystemService(Context.USB_SERVICE);
++				   usbManager.setCurrentFunction(UsbManager.USB_FUNCTION_MTP);
++				   usbManager.setUsbDataUnlocked(true);
++			}
++
+             if (MULTIUSER_DEBUG) Log.d(TAG, String.format("User setup changed: " +
+                     "selfChange=%s userSetup=%s mUserSetup=%s",
+                     selfChange, userSetup, mUserSetup));
+diff --git a/alps/frameworks/base/services/usb/java/com/android/server/usb/UsbDeviceManager.java b/alps/frameworks/base/services/usb/java/com/android/server/usb/UsbDeviceManager.java
+old mode 100644
+new mode 100755
+index 4a7183a..815521e
+--- a/alps/frameworks/base/services/usb/java/com/android/server/usb/UsbDeviceManager.java
++++ b/alps/frameworks/base/services/usb/java/com/android/server/usb/UsbDeviceManager.java
+@@ -1134,7 +1134,7 @@ public class UsbDeviceManager {
+                     mUsbConfigured = mConfigured;
+                     if (!mConnected) {
+                         // When a disconnect occurs, relock access to sensitive user data
+-                        mUsbDataUnlocked = false;
++                       // mUsbDataUnlocked = false;
+                     }
+                     updateUsbNotification();
+                     updateAdbNotification();
+@@ -1143,7 +1143,7 @@ public class UsbDeviceManager {
+                         updateCurrentAccessory();
+                     } else if (!mConnected) {
+                         // restore defaults when USB is disconnected
+-                        setEnabledFunctions(null, false);
++                       // setEnabledFunctions(null, false);
+                     }
+                     if (mBootCompleted) {
+                         updateUsbStateBroadcast();
+-- 
+1.7.9.5
+

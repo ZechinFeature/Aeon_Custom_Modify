@@ -1,0 +1,166 @@
+From e51595bb19661fef73e1593165bda40954e0211f Mon Sep 17 00:00:00 2001
+From: liuyuanchang <liu.yuanchang@eastaeon.com>
+Date: Mon, 5 Sep 2016 13:56:21 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=E5=9C=A8=E8=AE=BE=E7=BD=AE>=E8?=
+ =?UTF-8?q?=BE=85=E5=8A=A9=E4=B8=AD=EF=BC=8C=E6=B7=BB=E5=8A=A0=E5=A4=9A=E7=AA?=
+ =?UTF-8?q?=97=E5=8F=A3=E5=8A=9F=E8=83=BD=E9=A1=B9?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../Settings/res/xml/accessibility_settings.xml    |    5 ++
+ .../accessibility/AccessibilitySettings.java       |   89 ++++++++++++++++++++
+ 2 files changed, 94 insertions(+)
+ mode change 100644 => 100755 alps/packages/apps/Settings/res/xml/accessibility_settings.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/src/com/android/settings/accessibility/AccessibilitySettings.java
+
+diff --git a/alps/packages/apps/Settings/res/xml/accessibility_settings.xml b/alps/packages/apps/Settings/res/xml/accessibility_settings.xml
+old mode 100644
+new mode 100755
+index 892bde6..3dc1c70
+--- a/alps/packages/apps/Settings/res/xml/accessibility_settings.xml
++++ b/alps/packages/apps/Settings/res/xml/accessibility_settings.xml
+@@ -27,6 +27,11 @@
+             android:key="system_category"
+             android:title="@string/accessibility_system_title">
+ 
++        <SwitchPreference
++            android:key="enable_multi_window"
++            android:title="@string/enable_multi_window"
++            android:summary="@string/enable_multi_window_summary"/>
++
+         <PreferenceScreen
+             android:fragment="com.android.settings.accessibility.CaptionPropertiesFragment"
+             android:key="captioning_preference_screen"
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/accessibility/AccessibilitySettings.java b/alps/packages/apps/Settings/src/com/android/settings/accessibility/AccessibilitySettings.java
+old mode 100644
+new mode 100755
+index 1f998b1..5f37540
+--- a/alps/packages/apps/Settings/src/com/android/settings/accessibility/AccessibilitySettings.java
++++ b/alps/packages/apps/Settings/src/com/android/settings/accessibility/AccessibilitySettings.java
+@@ -62,6 +62,17 @@ import java.util.List;
+ import java.util.Map;
+ import java.util.Set;
+ 
++//Begin: Add for multi window by lych
++import android.app.AlertDialog;
++import android.app.Dialog;
++import android.content.DialogInterface;
++import android.os.AsyncTask;
++import android.os.IBinder;
++import android.os.Parcel;
++import android.os.ServiceManager;
++import android.os.SystemProperties;
++//End: Add for multi window by lych
++
+ /**
+  * Activity with the accessibility settings.
+  */
+@@ -304,6 +315,10 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
+             handleDisplayMagnificationPreferenceScreenClick();
+             return true;
+         }
++		else if (mEnableMultiWindow == preference) {
++            onMultiWindowPrefClick();
++            return true;
++        }
+         return super.onPreferenceTreeClick(preferenceScreen, preference);
+     }
+ 
+@@ -458,6 +473,7 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
+         if (!FeatureOption.MTK_IPO_SUPPORT || UserHandle.myUserId() != UserHandle.USER_OWNER) {
+             mSystemsCategory.removePreference(mIpoSetting);
+         }
++		initMultiWindow();// add for multi window by lych
+     }
+ 
+     private void updateAllPreferences() {
+@@ -643,6 +659,7 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
+             mIpoSetting.setChecked(ipoSettingEnabled);
+         }
+         /// @} end
++		updateMultiWindowPref(); // add for multi window by lych
+     }
+ 
+     private void updateFeatureSummary(String prefKey, Preference pref) {
+@@ -729,4 +746,76 @@ public class AccessibilitySettings extends SettingsPreferenceFragment implements
+             return indexables;
+         }
+     };
++
++	//Begin: Add for multi window
++	private static final String ENABLE_MULTI_WINDOW_KEY = "enable_multi_window";
++	private static final String MULTI_WINDOW_SYSTEM_PROPERTY = "persist.sys.debug.multi_window";
++	private SwitchPreference mEnableMultiWindow;
++
++	private void initMultiWindow(){
++		mEnableMultiWindow = (SwitchPreference) findPreference(ENABLE_MULTI_WINDOW_KEY);
++	}
++	private void updateMultiWindowPref(){
++		if (mEnableMultiWindow != null) {
++            mEnableMultiWindow.setChecked(SystemProperties.getBoolean(MULTI_WINDOW_SYSTEM_PROPERTY, false));
++        }
++	}
++	private void onMultiWindowPrefClick(){
++		if (mEnableMultiWindow.isChecked()) {
++            confirmEnableMultiWindowMode();
++        } else {
++            setEnableMultiWindow(false);
++        }
++	}
++	private void setEnableMultiWindow(boolean value) {
++        SystemProperties.set(MULTI_WINDOW_SYSTEM_PROPERTY, String.valueOf(value));
++        pokeSystemProperties();
++    }
++	private void confirmEnableMultiWindowMode() {
++        DialogInterface.OnClickListener onConfirmListener = new DialogInterface.OnClickListener() {
++            @Override
++            public void onClick(DialogInterface dialog, int which) {
++                setEnableMultiWindow((which == DialogInterface.BUTTON_POSITIVE) ? true : false);
++                updateMultiWindowPref();
++            }
++        };
++
++        new AlertDialog.Builder(getActivity())
++                .setTitle(R.string.confirm_enable_multi_window_title)
++                .setMessage(R.string.confirm_enable_multi_window_text)
++                .setPositiveButton(R.string.enable_text, onConfirmListener)
++                .setNegativeButton(android.R.string.cancel, onConfirmListener)
++                .create()
++                .show();
++    }
++	void pokeSystemProperties() {
++        (new SystemPropPoker()).execute();
++    }
++	static class SystemPropPoker extends AsyncTask<Void, Void, Void> {
++        @Override
++        protected Void doInBackground(Void... params) {
++            String[] services;
++            try {
++                services = ServiceManager.listServices();
++            } catch (RemoteException e) {
++                return null;
++            }
++            for (String service : services) {
++                IBinder obj = ServiceManager.checkService(service);
++                if (obj != null) {
++                    Parcel data = Parcel.obtain();
++                    try {
++                        obj.transact(IBinder.SYSPROPS_TRANSACTION, data, null, 0);
++                    } catch (RemoteException e) {
++                    } catch (Exception e) {
++                        android.util.Log.i("lych", "Someone wrote a bad service '" + service
++                                + "' that doesn't like to be poked: " + e);
++                    }
++                    data.recycle();
++                }
++            }
++            return null;
++        }
++    }
++	//End: Add for multi window
+ }
+-- 
+1.7.9.5
+

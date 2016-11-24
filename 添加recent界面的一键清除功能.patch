@@ -1,0 +1,247 @@
+From 36c5366c41fc1ab449368ebad22095cca09b21f6 Mon Sep 17 00:00:00 2001
+From: limin <li.min1@eastaeon.com>
+Date: Fri, 25 Mar 2016 16:12:06 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=E6=B7=BB=E5=8A=A0recent=E7=95?=
+ =?UTF-8?q?=8C=E9=9D=A2=E7=9A=84=E4=B8=80=E9=94=AE=E6=B8=85=E9=99=A4=E5=8A=9F?=
+ =?UTF-8?q?=E8=83=BD?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../res/drawable-xhdpi/btn_shutter_photo_focus.png |  Bin 0 -> 2574 bytes
+ .../base/packages/SystemUI/res/layout/recents.xml  |    8 +++++
+ .../android/systemui/recents/RecentsActivity.java  |   34 +++++++++++++++++++-
+ .../systemui/recents/views/RecentsView.java        |   13 ++++++++
+ .../systemui/recents/views/TaskStackView.java      |   13 ++++++++
+ 5 files changed, 67 insertions(+), 1 deletion(-)
+ create mode 100755 alps/frameworks/base/packages/SystemUI/res/drawable-xhdpi/btn_shutter_photo_focus.png
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/res/layout/recents.xml
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/src/com/android/systemui/recents/RecentsActivity.java
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/src/com/android/systemui/recents/views/RecentsView.java
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/src/com/android/systemui/recents/views/TaskStackView.java
+
+diff --git a/alps/frameworks/base/packages/SystemUI/res/drawable-xhdpi/btn_shutter_photo_focus.png b/alps/frameworks/base/packages/SystemUI/res/drawable-xhdpi/btn_shutter_photo_focus.png
+new file mode 100755
+index 0000000000000000000000000000000000000000..c11500f02871946d329a76718d4e91e02d23e044
+GIT binary patch
+literal 2574
+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
+LzSKI8h^+qr8L3S|
+
+literal 0
+HcmV?d00001
+
+diff --git a/alps/frameworks/base/packages/SystemUI/res/layout/recents.xml b/alps/frameworks/base/packages/SystemUI/res/layout/recents.xml
+old mode 100644
+new mode 100755
+index bdda527..881e20e
+--- a/alps/frameworks/base/packages/SystemUI/res/layout/recents.xml
++++ b/alps/frameworks/base/packages/SystemUI/res/layout/recents.xml
+@@ -33,6 +33,14 @@
+         android:layout_height="match_parent"
+         android:focusable="true">
+     </com.android.systemui.recents.views.RecentsView>
++	
++	 <ImageView
++	 android:id="@+id/close_all"
++	 android:layout_width="wrap_content"
++	 android:layout_height="wrap_content"
++	 android:layout_gravity="top|right"
++	 android:layout_marginTop="85dp"
++	 android:src="@drawable/btn_shutter_photo_focus" />
+ 
+     <!-- Empty View -->
+     <ViewStub android:id="@+id/empty_view_stub"
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/recents/RecentsActivity.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/recents/RecentsActivity.java
+old mode 100644
+new mode 100755
+index b2fc6df..9511d9e
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/recents/RecentsActivity.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/recents/RecentsActivity.java
+@@ -33,6 +33,8 @@ import android.view.KeyEvent;
+ import android.view.View;
+ import android.view.ViewStub;
+ import android.widget.Toast;
++import android.widget.ImageView;
++import android.view.View.OnClickListener;
+ 
+ import com.android.internal.logging.MetricsLogger;
+ import com.android.systemui.Prefs;
+@@ -87,6 +89,9 @@ public class RecentsActivity extends Activity implements RecentsView.RecentsView
+ 
+     // Runnable to be executed after we paused ourselves
+     Runnable mAfterPauseRunnable;
++	ImageView mcloseallimg;
++	ArrayList<TaskStack> stacks;
++	
+     /// M: add for multi window @{
+     private static final boolean FLOAT_WINDOW_SUPPORT = MultiWindowProxy.isSupported();
+     /// @}
+@@ -153,6 +158,7 @@ public class RecentsActivity extends Activity implements RecentsView.RecentsView
+                     dismissRecentsToFocusedTaskOrHome(false);
+                 } else if (intent.getBooleanExtra(Recents.EXTRA_TRIGGERED_FROM_HOME_KEY, false)) {
+                     // Otherwise, dismiss Recents to Home
++					mcloseallimg.setVisibility(View.GONE);
+                     dismissRecentsToHomeRaw(true);
+                 } else {
+                     // Do nothing
+@@ -219,7 +225,8 @@ public class RecentsActivity extends Activity implements RecentsView.RecentsView
+         loadOpts.numVisibleTaskThumbnails = mConfig.launchedNumVisibleThumbnails;
+         loader.loadTasks(this, plan, loadOpts);
+ 
+-        ArrayList<TaskStack> stacks = plan.getAllTaskStacks();
++      
++		/*ArrayList<TaskStack>*/ stacks = plan.getAllTaskStacks();
+         mConfig.launchedWithNoRecentTasks = !plan.hasTasks();
+         if (!mConfig.launchedWithNoRecentTasks) {
+             mRecentsView.setTaskStacks(stacks);
+@@ -263,10 +270,17 @@ public class RecentsActivity extends Activity implements RecentsView.RecentsView
+             }
+             mEmptyView.setVisibility(View.VISIBLE);
+             mRecentsView.setSearchBarVisibility(View.GONE);
++			 if(mcloseallimg != null) {
++			 mcloseallimg.setVisibility(View.GONE);
++			 }
++			
+         } else {
+             if (mEmptyView != null) {
+                 mEmptyView.setVisibility(View.GONE);
+             }
++			if(mcloseallimg != null) {
++			mcloseallimg.setVisibility(View.VISIBLE);
++            }
+             if (mRecentsView.hasValidSearchBar()) {
+                 mRecentsView.setSearchBarVisibility(View.VISIBLE);
+             } else {
+@@ -375,6 +389,17 @@ public class RecentsActivity extends Activity implements RecentsView.RecentsView
+         mEmptyViewStub = (ViewStub) findViewById(R.id.empty_view_stub);
+         mDebugOverlayStub = (ViewStub) findViewById(R.id.debug_overlay_stub);
+         mScrimViews = new SystemBarScrimViews(this, mConfig);
++		
++		mcloseallimg = (ImageView) findViewById(R.id.close_all);
++		mcloseallimg.setVisibility(View.VISIBLE);
++		mcloseallimg.setOnClickListener(new OnClickListener() {
++		public void onClick(View view) {
++		deleteAllTaskViewsDismissed();
++		mcloseallimg.setVisibility(View.GONE);
++		}
++		});
++		
++		
+         inflateDebugOverlay();
+ 
+         // Bind the search app widget when we first start up
+@@ -655,6 +680,7 @@ public class RecentsActivity extends Activity implements RecentsView.RecentsView
+ 
+     @Override
+     public void onAllTaskViewsDismissed() {
++	    mcloseallimg.setVisibility(View.GONE);
+         mFinishLaunchHomeRunnable.run();
+     }
+ 
+@@ -704,4 +730,10 @@ public class RecentsActivity extends Activity implements RecentsView.RecentsView
+     public void onSecondarySeekBarChanged(float progress) {
+         // Do nothing
+     }
++	public void deleteAllTaskViewsDismissed() {
++	//android.util.Log.i("dengyanjun1", " <deleteAllTaskViewsDismissed> BBBBBBBBB");
++	mRecentsView.dismissAllTask(); 
++	}
++	
++	
+ }
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/recents/views/RecentsView.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/recents/views/RecentsView.java
+old mode 100644
+new mode 100755
+index 947c19c..bb35aab
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/recents/views/RecentsView.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/recents/views/RecentsView.java
+@@ -719,4 +719,17 @@ public class RecentsView extends FrameLayout implements TaskStackView.TaskStackV
+             stackView.onPackagesChanged(monitor, packageName, userId);
+         }
+     }
++    public void dismissAllTask() {
++	int childCount = getChildCount();
++	for (int i = 0; i < childCount; i++){View child = getChildAt(i);
++	if (child != mSearchBar) {
++	TaskStackView stackView = (TaskStackView) child;
++	stackView.dismissAllTask();
++	}
++	}
++	}
++	
++	
++	
++	
+ }
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/recents/views/TaskStackView.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/recents/views/TaskStackView.java
+old mode 100644
+new mode 100755
+index 0068f84..bcc08f3
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/recents/views/TaskStackView.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/recents/views/TaskStackView.java
+@@ -1466,4 +1466,17 @@ public class TaskStackView extends FrameLayout implements TaskStack.TaskStackCal
+             }
+         }
+     }
++	
++	 public void dismissAllTask() {
++	 int tempindex = 0;
++	 int totaltask = mStack.getTaskCount();
++	 while(mStack.getTaskCount()!= 0) {
++	 Task t = mStack.getTasks().get(0);
++	 if(t != null) {
++	 mStack.removeTask(t);
++	 }
++	 }
++	 }
++	
++	
+ }
+-- 
+1.7.9.5
+

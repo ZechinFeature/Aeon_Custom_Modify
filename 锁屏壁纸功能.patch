@@ -1,0 +1,1939 @@
+From f591908dec291773bac85d4465d88cad5168df55 Mon Sep 17 00:00:00 2001
+From: wangjian <wang.jian@eastaeon.com>
+Date: Mon, 14 Mar 2016 13:29:36 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=20=E9=94=81=E5=B1=8F=E5=A3=81?=
+ =?UTF-8?q?=E7=BA=B8=E5=8A=9F=E8=83=BD?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../core/java/android/app/WallpaperManager.java    |  115 +++++++++++++++++++-
+ .../systemui/statusbar/phone/PhoneStatusBar.java   |   80 +++++++++++++-
+ alps/packages/apps/Gallery2/AndroidManifest.xml    |    3 +-
+ .../src/com/android/gallery3d/app/Wallpaper.java   |   12 +-
+ .../gallery3d/filtershow/crop/CropActivity.java    |   19 +++-
+ alps/packages/apps/Launcher3/Android.mk            |    2 +-
+ alps/packages/apps/Launcher3/AndroidManifest.xml   |    3 +-
+ .../res/anim/gellary_push_bottom_in.xml            |    8 ++
+ .../res/anim/gellary_push_bottom_out.xml           |    8 ++
+ .../drawable/gellary_operation_cancel_button.xml   |    9 ++
+ .../res/drawable/gellary_opreation_button.xml      |    7 ++
+ .../res/drawable/gellary_opreation_title.xml       |   10 ++
+ .../layout/popup_wallpaper_opreation_gellary.xml   |   74 +++++++++++++
+ .../WallpaperPicker/res/values/gellary_anim.xml    |    7 ++
+ .../WallpaperPicker/res/values/strings.xml         |    3 +
+ .../android/gallery3d/common/BitmapCropTask.java   |   50 +++++++--
+ .../launcher3/GellaryBottomPopupWindow.java        |   72 ++++++++++++
+ .../android/launcher3/WallpaperCropActivity.java   |   88 ++++++++++++++-
+ .../android/launcher3/WallpaperPickerActivity.java |   24 +++-
+ .../apps/Launcher3/res/anim/pw_push_bottom_in.xml  |    8 ++
+ .../apps/Launcher3/res/anim/pw_push_bottom_out.xml |    8 ++
+ .../drawable/wallpaper_operation_cancel_button.xml |    9 ++
+ .../res/drawable/wallpaper_opreation_button.xml    |    7 ++
+ .../res/drawable/wallpapr_opreation_title.xml      |   10 ++
+ .../res/layout/popup_wallpaper_opreation.xml       |   78 +++++++++++++
+ .../packages/apps/Launcher3/res/values/pw_anim.xml |    7 ++
+ .../packages/apps/Launcher3/res/values/strings.xml |    4 +
+ .../src/com/android/launcher3/Launcher.java        |   81 ++++++++++++--
+ .../launcher3/widget/BottomPushPopupWindow.java    |  105 ++++++++++++++++++
+ alps/packages/apps/Settings/proguard.flags         |    2 +-
+ alps/packages/apps/Settings/res/values/strings.xml |    3 +
+ .../apps/Settings/res/xml/display_settings.xml     |    2 +-
+ .../res/xml/display_settings_wallpaper.xml         |   38 +++++++
+ .../android/settings/AllWallpaperTypeSettings.java |   73 +++++++++++++
+ .../settings/HomescreenWallpaperTypeSettings.java  |   73 +++++++++++++
+ .../settings/LockscreenWallpaperTypeSettings.java  |   72 ++++++++++++
+ .../android/settings/WallpaperTypeSettingsEx.java  |   96 ++++++++++++++++
+ 37 files changed, 1222 insertions(+), 48 deletions(-)
+ mode change 100644 => 100755 alps/frameworks/base/core/java/android/app/WallpaperManager.java
+ create mode 100755 alps/packages/apps/Launcher3/WallpaperPicker/res/anim/gellary_push_bottom_in.xml
+ create mode 100755 alps/packages/apps/Launcher3/WallpaperPicker/res/anim/gellary_push_bottom_out.xml
+ create mode 100755 alps/packages/apps/Launcher3/WallpaperPicker/res/drawable/gellary_operation_cancel_button.xml
+ create mode 100755 alps/packages/apps/Launcher3/WallpaperPicker/res/drawable/gellary_opreation_button.xml
+ create mode 100755 alps/packages/apps/Launcher3/WallpaperPicker/res/drawable/gellary_opreation_title.xml
+ create mode 100755 alps/packages/apps/Launcher3/WallpaperPicker/res/layout/popup_wallpaper_opreation_gellary.xml
+ create mode 100755 alps/packages/apps/Launcher3/WallpaperPicker/res/values/gellary_anim.xml
+ create mode 100755 alps/packages/apps/Launcher3/WallpaperPicker/src/com/android/launcher3/GellaryBottomPopupWindow.java
+ create mode 100755 alps/packages/apps/Launcher3/res/anim/pw_push_bottom_in.xml
+ create mode 100755 alps/packages/apps/Launcher3/res/anim/pw_push_bottom_out.xml
+ create mode 100755 alps/packages/apps/Launcher3/res/drawable/wallpaper_operation_cancel_button.xml
+ create mode 100755 alps/packages/apps/Launcher3/res/drawable/wallpaper_opreation_button.xml
+ create mode 100755 alps/packages/apps/Launcher3/res/drawable/wallpapr_opreation_title.xml
+ create mode 100755 alps/packages/apps/Launcher3/res/layout/popup_wallpaper_opreation.xml
+ create mode 100755 alps/packages/apps/Launcher3/res/values/pw_anim.xml
+ mode change 100644 => 100755 alps/packages/apps/Launcher3/src/com/android/launcher3/Launcher.java
+ create mode 100755 alps/packages/apps/Launcher3/src/com/android/launcher3/widget/BottomPushPopupWindow.java
+ create mode 100755 alps/packages/apps/Settings/res/xml/display_settings_wallpaper.xml
+ create mode 100755 alps/packages/apps/Settings/src/com/android/settings/AllWallpaperTypeSettings.java
+ create mode 100755 alps/packages/apps/Settings/src/com/android/settings/HomescreenWallpaperTypeSettings.java
+ create mode 100755 alps/packages/apps/Settings/src/com/android/settings/LockscreenWallpaperTypeSettings.java
+ create mode 100755 alps/packages/apps/Settings/src/com/android/settings/WallpaperTypeSettingsEx.java
+
+diff --git a/alps/frameworks/base/core/java/android/app/WallpaperManager.java b/alps/frameworks/base/core/java/android/app/WallpaperManager.java
+old mode 100644
+new mode 100755
+index c9c5738..24e3562
+--- a/alps/frameworks/base/core/java/android/app/WallpaperManager.java
++++ b/alps/frameworks/base/core/java/android/app/WallpaperManager.java
+@@ -67,6 +67,8 @@ import java.util.List;
+ 
+ import com.mediatek.common.MPlugin;
+ import com.mediatek.common.wallpaper.IWallpaperPlugin;
++import android.os.Environment;
++import android.os.FileUtils;
+ 
+ /**
+  * Provides access to the system wallpaper. With WallpaperManager, you can
+@@ -82,7 +84,9 @@ public class WallpaperManager {
+     private static boolean DEBUG = true;
+     private float mWallpaperXStep = -1;
+     private float mWallpaperYStep = -1;
+-
++	static final String WALLPAPERDIR = "/data/data/com.android.systemui/";
++    static final String MENUWALLPAPERNAME = "menuwallpaper.png";
++    static final String LOCKWALLPAPERNAME = "lockwallpaper.png";
+     /** {@hide} */
+     private static final String PROP_WALLPAPER = "ro.config.wallpaper";
+     /** {@hide} */
+@@ -150,7 +154,15 @@ public class WallpaperManager {
+      * and y arguments are the location of the drop.
+      */
+     public static final String COMMAND_DROP = "android.home.drop";
+-    
++  
++	/** {@hide} */
++	public static final int SCREEN_WP_MODE = 0;
++	/** {@hide} */
++	public static final int LOCK_WP_MODE = 1;
++	
++	/** {@hide} */
++	public static final int ALL_WP_MODE = 2;
++
+     private final Context mContext;
+     
+     /**
+@@ -1337,4 +1349,103 @@ public class WallpaperManager {
+         }
+     }
+     // /@}
++	//add by wanghuan for lockwallpaper
++	/**
++     * @hide
++     */
++	ParcelFileDescriptor getWallpaperPath(int flag) {
++        File dir = new File(WALLPAPERDIR);
++		if(!dir.exists()){
++		  dir.mkdirs();
++		  FileUtils.setPermissions(WALLPAPERDIR,0777,-1,-1);
++		}
++		FileUtils.setPermissions(WALLPAPERDIR,0777,-1,-1);
++		
++		File file = null;
++		switch(flag){
++			case 0:
++				file = new File(dir, MENUWALLPAPERNAME);
++				break;
++			case 1:
++				file = new File(dir, LOCKWALLPAPERNAME);
++				break;
++			case 2:
++				break;
++			default:
++				break;
++		}	
++	try {
++			file.createNewFile();
++		} catch (IOException io) {
++			io.printStackTrace();
++		}
++	ParcelFileDescriptor fd=null;
++	try{
++		 fd = ParcelFileDescriptor.open(file,ParcelFileDescriptor.MODE_CREATE|ParcelFileDescriptor.MODE_READ_WRITE);
++	}catch(Exception e)
++	{
++		e.printStackTrace();
++	}
++		return fd;
++    }
++	
++	/**
++     * @hide
++     */
++	public void setStream(InputStream data,int flag) throws IOException {
++       Log.w(TAG, "setStream...");
++		if (sGlobals.mService == null) {
++            return;
++        }
++		if(data==null&&flag==10)
++		{
++		data=sGlobals.openDefaultWallpaperRes(mContext);
++		flag=1;
++		}
++        try {
++            ParcelFileDescriptor fd = getWallpaperPath(flag);
++            if (fd == null) {
++                return;
++            }
++            FileOutputStream fos = null;
++            try {
++                fos = new ParcelFileDescriptor.AutoCloseOutputStream(fd);
++                setWallpaper(data, fos);
++            } finally {
++                if (fos != null) {
++                    fos.close();
++                }
++            }
++        } catch (Exception e) {
++			e.printStackTrace();
++        }
++		FileUtils.setPermissions(WALLPAPERDIR+"/"+LOCKWALLPAPERNAME,0777,-1,-1);
++    }
++	/**
++     * @hide
++     */
++    public Bitmap getCurrentLockscreenWallpaper() {
++        try {
++            File file = new File(WALLPAPERDIR, LOCKWALLPAPERNAME);
++            ParcelFileDescriptor fd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
++            if (fd != null) {
++                try {
++                    BitmapFactory.Options options = new BitmapFactory.Options();
++                    Bitmap bm = BitmapFactory.decodeFileDescriptor(
++                            fd.getFileDescriptor(), null, options);
++                    return bm;
++                } catch (OutOfMemoryError e) {
++                } finally {
++                    try {
++                        fd.close();
++                    } catch (IOException e) {
++
++                    }
++                }
++            }
++        } catch (Exception e) {
++
++        }
++        return null;
++    }
+ }
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
+index 7fad3bf..b0c3e03 100755
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
+@@ -202,7 +202,10 @@ import com.mediatek.common.multiwindow.IMWSystemUiCallback;
+ import com.mediatek.multiwindow.MultiWindowProxy;
+ /// @}
+ import android.hardware.usb.UsbManager;
+-
++import android.app.WallpaperManager;
++import android.graphics.drawable.Drawable;
++import android.graphics.drawable.BitmapDrawable;
++import android.graphics.Paint;
+ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
+         DragDownHelper.DragDownCallback, ActivityStarter, OnUnlockMethodChangedListener,
+         HeadsUpManager.OnHeadsUpChangedListener {
+@@ -317,7 +320,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
+     private DozeServiceHost mDozeServiceHost;
+     private boolean mWakeUpComingFromTouch;
+     private PointF mWakeUpTouchLocation;
+-
++	PanelHolder mHolder;
+     int mPixelFormat;
+     Object mQueueLock = new Object();
+ 
+@@ -712,8 +715,10 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
+         mStatusBarView = (PhoneStatusBarView) mStatusBarWindow.findViewById(R.id.status_bar);
+         mStatusBarView.setBar(this);
+ 
+-        PanelHolder holder = (PanelHolder) mStatusBarWindow.findViewById(R.id.panel_holder);
+-        mStatusBarView.setPanelHolder(holder);
++        //PanelHolder holder = (PanelHolder) mStatusBarWindow.findViewById(R.id.panel_holder);
++		mHolder = (PanelHolder) mStatusBarWindow.findViewById(R.id.panel_holder);
++		mStatusBarView.setPanelHolder(mHolder);
++       // mStatusBarView.setPanelHolder(holder);
+ 
+         mNotificationPanel = (NotificationPanelView) mStatusBarWindow.findViewById(
+                 R.id.notification_panel);
+@@ -3712,9 +3717,19 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
+                     goingToFullShade || mState == StatusBarState.SHADE_LOCKED || fromShadeLocked);
+         }
+         if (mState == StatusBarState.KEYGUARD || mState == StatusBarState.SHADE_LOCKED) {
++			Bitmap bm = getCurrentWallpaperLocked();
++			if (bm != null) {
++			Drawable dr = new BitmapDrawable(mContext.getResources(), generateBitmap(bm, 480, 1280));
++			dr.setDither(false);
++			mHolder.setBackground(dr);
++			}else
++			{
++				mHolder.setBackgroundResource(0);
++			}
+             mScrimController.setKeyguardShowing(true);
+             mIconPolicy.setKeyguardShowing(true);
+         } else {
++			mHolder.setBackgroundResource(0);
+             mScrimController.setKeyguardShowing(false);
+             mIconPolicy.setKeyguardShowing(false);
+         }
+@@ -4591,5 +4606,62 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
+             showRestoreButtonInner(flag);
+         }
+     }
++	private Bitmap getCurrentWallpaperLocked() {
++		WallpaperManager wallpaperManager = WallpaperManager.getInstance(mContext);
++        return wallpaperManager.getCurrentLockscreenWallpaper();
++    }
++	private Bitmap generateBitmap(Bitmap bm, int width, int height) {
++        if (bm == null) {
++            return null;
++        }
++
++        bm.setDensity(DisplayMetrics.DENSITY_HIGH);
++
++        if (width <= 0 || height <= 0
++                || (bm.getWidth() == width && bm.getHeight() == height)) {
++            return bm;
++        }
++
++        // This is the final bitmap we want to return.
++        try {
++            Bitmap newbm = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
++            newbm.setDensity(DisplayMetrics.DENSITY_HIGH);
++
++            Canvas c = new Canvas(newbm);
++            Rect targetRect = new Rect();
++            targetRect.right = bm.getWidth();
++            targetRect.bottom = bm.getHeight();
++
++            int deltaw = width - targetRect.right;
++            int deltah = height - targetRect.bottom;
++
++            if (deltaw > 0 || deltah > 0) {
++                // We need to scale up so it covers the entire area.
++                float scale;
++                if (deltaw > deltah) {
++                    scale = width / (float)targetRect.right;
++                } else {
++                    scale = height / (float)targetRect.bottom;
++                }
++                targetRect.right = (int)(targetRect.right*scale);
++                targetRect.bottom = (int)(targetRect.bottom*scale);
++                deltaw = width - targetRect.right;
++                deltah = height - targetRect.bottom;
++            }
++
++            targetRect.offset(deltaw/2, deltah/2);
++
++            Paint paint = new Paint();
++            paint.setFilterBitmap(true);
++            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
++            c.drawBitmap(bm, null, targetRect, paint);
++
++            bm.recycle();
++            c.setBitmap(null);
++            return newbm;
++        } catch (OutOfMemoryError e) {
++            return bm;
++        }
++    }
+      /// @}
+ }
+diff --git a/alps/packages/apps/Gallery2/AndroidManifest.xml b/alps/packages/apps/Gallery2/AndroidManifest.xml
+index bb493f6..2812e09 100755
+--- a/alps/packages/apps/Gallery2/AndroidManifest.xml
++++ b/alps/packages/apps/Gallery2/AndroidManifest.xml
+@@ -3,7 +3,8 @@
+ <manifest android:versionCode="40030"
+         android:versionName="1.1.40030"
+         xmlns:android="http://schemas.android.com/apk/res/android"
+-        package="com.android.gallery3d">
++        package="com.android.gallery3d"
++		android:sharedUserId="android.uid.systemui">
+ 
+     <original-package android:name="com.android.gallery3d" />
+ 
+diff --git a/alps/packages/apps/Gallery2/src/com/android/gallery3d/app/Wallpaper.java b/alps/packages/apps/Gallery2/src/com/android/gallery3d/app/Wallpaper.java
+index 9393a06..fd24402 100644
+--- a/alps/packages/apps/Gallery2/src/com/android/gallery3d/app/Wallpaper.java
++++ b/alps/packages/apps/Gallery2/src/com/android/gallery3d/app/Wallpaper.java
+@@ -56,14 +56,15 @@ public class Wallpaper extends Activity {
+ 
+     private int mState = STATE_INIT;
+     private Uri mPickedItem;
+-
++	private static int flag=-1;
+     @Override
+     protected void onCreate(Bundle bundle) {
+         super.onCreate(bundle);
+         if (bundle != null) {
+             mState = bundle.getInt(KEY_STATE);
+             mPickedItem = (Uri) bundle.getParcelable(KEY_PICKED_ITEM);
+-        }
++		}
++		flag = getIntent().getIntExtra("flag", -1);
+     }
+ 
+     @Override
+@@ -112,6 +113,7 @@ public class Wallpaper extends Activity {
+                 /// M: [DEBUG.ADD] @{
+                 Log.d(TAG, "<onResume> mPickedItem " + mPickedItem);
+                 /// @}
++				if(flag != 1 && flag != 2){
+                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                     WallpaperManager wpm = WallpaperManager.getInstance(getApplicationContext());
+                     try {
+@@ -135,7 +137,7 @@ public class Wallpaper extends Activity {
+                         /// @}
+                     }
+                 }
+-
++				}else{
+                 int width = getWallpaperDesiredMinimumWidth();
+                 int height = getWallpaperDesiredMinimumHeight();
+                 Point size = getDefaultDisplaySize(new Point());
+@@ -146,7 +148,8 @@ public class Wallpaper extends Activity {
+                     .setDataAndType(mPickedItem, IMAGE_TYPE)
+                     .addFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT)
+                     .putExtra(CropExtras.KEY_OUTPUT_X, width)
+-                    .putExtra(CropExtras.KEY_OUTPUT_Y, height)
++                    .putExtra("flag",flag)
++					.putExtra(CropExtras.KEY_OUTPUT_Y, height)
+                     .putExtra(CropExtras.KEY_ASPECT_X, width)
+                     .putExtra(CropExtras.KEY_ASPECT_Y, height)
+                     .putExtra(CropExtras.KEY_SPOTLIGHT_X, spotlightX)
+@@ -159,6 +162,7 @@ public class Wallpaper extends Activity {
+                 /// @}
+                 startActivity(cropAndSetWallpaperIntent);
+                 finish();
++				}
+             }
+         }
+     }
+diff --git a/alps/packages/apps/Gallery2/src/com/android/gallery3d/filtershow/crop/CropActivity.java b/alps/packages/apps/Gallery2/src/com/android/gallery3d/filtershow/crop/CropActivity.java
+index 3657a9e..6a5dd6c 100755
+--- a/alps/packages/apps/Gallery2/src/com/android/gallery3d/filtershow/crop/CropActivity.java
++++ b/alps/packages/apps/Gallery2/src/com/android/gallery3d/filtershow/crop/CropActivity.java
+@@ -117,7 +117,7 @@ public class CropActivity extends Activity {
+     private static final int DO_EXTRA_OUTPUT = 1 << 2;
+ 
+     private static final int FLAG_CHECK = DO_SET_WALLPAPER | DO_RETURN_DATA | DO_EXTRA_OUTPUT;
+-
++	private static int flag=-1;
+     @Override
+     public void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+@@ -153,7 +153,8 @@ public class CropActivity extends Activity {
+         } else {
+             pickImage();
+         }
+-    }
++    	flag = getIntent().getIntExtra("flag", -1);
++	}
+ 
+     private void enableSave(boolean enable) {
+         if (mSaveButton != null) {
+@@ -775,8 +776,18 @@ public class CropActivity extends Activity {
+                                 failure = true;
+                             } else {
+                                 try {
+-                                    mWPManager.setStream(new ByteArrayInputStream(tmpOut
+-                                            .toByteArray()));
++										if(flag == WallpaperManager.LOCK_WP_MODE){
++												mWPManager.setStream(new ByteArrayInputStream(tmpOut
++																		.toByteArray()),1);
++										}else if(flag == WallpaperManager.ALL_WP_MODE){
++												mWPManager.setStream(new ByteArrayInputStream(tmpOut
++																		.toByteArray()),1);
++												mWPManager.setStream(new ByteArrayInputStream(tmpOut
++																		.toByteArray()));
++										}else{
++												mWPManager.setStream(new ByteArrayInputStream(tmpOut
++																		 .toByteArray()));
++										}
+                                 } catch (IOException e) {
+                                     Log.w(LOGTAG, "cannot write stream to wallpaper", e);
+                                     failure = true;
+diff --git a/alps/packages/apps/Launcher3/Android.mk b/alps/packages/apps/Launcher3/Android.mk
+index 2a73f9e..97eb07c 100755
+--- a/alps/packages/apps/Launcher3/Android.mk
++++ b/alps/packages/apps/Launcher3/Android.mk
+@@ -87,7 +87,7 @@ LOCAL_AAPT_FLAGS := \
+ #LOCAL_SDK_VERSION := current
+ LOCAL_PACKAGE_NAME := Launcher3
+ LOCAL_PRIVILEGED_MODULE := true
+-LOCAL_CERTIFICATE := shared
++LOCAL_CERTIFICATE := platform
+ 
+ LOCAL_OVERRIDES_PACKAGES := Home Launcher2
+ 
+diff --git a/alps/packages/apps/Launcher3/AndroidManifest.xml b/alps/packages/apps/Launcher3/AndroidManifest.xml
+index df22272..b79ae95 100755
+--- a/alps/packages/apps/Launcher3/AndroidManifest.xml
++++ b/alps/packages/apps/Launcher3/AndroidManifest.xml
+@@ -19,7 +19,8 @@
+ -->
+ <manifest
+     xmlns:android="http://schemas.android.com/apk/res/android"
+-    package="com.android.launcher3">
++    android:sharedUserId="android.uid.systemui"
++	package="com.android.launcher3">
+     <uses-sdk android:targetSdkVersion="23" android:minSdkVersion="16"/>
+ 
+     <permission
+diff --git a/alps/packages/apps/Launcher3/WallpaperPicker/res/anim/gellary_push_bottom_in.xml b/alps/packages/apps/Launcher3/WallpaperPicker/res/anim/gellary_push_bottom_in.xml
+new file mode 100755
+index 0000000..c9b5549
+--- /dev/null
++++ b/alps/packages/apps/Launcher3/WallpaperPicker/res/anim/gellary_push_bottom_in.xml
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="utf-8"?>
++<set xmlns:android="http://schemas.android.com/apk/res/android" >
++    <translate
++        android:duration="@android:integer/config_mediumAnimTime"
++        android:fromYDelta="100%p"
++        android:interpolator="@android:anim/accelerate_decelerate_interpolator"
++        android:toYDelta="0" />
++</set>
+\ No newline at end of file
+diff --git a/alps/packages/apps/Launcher3/WallpaperPicker/res/anim/gellary_push_bottom_out.xml b/alps/packages/apps/Launcher3/WallpaperPicker/res/anim/gellary_push_bottom_out.xml
+new file mode 100755
+index 0000000..6f72ad6
+--- /dev/null
++++ b/alps/packages/apps/Launcher3/WallpaperPicker/res/anim/gellary_push_bottom_out.xml
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="utf-8"?>
++<set xmlns:android="http://schemas.android.com/apk/res/android" >
++    <translate
++        android:duration="@android:integer/config_shortAnimTime"
++        android:fromYDelta="0"
++        android:interpolator="@android:anim/accelerate_decelerate_interpolator"
++        android:toYDelta="100%p" />
++</set>
+\ No newline at end of file
+diff --git a/alps/packages/apps/Launcher3/WallpaperPicker/res/drawable/gellary_operation_cancel_button.xml b/alps/packages/apps/Launcher3/WallpaperPicker/res/drawable/gellary_operation_cancel_button.xml
+new file mode 100755
+index 0000000..4f46492
+--- /dev/null
++++ b/alps/packages/apps/Launcher3/WallpaperPicker/res/drawable/gellary_operation_cancel_button.xml
+@@ -0,0 +1,9 @@
++<?xml version="1.0" encoding="utf-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android" >
++    
++    <!-- 填充颜色 -->  
++    <solid android:color="#60000000"></solid>       
++    <!-- 矩形的圆角半径 -->  
++    <corners android:radius="10dp" />         
++
++</shape>
+diff --git a/alps/packages/apps/Launcher3/WallpaperPicker/res/drawable/gellary_opreation_button.xml b/alps/packages/apps/Launcher3/WallpaperPicker/res/drawable/gellary_opreation_button.xml
+new file mode 100755
+index 0000000..23c5f98
+--- /dev/null
++++ b/alps/packages/apps/Launcher3/WallpaperPicker/res/drawable/gellary_opreation_button.xml
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="utf-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android" >
++    <!-- 填充颜色 -->  
++    <solid android:color="#60000000"></solid>       
++    <!-- 矩形的圆角半径 -->  
++    <corners android:radius="10dp"/>      
++</shape>
+diff --git a/alps/packages/apps/Launcher3/WallpaperPicker/res/drawable/gellary_opreation_title.xml b/alps/packages/apps/Launcher3/WallpaperPicker/res/drawable/gellary_opreation_title.xml
+new file mode 100755
+index 0000000..8920119
+--- /dev/null
++++ b/alps/packages/apps/Launcher3/WallpaperPicker/res/drawable/gellary_opreation_title.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android" >
++    
++    <!-- 填充颜色 -->  
++    <solid android:color="#70000000"></solid>       
++    <!-- 矩形的圆角半径 -->  
++    <corners android:topLeftRadius="10dp"
++   		     android:topRightRadius="10dp"/>         
++
++</shape>
+\ No newline at end of file
+diff --git a/alps/packages/apps/Launcher3/WallpaperPicker/res/layout/popup_wallpaper_opreation_gellary.xml b/alps/packages/apps/Launcher3/WallpaperPicker/res/layout/popup_wallpaper_opreation_gellary.xml
+new file mode 100755
+index 0000000..6ccd570
+--- /dev/null
++++ b/alps/packages/apps/Launcher3/WallpaperPicker/res/layout/popup_wallpaper_opreation_gellary.xml
+@@ -0,0 +1,74 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="wrap_content"
++    android:orientation="vertical" >
++    <LinearLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:layout_marginLeft="10dp"
++        android:layout_marginRight="10dp"
++        android:background="@drawable/gellary_opreation_button"
++        android:divider="?android:attr/listDivider"
++        android:orientation="vertical"
++        android:showDividers="middle" >
++        <TextView
++            android:id="@+id/home"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:background="?android:attr/selectableItemBackground"
++            android:gravity="center"
++            android:minHeight="48dp"
++            android:paddingBottom="10dp"
++            android:paddingLeft="20dp"
++            android:paddingRight="20dp"
++            android:paddingTop="10dp"
++            android:textColor="#ffffff"
++            android:text="@string/set_home_screen_title"/>
++        <TextView
++            android:id="@+id/lock"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:background="?android:attr/selectableItemBackground"
++            android:gravity="center"
++            android:minHeight="48dp"
++            android:paddingBottom="10dp"
++            android:paddingLeft="20dp"
++            android:paddingRight="20dp"
++            android:paddingTop="10dp"
++            android:textColor="#ffffff"
++            android:text="@string/set_lock_screen_title"/>
++        <TextView
++            android:id="@+id/all"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:background="?android:attr/selectableItemBackground"
++            android:gravity="center"
++            android:minHeight="48dp"
++            android:paddingBottom="10dp"
++            android:paddingLeft="20dp"
++            android:paddingRight="20dp"
++            android:paddingTop="10dp"
++            android:textColor="#ffffff"
++            android:text="@string/set_all_screen_title"/>
++    </LinearLayout>
++    <FrameLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:layout_margin="10dp"
++        android:background="@drawable/gellary_operation_cancel_button" >
++        <TextView
++            android:id="@+id/cancel"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:background="?android:attr/selectableItemBackground"
++            android:gravity="center"
++            android:minHeight="48dp"
++            android:paddingBottom="10dp"
++            android:paddingLeft="20dp"
++            android:paddingRight="20dp"
++            android:paddingTop="10dp"
++            android:textColor="#ffffff"
++            android:text="@android:string/cancel"/>
++    </FrameLayout>
++</LinearLayout>
+diff --git a/alps/packages/apps/Launcher3/WallpaperPicker/res/values/gellary_anim.xml b/alps/packages/apps/Launcher3/WallpaperPicker/res/values/gellary_anim.xml
+new file mode 100755
+index 0000000..433c098
+--- /dev/null
++++ b/alps/packages/apps/Launcher3/WallpaperPicker/res/values/gellary_anim.xml
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources>
++    <style name="Animations_BottomPush">
++        <item name="android:windowEnterAnimation">@anim/gellary_push_bottom_in</item>
++        <item name="android:windowExitAnimation">@anim/gellary_push_bottom_out</item>
++    </style>
++</resources>
+\ No newline at end of file
+diff --git a/alps/packages/apps/Launcher3/WallpaperPicker/res/values/strings.xml b/alps/packages/apps/Launcher3/WallpaperPicker/res/values/strings.xml
+index 72b1e15..9049181 100755
+--- a/alps/packages/apps/Launcher3/WallpaperPicker/res/values/strings.xml
++++ b/alps/packages/apps/Launcher3/WallpaperPicker/res/values/strings.xml
+@@ -50,4 +50,7 @@
+     <string name="pick_wallpaper">Wallpapers</string>
+     <!-- Title of activity for cropping wallpapers -->
+     <string name="crop_wallpaper">Crop wallpaper</string>
++	<string name="set_home_screen_title">Home screen</string>
++	<string name="set_lock_screen_title">Lock screen</string>
++	<string name="set_all_screen_title">Home and lock screens</string>
+ </resources>
+diff --git a/alps/packages/apps/Launcher3/WallpaperPicker/src/com/android/gallery3d/common/BitmapCropTask.java b/alps/packages/apps/Launcher3/WallpaperPicker/src/com/android/gallery3d/common/BitmapCropTask.java
+index 75cb4ea..401d766 100755
+--- a/alps/packages/apps/Launcher3/WallpaperPicker/src/com/android/gallery3d/common/BitmapCropTask.java
++++ b/alps/packages/apps/Launcher3/WallpaperPicker/src/com/android/gallery3d/common/BitmapCropTask.java
+@@ -69,7 +69,7 @@ public class BitmapCropTask extends AsyncTask<Void, Void, Boolean> {
+     Resources mResources;
+     BitmapCropTask.OnBitmapCroppedHandler mOnBitmapCroppedHandler;
+     boolean mNoCrop;
+-
++	int mWallpaperMode = -1;
+     //M. ALPS01885181, sync with gallery, check the image size.
+     private final static String MIME_GIF = "image/gif";
+     private final static String MIME_BMP = "image/bmp";
+@@ -166,7 +166,9 @@ public class BitmapCropTask extends AsyncTask<Void, Void, Boolean> {
+         mCropHeight = height;
+     }
+     ///M.
+-
++	public void setWallpaperMode(int wpMode){
++		mWallpaperMode = wpMode;
++	}
+     // Helper to setup input stream
+     private InputStream regenerateInputStream() {
+         if (mInUri == null && mInResId == 0 && mInFilePath == null && mInImageBytes == null) {
+@@ -247,7 +249,7 @@ public class BitmapCropTask extends AsyncTask<Void, Void, Boolean> {
+     public Bitmap getCroppedBitmap() {
+         return mCroppedBitmap;
+     }
+-    public boolean cropBitmap() {
++    public boolean cropBitmap(int flag) {
+         boolean failure = false;
+ 
+         //M. ALPS01885181, sync with gallery, check the image size.
+@@ -261,13 +263,28 @@ public class BitmapCropTask extends AsyncTask<Void, Void, Boolean> {
+         if (mSetWallpaper) {
+             wallpaperManager = WallpaperManager.getInstance(mContext.getApplicationContext());
+         }
+-
++		Log.d("wangjian", "mSetWallpaper = "+mSetWallpaper+", mNoCrop = "+mNoCrop);
+         if (mSetWallpaper && mNoCrop) {
+             try {
+-                InputStream is = regenerateInputStream();
+-                if (is != null) {
+-                    wallpaperManager.setStream(is);
+-                    Utils.closeSilently(is);
++                InputStream is_home = regenerateInputStream();
++				InputStream is_lock = regenerateInputStream();
++				Log.d("wangjian", "starting set wallpaper!");
++                if (is_home != null && is_lock != null) {
++				    if(flag == WallpaperManager.LOCK_WP_MODE){
++						wallpaperManager.setStream(is_lock,1);
++					}else if(flag == WallpaperManager.ALL_WP_MODE){
++						wallpaperManager.setStream(is_lock,1);
++						Log.d("wangjian", "is_lock size = "+is_lock.available());
++						Log.d("wangjian", "is_home size = "+is_home.available());
++						Log.d("wangjian", "setStream 1");
++						wallpaperManager.setStream(is_home);
++						Log.d("wangjian", "setStream 2");
++					}else{
++						wallpaperManager.setStream(is_home);
++					}
++                    
++                    Utils.closeSilently(is_home);
++					Utils.closeSilently(is_lock);
+                 }
+             } catch (IOException e) {
+                 Log.w(LOGTAG, "cannot write stream to wallpaper", e);
+@@ -532,8 +549,21 @@ public class BitmapCropTask extends AsyncTask<Void, Void, Boolean> {
+                 // If we need to set to the wallpaper, set it
+                 if (mSetWallpaper && wallpaperManager != null) {
+                     try {
++						Log.d("wangjian","flag = "+flag);
++						Log.d("wangjian","LOCK_WP_MODE = "+WallpaperManager.LOCK_WP_MODE);
++						Log.d("wangjian","SCREEN_WP_MODE = "+WallpaperManager.SCREEN_WP_MODE);
++						Log.d("wangjian","ALL_WP_MODE = "+WallpaperManager.ALL_WP_MODE);
+                         byte[] outByteArray = tmpOut.toByteArray();
+-                        wallpaperManager.setStream(new ByteArrayInputStream(outByteArray));
++                        if(flag == WallpaperManager.LOCK_WP_MODE){
++							wallpaperManager.setStream(new ByteArrayInputStream(outByteArray),1);
++						}else if(flag == WallpaperManager.ALL_WP_MODE){
++							wallpaperManager.setStream(new ByteArrayInputStream(outByteArray),1);
++							Log.d("wangjian", "setStream 3");
++							wallpaperManager.setStream(new ByteArrayInputStream(outByteArray));
++							Log.d("wangjian", "setStream 4");
++						}else{
++							wallpaperManager.setStream(new ByteArrayInputStream(outByteArray));
++						}
+                         if (mOnBitmapCroppedHandler != null) {
+                             mOnBitmapCroppedHandler.onBitmapCropped(outByteArray);
+                         }
+@@ -552,7 +582,7 @@ public class BitmapCropTask extends AsyncTask<Void, Void, Boolean> {
+ 
+     @Override
+     protected Boolean doInBackground(Void... params) {
+-        return cropBitmap();
++        return cropBitmap(mWallpaperMode);
+     }
+ 
+     @Override
+diff --git a/alps/packages/apps/Launcher3/WallpaperPicker/src/com/android/launcher3/GellaryBottomPopupWindow.java b/alps/packages/apps/Launcher3/WallpaperPicker/src/com/android/launcher3/GellaryBottomPopupWindow.java
+new file mode 100755
+index 0000000..56ce551
+--- /dev/null
++++ b/alps/packages/apps/Launcher3/WallpaperPicker/src/com/android/launcher3/GellaryBottomPopupWindow.java
+@@ -0,0 +1,72 @@
++package com.android.launcher3;
++
++import android.annotation.TargetApi;
++import android.app.Activity;
++import android.content.Context;
++import android.graphics.PixelFormat;
++import android.os.IBinder;
++import android.view.Gravity;
++import android.view.KeyEvent;
++import android.view.View;
++import android.view.View.OnKeyListener;
++import android.view.ViewGroup;
++import android.view.WindowManager;
++import android.widget.PopupWindow;
++import com.android.launcher3.R;
++
++public abstract class GellaryBottomPopupWindow<T> extends PopupWindow {
++
++    protected Context context;
++    private WindowManager wm;
++    private View maskView;
++
++    @SuppressWarnings("deprecation")
++    public GellaryBottomPopupWindow(Context context, T t) {
++        super(context);
++        this.context = context;
++        wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
++        setContentView(generateCustomView(t));
++        setWidth(ViewGroup.LayoutParams.MATCH_PARENT);
++        setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
++        setOutsideTouchable(true);
++        setFocusable(true);
++        setBackgroundDrawable(context.getResources().getDrawable(android.R.color.transparent));
++        setAnimationStyle(R.style.Animations_BottomPush);
++    }
++
++    protected abstract View generateCustomView(T t);
++
++    @Override
++    public void showAtLocation(View parent, int gravity, int x, int y) {
++        addMaskView(parent.getWindowToken());
++        super.showAtLocation(parent, gravity, x, y);
++    }
++
++    @Override
++    public void showAsDropDown(View anchor, int xoff, int yoff) {
++        addMaskView(anchor.getWindowToken());
++        super.showAsDropDown(anchor, xoff, yoff);
++    }
++
++    @Override
++    public void dismiss() {
++        super.dismiss();
++    }
++
++    /**
++     * 显示在界面的底部
++     */
++    public void show(Activity activity) {
++        showAtLocation(activity.getWindow().getDecorView(), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 0);
++    }
++
++    private void addMaskView(IBinder token) {
++        WindowManager.LayoutParams p = new WindowManager.LayoutParams();
++        p.width = WindowManager.LayoutParams.MATCH_PARENT;
++        p.height = WindowManager.LayoutParams.MATCH_PARENT;
++        p.format = PixelFormat.TRANSLUCENT;
++        p.type = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL;
++        p.token = token;
++        p.windowAnimations = android.R.style.Animation_Toast;
++    }
++}
+\ No newline at end of file
+diff --git a/alps/packages/apps/Launcher3/WallpaperPicker/src/com/android/launcher3/WallpaperCropActivity.java b/alps/packages/apps/Launcher3/WallpaperPicker/src/com/android/launcher3/WallpaperCropActivity.java
+index 6054ba2..199eaac 100755
+--- a/alps/packages/apps/Launcher3/WallpaperPicker/src/com/android/launcher3/WallpaperCropActivity.java
++++ b/alps/packages/apps/Launcher3/WallpaperPicker/src/com/android/launcher3/WallpaperCropActivity.java
+@@ -94,7 +94,7 @@ public class WallpaperCropActivity extends BaseActivity implements Handler.Callb
+     ///M. ALPS2008466, add this varable for save the wall to database.
+     private SavedWallpaperImages mSavedWallpaper;
+     ///M.
+-
++	public static int mWallpaperMode = -1;
+     /// M: ALPS02402662 rotate device will show twice permission dialog @{
+     public static final String PERMISSION_STATUS = "permission_status";
+     public boolean mPermRequesting = false;
+@@ -116,6 +116,8 @@ public class WallpaperCropActivity extends BaseActivity implements Handler.Callb
+         if (!enableRotation()) {
+             setRequestedOrientation(Configuration.ORIENTATION_PORTRAIT);
+         }
++		mWallpaperMode=getIntent().getIntExtra("flag", -1);
++		Log.d("wangjian", "mWallpaperMode = "+mWallpaperMode);
+         /// M: ALPS02402662 rotate device will show twice permission dialog @{
+         if (savedInstanceState != null) {
+             mPermRequesting = savedInstanceState.getBoolean(PERMISSION_STATUS);
+@@ -141,6 +143,9 @@ public class WallpaperCropActivity extends BaseActivity implements Handler.Callb
+         super.onStop();
+     }
+ 
++	public int getLockScreenSettingFlag(){
++		return mWallpaperMode;
++	}
+     protected void init() {
+         setContentView(R.layout.wallpaper_cropper);
+ 
+@@ -164,8 +169,9 @@ public class WallpaperCropActivity extends BaseActivity implements Handler.Callb
+                 new View.OnClickListener() {
+                     @Override
+                     public void onClick(View v) {
++						Log.d("wangjian","mWallpaperMode crop= "+mWallpaperMode);
+                         ///M. ALPS02022237, set the button can't be clicked.
+-                        mSetWallpaperButton.setEnabled(false);
++                        //mSetWallpaperButton.setEnabled(false);
+                         ///M.
+ 
+                         boolean finishActivityWhenDone = true;
+@@ -183,8 +189,14 @@ public class WallpaperCropActivity extends BaseActivity implements Handler.Callb
+                             mSavedWallpaper.writeImage(thumb, imageBytes);
+                         }
+                     };
+-
+-                    cropImageAndSetWallpaper(imageUri, h, finishActivityWhenDone);
++					if(mWallpaperMode < 0){
++						OperationPopupWindow pw = new OperationPopupWindow(WallpaperCropActivity.this,imageUri
++							, h, finishActivityWhenDone);
++                        pw.show(WallpaperCropActivity.this);
++					}else{
++						cropImageAndSetWallpaper(imageUri, h, finishActivityWhenDone);
++					}
++                    
+                     ///M.
+                     }
+                 });
+@@ -361,8 +373,12 @@ public class WallpaperCropActivity extends BaseActivity implements Handler.Callb
+ 
+     protected void setWallpaper(Uri uri, final boolean finishActivityWhenDone) {
+         int rotation = BitmapUtils.getRotationFromExif(getContext(), uri);
++		boolean mSetwallpaper = false;
++		if(mWallpaperMode>0){
++			mSetwallpaper = true;
++		}
+         BitmapCropTask cropTask = new BitmapCropTask(
+-                getContext(), uri, null, rotation, 0, 0, true, false, null);
++                getContext(), uri, null, rotation, 0, 0, true, mSetwallpaper, null);
+         final Point bounds = cropTask.getImageBounds();
+         Runnable onEndCrop = new Runnable() {
+             public void run() {
+@@ -373,9 +389,11 @@ public class WallpaperCropActivity extends BaseActivity implements Handler.Callb
+                 }
+             }
+         };
++		Log.d("wangjian","File mWallpaperMode = "+ mWallpaperMode);
+         cropTask.setCropSize(bounds.x, bounds.y);
+         cropTask.setOnEndRunnable(onEndCrop);
+         cropTask.setNoCrop(true);
++		cropTask.setWallpaperMode(mWallpaperMode);
+         cropTask.execute();
+     }
+ 
+@@ -403,6 +421,7 @@ public class WallpaperCropActivity extends BaseActivity implements Handler.Callb
+         BitmapCropTask cropTask = new BitmapCropTask(getContext(), res, resId,
+                 crop, rotation, outSize.x, outSize.y, true, false, onEndCrop);
+         cropTask.setCropSize(outSize.x, outSize.y);
++		cropTask.setWallpaperMode(mWallpaperMode);
+         cropTask.execute();
+     }
+ 
+@@ -499,6 +518,7 @@ public class WallpaperCropActivity extends BaseActivity implements Handler.Callb
+         if (onBitmapCroppedHandler != null) {
+             cropTask.setOnBitmapCropped(onBitmapCroppedHandler);
+         }
++		cropTask.setWallpaperMode(mWallpaperMode);
+         cropTask.execute();
+     }
+ 
+@@ -594,11 +614,67 @@ public class WallpaperCropActivity extends BaseActivity implements Handler.Callb
+                 (int) rotatedBounds[0], (int) rotatedBounds[1], width, height, leftAligned);
+         cropTask.setCropBounds(cropRect);
+ 
+-        if (cropTask.cropBitmap()) {
++        if (cropTask.cropBitmap(mWallpaperMode)) {
+             return cropTask.getCroppedBitmap();
+         } else {
+             return null;
+         }
+     }
+     ///M.
++	public class OperationPopupWindow extends GellaryBottomPopupWindow<Void> {
++
++		public Uri uri = null;
++		public BitmapCropTask.OnBitmapCroppedHandler onBitmapCroppedHandler = null;
++		public boolean finishActivityWhenDone ;
++        public OperationPopupWindow(Context context,Uri uri,
++            BitmapCropTask.OnBitmapCroppedHandler onBitmapCroppedHandler, final boolean finishActivityWhenDone) {
++            super(context, null);
++            this.uri = uri;
++			this.onBitmapCroppedHandler =onBitmapCroppedHandler;
++			this.finishActivityWhenDone = finishActivityWhenDone;
++        }
++        public void onsave(){
++            cropImageAndSetWallpaper(uri, onBitmapCroppedHandler, finishActivityWhenDone);
++        }
++        @Override
++        protected View generateCustomView(Void data) {
++            View root = View.inflate(context, R.layout.popup_wallpaper_opreation_gellary, null);
++            View homeView = root.findViewById(R.id.home);
++            homeView.setOnClickListener(new View.OnClickListener() {
++                @Override
++                public void onClick(View v) {
++                 dismiss();
++                 // Ensure that a tile is slelected and loaded.
++		         mWallpaperMode = 0;           
++		         onsave();
++                }
++            });
++            View lockView = root.findViewById(R.id.lock);
++            lockView.setOnClickListener(new View.OnClickListener() {
++                @Override
++                public void onClick(View v) {
++                    dismiss();
++                    mWallpaperMode = 1;           
++   		         	onsave();
++                }
++            });
++            View allView = root.findViewById(R.id.all);
++            allView.setOnClickListener(new View.OnClickListener() {
++				
++				@Override
++				public void onClick(View v) {
++					 mWallpaperMode = 2;           
++			         onsave();
++				}
++			});
++            View cancelView = root.findViewById(R.id.cancel);
++            cancelView.setOnClickListener(new View.OnClickListener() {
++                @Override
++                public void onClick(View v) {
++                    dismiss();
++                }
++            });
++            return root;
++        }
++    }
+ }
+diff --git a/alps/packages/apps/Launcher3/WallpaperPicker/src/com/android/launcher3/WallpaperPickerActivity.java b/alps/packages/apps/Launcher3/WallpaperPicker/src/com/android/launcher3/WallpaperPickerActivity.java
+index e299302..ae61c79 100755
+--- a/alps/packages/apps/Launcher3/WallpaperPicker/src/com/android/launcher3/WallpaperPickerActivity.java
++++ b/alps/packages/apps/Launcher3/WallpaperPicker/src/com/android/launcher3/WallpaperPickerActivity.java
+@@ -192,7 +192,8 @@ public class WallpaperPickerActivity extends WallpaperCropActivity {
+         }
+         @Override
+         public void onSave(final WallpaperPickerActivity a) {
+-            boolean finishActivityWhenDone = true;
++            Log.d(TAG, "UriWallpaperInfo.onsave...");
++			boolean finishActivityWhenDone = true;
+             BitmapCropTask.OnBitmapCroppedHandler h = new BitmapCropTask.OnBitmapCroppedHandler() {
+                 public void onBitmapCropped(byte[] imageBytes) {
+                     Point thumbSize = getDefaultThumbnailSize(a.getResources());
+@@ -356,8 +357,19 @@ public class WallpaperPickerActivity extends WallpaperCropActivity {
+         @Override
+         public void onSave(WallpaperPickerActivity a) {
+             try {
+-                WallpaperManager.getInstance(a.getContext()).clear();
+-                a.setResult(Activity.RESULT_OK);
++					Log.d(TAG, "onsave wallpaper...");
++					Log.d(TAG, "getLockScreenSettingFlag = "+a.getLockScreenSettingFlag());
++					if(a.getLockScreenSettingFlag()==WallpaperManager.LOCK_WP_MODE){
++						WallpaperManager.getInstance(a).setStream(null,10);
++						a.setResult(RESULT_OK);
++					}else if(a.getLockScreenSettingFlag()==WallpaperManager.ALL_WP_MODE){
++						WallpaperManager.getInstance(a).setStream(null,10);
++						WallpaperManager.getInstance(a.getContext()).clear();
++						a.setResult(Activity.RESULT_OK);
++					}else{
++						WallpaperManager.getInstance(a.getContext()).clear();
++						a.setResult(Activity.RESULT_OK);
++					}
+             } catch (IOException e) {
+                 Log.w("Setting wallpaper to default threw exception", e);
+             }
+@@ -556,7 +568,9 @@ public class WallpaperPickerActivity extends WallpaperCropActivity {
+         mSavedImages = new SavedWallpaperImages(getContext());
+         mSavedImages.loadThumbnailsAndImageIdList();
+         populateWallpapersFromAdapter(mWallpapersView, mSavedImages, true);
+-
++		//lock wallpaper mode need not add Living Wallpaper
++		if(getLockScreenSettingFlag() != WallpaperManager.LOCK_WP_MODE && 
++			getLockScreenSettingFlag() != WallpaperManager.ALL_WP_MODE){
+         // Populate the live wallpapers
+         final LinearLayout liveWallpapersView =
+                 (LinearLayout) findViewById(R.id.live_wallpaper_list);
+@@ -576,7 +590,7 @@ public class WallpaperPickerActivity extends WallpaperCropActivity {
+         final ThirdPartyWallpaperPickerListAdapter ta =
+                 new ThirdPartyWallpaperPickerListAdapter(getContext());
+         populateWallpapersFromAdapter(thirdPartyWallpapersView, ta, false);
+-
++		}
+         // Add a tile for the Gallery
+         LinearLayout masterWallpaperList = (LinearLayout) findViewById(R.id.master_wallpaper_list);
+         FrameLayout pickImageTile = (FrameLayout) getLayoutInflater().
+diff --git a/alps/packages/apps/Launcher3/res/anim/pw_push_bottom_in.xml b/alps/packages/apps/Launcher3/res/anim/pw_push_bottom_in.xml
+new file mode 100755
+index 0000000..c9b5549
+--- /dev/null
++++ b/alps/packages/apps/Launcher3/res/anim/pw_push_bottom_in.xml
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="utf-8"?>
++<set xmlns:android="http://schemas.android.com/apk/res/android" >
++    <translate
++        android:duration="@android:integer/config_mediumAnimTime"
++        android:fromYDelta="100%p"
++        android:interpolator="@android:anim/accelerate_decelerate_interpolator"
++        android:toYDelta="0" />
++</set>
+\ No newline at end of file
+diff --git a/alps/packages/apps/Launcher3/res/anim/pw_push_bottom_out.xml b/alps/packages/apps/Launcher3/res/anim/pw_push_bottom_out.xml
+new file mode 100755
+index 0000000..6f72ad6
+--- /dev/null
++++ b/alps/packages/apps/Launcher3/res/anim/pw_push_bottom_out.xml
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="utf-8"?>
++<set xmlns:android="http://schemas.android.com/apk/res/android" >
++    <translate
++        android:duration="@android:integer/config_shortAnimTime"
++        android:fromYDelta="0"
++        android:interpolator="@android:anim/accelerate_decelerate_interpolator"
++        android:toYDelta="100%p" />
++</set>
+\ No newline at end of file
+diff --git a/alps/packages/apps/Launcher3/res/drawable/wallpaper_operation_cancel_button.xml b/alps/packages/apps/Launcher3/res/drawable/wallpaper_operation_cancel_button.xml
+new file mode 100755
+index 0000000..59418c4
+--- /dev/null
++++ b/alps/packages/apps/Launcher3/res/drawable/wallpaper_operation_cancel_button.xml
+@@ -0,0 +1,9 @@
++<?xml version="1.0" encoding="utf-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android" >
++    
++    <!-- 填充颜色 -->  
++    <solid android:color="#FFFFFF"></solid>       
++    <!-- 矩形的圆角半径 -->  
++    <corners android:radius="10dp" />         
++
++</shape>
+diff --git a/alps/packages/apps/Launcher3/res/drawable/wallpaper_opreation_button.xml b/alps/packages/apps/Launcher3/res/drawable/wallpaper_opreation_button.xml
+new file mode 100755
+index 0000000..4e6c897
+--- /dev/null
++++ b/alps/packages/apps/Launcher3/res/drawable/wallpaper_opreation_button.xml
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="utf-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android" >
++    <!-- 填充颜色 -->  
++    <solid android:color="#FFFFFF"></solid>       
++    <!-- 矩形的圆角半径 -->  
++    <corners android:radius="10dp"/>      
++</shape>
+diff --git a/alps/packages/apps/Launcher3/res/drawable/wallpapr_opreation_title.xml b/alps/packages/apps/Launcher3/res/drawable/wallpapr_opreation_title.xml
+new file mode 100755
+index 0000000..977b179
+--- /dev/null
++++ b/alps/packages/apps/Launcher3/res/drawable/wallpapr_opreation_title.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android" >
++    
++    <!-- 填充颜色 -->  
++    <solid android:color="#D3D3D3"></solid>       
++    <!-- 矩形的圆角半径 -->  
++    <corners android:topLeftRadius="10dp"
++   		     android:topRightRadius="10dp"/>         
++
++</shape>
+\ No newline at end of file
+diff --git a/alps/packages/apps/Launcher3/res/layout/popup_wallpaper_opreation.xml b/alps/packages/apps/Launcher3/res/layout/popup_wallpaper_opreation.xml
+new file mode 100755
+index 0000000..7091d00
+--- /dev/null
++++ b/alps/packages/apps/Launcher3/res/layout/popup_wallpaper_opreation.xml
+@@ -0,0 +1,78 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="wrap_content"
++    android:orientation="vertical" >
++    <LinearLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:layout_marginLeft="10dp"
++        android:layout_marginRight="10dp"
++        android:background="@drawable/wallpaper_opreation_button"
++        android:divider="?android:attr/listDivider"
++        android:orientation="vertical"
++        android:showDividers="middle" >
++		<TextView
++            android:id="@+id/setwallpaper_title"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:gravity="center"
++            android:minHeight="30dp"
++            android:background="@drawable/wallpapr_opreation_title"
++            android:text="@string/wallpaper_instructions"/>
++        <TextView
++            android:id="@+id/home"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:background="?android:attr/selectableItemBackground"
++            android:gravity="left"
++            android:minHeight="48dp"
++            android:paddingBottom="10dp"
++            android:paddingLeft="20dp"
++            android:paddingRight="20dp"
++            android:paddingTop="10dp"
++            android:text="@string/set_home_screen_title"/>
++        <TextView
++            android:id="@+id/lock"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:background="?android:attr/selectableItemBackground"
++            android:gravity="left"
++            android:minHeight="48dp"
++            android:paddingBottom="10dp"
++            android:paddingLeft="20dp"
++            android:paddingRight="20dp"
++            android:paddingTop="10dp"
++            android:text="@string/set_lock_screen_title"/>
++        <TextView
++            android:id="@+id/all"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:background="?android:attr/selectableItemBackground"
++            android:gravity="left"
++            android:minHeight="48dp"
++            android:paddingBottom="10dp"
++            android:paddingLeft="20dp"
++            android:paddingRight="20dp"
++            android:paddingTop="10dp"
++            android:text="@string/set_all_screen_title" />
++    </LinearLayout>
++    <FrameLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:layout_margin="10dp"
++        android:background="@drawable/wallpaper_operation_cancel_button" >
++        <TextView
++            android:id="@+id/cancel"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:background="?android:attr/selectableItemBackground"
++            android:gravity="center"
++            android:minHeight="48dp"
++            android:paddingBottom="10dp"
++            android:paddingLeft="20dp"
++            android:paddingRight="20dp"
++            android:paddingTop="10dp"
++            android:text="@android:string/cancel" />
++    </FrameLayout>
++</LinearLayout>
+diff --git a/alps/packages/apps/Launcher3/res/values/pw_anim.xml b/alps/packages/apps/Launcher3/res/values/pw_anim.xml
+new file mode 100755
+index 0000000..0ad075d
+--- /dev/null
++++ b/alps/packages/apps/Launcher3/res/values/pw_anim.xml
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources>
++    <style name="Animations_BottomPush">
++        <item name="android:windowEnterAnimation">@anim/pw_push_bottom_in</item>
++        <item name="android:windowExitAnimation">@anim/pw_push_bottom_out</item>
++    </style>
++</resources>
+\ No newline at end of file
+diff --git a/alps/packages/apps/Launcher3/res/values/strings.xml b/alps/packages/apps/Launcher3/res/values/strings.xml
+index 42bc5d1..c46ebe3 100755
+--- a/alps/packages/apps/Launcher3/res/values/strings.xml
++++ b/alps/packages/apps/Launcher3/res/values/strings.xml
+@@ -262,4 +262,8 @@
+     <string name="widget_resized">Widget resized to width <xliff:g id="number" example="2">%1$s</xliff:g> height <xliff:g id="number" example="1">%2$s</xliff:g></string>
+ 
+     <string name="folder_title_google">Google</string>
++	<string name="set_home_screen_title">Home screen</string>
++	<string name="set_lock_screen_title">Lock screen</string>
++	<string name="set_all_screen_title">Home and lock screens</string>
++	<string name="cancel_set_wallpaper">Cancel</string>
+ </resources>
+diff --git a/alps/packages/apps/Launcher3/src/com/android/launcher3/Launcher.java b/alps/packages/apps/Launcher3/src/com/android/launcher3/Launcher.java
+old mode 100644
+new mode 100755
+index 022822d..6351a24
+--- a/alps/packages/apps/Launcher3/src/com/android/launcher3/Launcher.java
++++ b/alps/packages/apps/Launcher3/src/com/android/launcher3/Launcher.java
+@@ -105,6 +105,7 @@ import android.widget.FrameLayout;
+ import android.widget.ImageView;
+ import android.widget.TextView;
+ import android.widget.Toast;
++import android.app.WallpaperManager;
+ 
+ import com.android.launcher3.DropTarget.DragObject;
+ import com.android.launcher3.PagedView.PageSwitchListener;
+@@ -122,7 +123,7 @@ import com.android.launcher3.util.Thunk;
+ import com.android.launcher3.widget.PendingAddWidgetInfo;
+ import com.android.launcher3.widget.WidgetHostViewLoader;
+ import com.android.launcher3.widget.WidgetsContainerView;
+-
++import com.android.launcher3.widget.BottomPushPopupWindow;
+ import com.mediatek.launcher3.ext.LauncherLog;
+ 
+ import java.io.File;
+@@ -478,7 +479,7 @@ public class Launcher extends Activity
+     ///M.
+ 
+     private String mCurrentQsbPkgName;
+-
++	OperationPopupWindow pw;
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+         if (DEBUG_STRICT_MODE) {
+@@ -626,7 +627,7 @@ public class Launcher extends Activity
+         } else {
+             showFirstRunActivity();
+             showFirstRunClings();
+-        }
++		}
+     }
+ 
+     @Override
+@@ -1086,6 +1087,9 @@ public class Launcher extends Activity
+         if (mLauncherCallbacks != null) {
+             mLauncherCallbacks.onStop();
+         }
++		if(pw!=null && pw.isShowing()){
++			pw.dismiss();
++		}
+     }
+ 
+     @Override
+@@ -1243,6 +1247,9 @@ public class Launcher extends Activity
+         if (mLauncherCallbacks != null) {
+             mLauncherCallbacks.onPause();
+         }
++		if(pw!=null && pw.isShowing()){
++			pw.dismiss();
++		}
+     }
+ 
+     public interface CustomContentCallbacks {
+@@ -1557,11 +1564,11 @@ public class Launcher extends Activity
+             @Override
+             public void onClick(View arg0) {
+                 ///M. ALPS02034541, aviod wallpaper button can be click twice.
+-                if (mWallpaperButtonEnable == true) {
++                /*if (mWallpaperButtonEnable == true) {
+                     mWallpaperButtonEnable = false;
+                 } else {
+                     return;
+-                }
++                }*/
+                 ///M.
+ 
+                 if (!mWorkspace.isSwitchingState()) {
+@@ -3054,13 +3061,71 @@ public class Launcher extends Activity
+      */
+     protected void onClickWallpaperPicker(View v) {
+         if (LOGD) Log.d(TAG, "onClickWallpaperPicker");
+-        startActivityForResult(new Intent(Intent.ACTION_SET_WALLPAPER).setPackage(getPackageName()),
+-                REQUEST_PICK_WALLPAPER);
+-
++        //startActivityForResult(new Intent(Intent.ACTION_SET_WALLPAPER).setPackage(getPackageName()),
++        //        REQUEST_PICK_WALLPAPER);	
++	    pw = new OperationPopupWindow(Launcher.this);		
++        pw.show(Launcher.this);
+         if (mLauncherCallbacks != null) {
+             mLauncherCallbacks.onClickWallpaperPicker(v);
+         }
+     }
++	public class OperationPopupWindow extends BottomPushPopupWindow<Void> {
++
++        public OperationPopupWindow(Context context) {
++            super(context, null);
++        }
++
++        @Override
++        protected View generateCustomView(Void data) {
++            View root = View.inflate(context, R.layout.popup_wallpaper_opreation, null);
++            View homeView = root.findViewById(R.id.home);
++            homeView.setOnClickListener(new View.OnClickListener() {
++                @Override
++                public void onClick(View v) {
++                    dismiss();
++					Log.d("wangjian","home");
++					final Intent pickWallpaper = new Intent(Intent.ACTION_SET_WALLPAPER);
++					pickWallpaper.setPackage(getPackageName());
++					pickWallpaper.putExtra("flag", WallpaperManager.SCREEN_WP_MODE);
++                    Launcher.this.startActivityForResult(pickWallpaper, REQUEST_PICK_WALLPAPER);
++					
++                }
++            });
++            View lockView = root.findViewById(R.id.lock);
++            lockView.setOnClickListener(new View.OnClickListener() {
++                @Override
++                public void onClick(View v) {
++                    dismiss();
++					Log.d("wangjian","lock");
++                    final Intent pickWallpaper = new Intent(Intent.ACTION_SET_WALLPAPER);
++					pickWallpaper.setPackage(getPackageName());
++					pickWallpaper.putExtra("flag", WallpaperManager.LOCK_WP_MODE);
++					Launcher.this.startActivityForResult(pickWallpaper, REQUEST_PICK_WALLPAPER);
++                }
++            });
++            View allView = root.findViewById(R.id.all);
++            allView.setOnClickListener(new View.OnClickListener() {
++				
++				@Override
++				public void onClick(View v) {
++					dismiss();
++					Log.d("wangjian","all");
++					final Intent pickWallpaper = new Intent(Intent.ACTION_SET_WALLPAPER);
++					pickWallpaper.setPackage(getPackageName());
++					pickWallpaper.putExtra("flag", WallpaperManager.ALL_WP_MODE);
++					Launcher.this.startActivityForResult(pickWallpaper, REQUEST_PICK_WALLPAPER);
++				}
++			});
++            View cancelView = root.findViewById(R.id.cancel);
++            cancelView.setOnClickListener(new View.OnClickListener() {
++                @Override
++                public void onClick(View v) {
++                    dismiss();
++                }
++            });
++            return root;
++        }
++    }
+ 
+     /**
+      * Event handler for a click on the settings button that appears after a long press
+diff --git a/alps/packages/apps/Launcher3/src/com/android/launcher3/widget/BottomPushPopupWindow.java b/alps/packages/apps/Launcher3/src/com/android/launcher3/widget/BottomPushPopupWindow.java
+new file mode 100755
+index 0000000..dc3b7c6
+--- /dev/null
++++ b/alps/packages/apps/Launcher3/src/com/android/launcher3/widget/BottomPushPopupWindow.java
+@@ -0,0 +1,105 @@
++package com.android.launcher3.widget;
++
++import android.annotation.TargetApi;
++import android.app.Activity;
++import android.content.Context;
++import android.graphics.PixelFormat;
++import android.os.IBinder;
++import android.view.Gravity;
++import android.view.KeyEvent;
++import android.view.View;
++import android.view.View.OnKeyListener;
++import android.view.ViewGroup;
++import android.view.WindowManager;
++import android.widget.PopupWindow;
++import com.android.launcher3.R;
++
++public abstract class BottomPushPopupWindow<T> extends PopupWindow {
++
++    protected Context context;
++    private WindowManager wm;
++    private View maskView;
++
++    @SuppressWarnings("deprecation")
++    public BottomPushPopupWindow(Context context, T t) {
++        super(context);
++        this.context = context;
++        wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
++        initType();
++        setContentView(generateCustomView(t));
++        setWidth(ViewGroup.LayoutParams.MATCH_PARENT);
++        setHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
++        setOutsideTouchable(true);
++        setFocusable(true);
++        setBackgroundDrawable(context.getResources().getDrawable(android.R.color.transparent));
++        setAnimationStyle(R.style.Animations_BottomPush);
++    }
++
++    protected abstract View generateCustomView(T t);
++
++    @TargetApi(23)
++    private void initType() {
++        // 解决手机在home建进入后台后，在进入应用，蒙层出现在popupWindow上层的bug。
++       
++        //setWindowLayoutType(WindowManager.LayoutParams.TYPE_APPLICATION_SUB_PANEL);
++    }
++
++    @Override
++    public void showAtLocation(View parent, int gravity, int x, int y) {
++        addMaskView(parent.getWindowToken());
++        super.showAtLocation(parent, gravity, x, y);
++    }
++
++    @Override
++    public void showAsDropDown(View anchor, int xoff, int yoff) {
++        addMaskView(anchor.getWindowToken());
++        super.showAsDropDown(anchor, xoff, yoff);
++    }
++
++    @Override
++    public void dismiss() {
++        removeMaskView();
++        super.dismiss();
++    }
++
++    /**
++     * 显示在界面的底部
++     */
++    public void show(Activity activity) {
++        showAtLocation(activity.getWindow().getDecorView(), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 0);
++    }
++
++    private void addMaskView(IBinder token) {
++        WindowManager.LayoutParams p = new WindowManager.LayoutParams();
++        p.width = WindowManager.LayoutParams.MATCH_PARENT;
++        p.height = WindowManager.LayoutParams.MATCH_PARENT;
++        p.format = PixelFormat.TRANSLUCENT;
++        p.type = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL;
++        p.token = token;
++        p.windowAnimations = android.R.style.Animation_Toast;
++        maskView = new View(context);
++        maskView.setBackgroundColor(0x7f000000);
++        maskView.setFitsSystemWindows(false);
++        // 华为手机在home建进入后台后，在进入应用，蒙层出现在popupWindow上层，导致界面卡死，
++        // 这里新增加按bug返回。
++        // initType方法已经解决该问题，但是还是留着这个按back返回功能，防止其他手机出现华为手机类似问题。
++        maskView.setOnKeyListener(new OnKeyListener() {
++            @Override
++            public boolean onKey(View v, int keyCode, KeyEvent event) {
++                if (keyCode == KeyEvent.KEYCODE_BACK) {
++                    removeMaskView();
++                    return true;
++                }
++                return false;
++            }
++        });
++        wm.addView(maskView, p);
++    }
++
++    private void removeMaskView() {
++        if (maskView != null) {
++            wm.removeViewImmediate(maskView);
++            maskView = null;
++        }
++    }
++}
+\ No newline at end of file
+diff --git a/alps/packages/apps/Settings/proguard.flags b/alps/packages/apps/Settings/proguard.flags
+index 40e0a14..a49a064 100755
+--- a/alps/packages/apps/Settings/proguard.flags
++++ b/alps/packages/apps/Settings/proguard.flags
+@@ -16,7 +16,7 @@
+ -keep class com.android.settings.users.*
+ -keep class com.android.settings.nfc.*
+ -keep class com.android.settings.notification.*
+-
++-keep class com.android.settings.WallpaperTypeSettingsEx
+ # Keep click responders
+ -keepclassmembers class com.android.settings.inputmethod.UserDictionaryAddWordActivity {
+   *** onClick*(...);
+diff --git a/alps/packages/apps/Settings/res/values/strings.xml b/alps/packages/apps/Settings/res/values/strings.xml
+index bd949ab..835ac4e 100755
+--- a/alps/packages/apps/Settings/res/values/strings.xml
++++ b/alps/packages/apps/Settings/res/values/strings.xml
+@@ -7020,4 +7020,7 @@
+    <string name="zzz_gesture_dialog_ok">OK</string>
+    <string name="zzz_gesture_dialog_cancel">Cancel</string>
+    <string name="zzz_gesture_dialog_warnning">Turning on this feature will consume more power.</string>
++	<string name="home_wallpaper_settings_title">Homescreen</string>
++	<string name="lockscreen_wallpaper_settings_title">Lockscreen</string>
++	<string name="home_lockscreen_wallpaper_settings_title">Homescreen and Lockscreen</string>
+ </resources>
+diff --git a/alps/packages/apps/Settings/res/xml/display_settings.xml b/alps/packages/apps/Settings/res/xml/display_settings.xml
+index ecbf6f8..f14b7ed 100755
+--- a/alps/packages/apps/Settings/res/xml/display_settings.xml
++++ b/alps/packages/apps/Settings/res/xml/display_settings.xml
+@@ -47,7 +47,7 @@
+                 android:key="wallpaper"
+                 android:title="@string/wallpaper_settings_title"
+                 settings:keywords="@string/keywords_display_wallpaper"
+-                android:fragment="com.android.settings.WallpaperTypeSettings" />
++                android:fragment="com.android.settings.WallpaperTypeSettingsEx" />
+ 
+         <ListPreference
+                 android:key="screen_timeout"
+diff --git a/alps/packages/apps/Settings/res/xml/display_settings_wallpaper.xml b/alps/packages/apps/Settings/res/xml/display_settings_wallpaper.xml
+new file mode 100755
+index 0000000..f547911
+--- /dev/null
++++ b/alps/packages/apps/Settings/res/xml/display_settings_wallpaper.xml
+@@ -0,0 +1,38 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!-- Copyright (C) 2010 The Android Open Source Project
++
++     Licensed under the Apache License, Version 2.0 (the "License");
++     you may not use this file except in compliance with the License.
++     You may obtain a copy of the License at
++
++          http://www.apache.org/licenses/LICENSE-2.0
++
++     Unless required by applicable law or agreed to in writing, software
++     distributed under the License is distributed on an "AS IS" BASIS,
++     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++     See the License for the specific language governing permissions and
++     limitations under the License.
++-->
++
++<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
++        android:title="@string/display_settings"
++        xmlns:settings="http://schemas.android.com/apk/res/com.android.settings">
++
++
++
++        <Preference
++                android:key="homescreen"
++                android:title="@string/home_wallpaper_settings_title" />
++		<Preference
++                android:key="lockscreen"
++                android:title="@string/lockscreen_wallpaper_settings_title" />
++		<Preference
++				android:key="allscreen"
++				android:title="@string/home_lockscreen_wallpaper_settings_title"/>
++		<!--<PreferenceScreen
++                android:key="wallpaper"
++                android:title="@string/home_lockscreen_wallpaper_settings_title"
++                android:fragment="com.android.settings.WallpaperTypeSettings" />-->
++       
++
++</PreferenceScreen>
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/AllWallpaperTypeSettings.java b/alps/packages/apps/Settings/src/com/android/settings/AllWallpaperTypeSettings.java
+new file mode 100755
+index 0000000..1e7b424
+--- /dev/null
++++ b/alps/packages/apps/Settings/src/com/android/settings/AllWallpaperTypeSettings.java
+@@ -0,0 +1,73 @@
++/*
++ * Copyright (C) 2011 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package com.android.settings;
++
++import android.app.Activity;
++import android.app.WallpaperManager;
++import android.content.ComponentName;
++import android.content.Intent;
++import android.content.pm.PackageManager;
++import android.content.pm.ResolveInfo;
++import android.os.Bundle;
++import android.preference.Preference;
++import android.preference.PreferenceScreen;
++import android.util.Log;
++import java.util.List;
++import com.android.internal.logging.MetricsLogger;
++public class AllWallpaperTypeSettings extends SettingsPreferenceFragment {
++
++	@Override
++	protected int getMetricsCategory() {
++	    return MetricsLogger.WALLPAPER_TYPE;
++	}
++
++	@Override
++    public void onCreate(Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++
++        addPreferencesFromResource(R.xml.wallpaper_settings);
++        populateWallpaperTypes();
++		//Log.e("chengrq","WallpaperTypeSettings");
++    }
++
++    private void populateWallpaperTypes() {
++        // Search for activities that satisfy the ACTION_SET_WALLPAPER action
++        Intent intent = new Intent(Intent.ACTION_SET_WALLPAPER);
++        final PackageManager pm = getPackageManager();
++        List<ResolveInfo> rList = pm.queryIntentActivities(intent,
++                PackageManager.MATCH_DEFAULT_ONLY);
++
++        final PreferenceScreen parent = getPreferenceScreen();
++        parent.setOrderingAsAdded(false);
++        // Add Preference items for each of the matching activities
++        for (ResolveInfo info : rList) {
++			if(info.activityInfo.packageName.equals("com.android.gallery3d")||
++			info.activityInfo.packageName.equals("com.android.launcher3")){
++				Preference pref = new Preference(getActivity());
++				Intent prefIntent = new Intent(intent);
++				prefIntent.putExtra("flag", WallpaperManager.ALL_WP_MODE);
++				prefIntent.setComponent(new ComponentName(
++						info.activityInfo.packageName, info.activityInfo.name));
++				pref.setIntent(prefIntent);
++				CharSequence label = info.loadLabel(pm);
++				if (label == null) label = info.activityInfo.packageName;
++				pref.setTitle(label);
++				parent.addPreference(pref);
++			}
++        }
++    }
++}
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/HomescreenWallpaperTypeSettings.java b/alps/packages/apps/Settings/src/com/android/settings/HomescreenWallpaperTypeSettings.java
+new file mode 100755
+index 0000000..51a73be
+--- /dev/null
++++ b/alps/packages/apps/Settings/src/com/android/settings/HomescreenWallpaperTypeSettings.java
+@@ -0,0 +1,73 @@
++/*
++ * Copyright (C) 2011 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package com.android.settings;
++
++import android.app.Activity;
++import android.content.ComponentName;
++import android.content.Intent;
++import android.content.pm.PackageManager;
++import android.content.pm.ResolveInfo;
++import android.os.Bundle;
++import android.preference.Preference;
++import android.preference.PreferenceScreen;
++import android.util.Log;
++import java.util.List;
++import com.android.internal.logging.MetricsLogger;
++public class HomescreenWallpaperTypeSettings extends SettingsPreferenceFragment {
++
++	@Override
++	protected int getMetricsCategory() {
++	    return MetricsLogger.WALLPAPER_TYPE;
++	}
++
++	@Override
++    public void onCreate(Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++
++        addPreferencesFromResource(R.xml.wallpaper_settings);
++        populateWallpaperTypes();
++		//Log.e("chengrq","WallpaperTypeSettings");
++    }
++
++    private void populateWallpaperTypes() {
++        // Search for activities that satisfy the ACTION_SET_WALLPAPER action
++        Intent intent = new Intent(Intent.ACTION_SET_WALLPAPER);
++        final PackageManager pm = getPackageManager();
++        List<ResolveInfo> rList = pm.queryIntentActivities(intent,
++                PackageManager.MATCH_DEFAULT_ONLY);
++
++        final PreferenceScreen parent = getPreferenceScreen();
++        parent.setOrderingAsAdded(false);
++        // Add Preference items for each of the matching activities
++        for (ResolveInfo info : rList) {
++			if(info.activityInfo.packageName.equals("com.android.wallpaper.livepicker")||
++			info.activityInfo.packageName.equals("com.android.gallery3d")||
++			info.activityInfo.packageName.equals("com.android.launcher3")){
++				Preference pref = new Preference(getActivity());
++				Intent prefIntent = new Intent(intent);
++				prefIntent.putExtra("flag", WallpaperTypeSettingsEx.SCREEN_WALLPAPER_MODE);
++				prefIntent.setComponent(new ComponentName(
++						info.activityInfo.packageName, info.activityInfo.name));
++				pref.setIntent(prefIntent);
++				CharSequence label = info.loadLabel(pm);
++				if (label == null) label = info.activityInfo.packageName;
++				pref.setTitle(label);
++				parent.addPreference(pref);
++			}
++        }
++    }
++}
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/LockscreenWallpaperTypeSettings.java b/alps/packages/apps/Settings/src/com/android/settings/LockscreenWallpaperTypeSettings.java
+new file mode 100755
+index 0000000..03d0cab
+--- /dev/null
++++ b/alps/packages/apps/Settings/src/com/android/settings/LockscreenWallpaperTypeSettings.java
+@@ -0,0 +1,72 @@
++/*
++ * Copyright (C) 2011 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package com.android.settings;
++
++import android.app.Activity;
++import android.content.ComponentName;
++import android.content.Intent;
++import android.content.pm.PackageManager;
++import android.content.pm.ResolveInfo;
++import android.os.Bundle;
++import android.preference.Preference;
++import android.preference.PreferenceScreen;
++import android.util.Log;
++import java.util.List;
++import com.android.internal.logging.MetricsLogger;
++public class LockscreenWallpaperTypeSettings extends SettingsPreferenceFragment {
++    @Override
++    public void onCreate(Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++
++        addPreferencesFromResource(R.xml.wallpaper_settings);
++        populateWallpaperTypes();
++		//Log.e("chengrq","LockscreenWallpaperTypeSettings");
++    }
++
++    private void populateWallpaperTypes() {
++        // Search for activities that satisfy the ACTION_SET_WALLPAPER action
++        Intent intent = new Intent(Intent.ACTION_SET_WALLPAPER);
++        final PackageManager pm = getPackageManager();
++        List<ResolveInfo> rList = pm.queryIntentActivities(intent,
++                PackageManager.MATCH_DEFAULT_ONLY);
++
++        final PreferenceScreen parent = getPreferenceScreen();
++        parent.setOrderingAsAdded(false);
++        // Add Preference items for each of the matching activities
++        for (ResolveInfo info : rList) {
++            if(info.activityInfo.packageName.equals("com.android.gallery3d")||
++			info.activityInfo.packageName.equals("com.android.launcher3")){
++				Preference pref = new Preference(getActivity());
++				Intent prefIntent = new Intent(intent);
++				//add a flag for lock wallpaper
++				prefIntent.putExtra("flag", WallpaperTypeSettingsEx.LOCK_WALLPAPER_MODE);
++				prefIntent.setComponent(new ComponentName(
++						info.activityInfo.packageName, info.activityInfo.name));
++				pref.setIntent(prefIntent);
++				CharSequence label = info.loadLabel(pm);
++				if (label == null) label = info.activityInfo.packageName;
++				pref.setTitle(label);
++				parent.addPreference(pref);
++			}
++        }
++    }
++	@Override
++	protected int getMetricsCategory() {
++		return MetricsLogger.WALLPAPER_TYPE;
++	}
++
++}
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/WallpaperTypeSettingsEx.java b/alps/packages/apps/Settings/src/com/android/settings/WallpaperTypeSettingsEx.java
+new file mode 100755
+index 0000000..bedc050
+--- /dev/null
++++ b/alps/packages/apps/Settings/src/com/android/settings/WallpaperTypeSettingsEx.java
+@@ -0,0 +1,96 @@
++/*
++ * Copyright (C) 2011 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package com.android.settings;
++
++import android.app.Activity;
++import android.content.ComponentName;
++import android.content.Intent;
++import android.content.pm.PackageManager;
++import android.content.pm.ResolveInfo;
++import android.os.Bundle;
++import android.preference.Preference;
++import android.preference.PreferenceScreen;
++import android.util.Log;
++import java.util.List;
++import com.android.internal.logging.MetricsLogger;
++import android.app.WallpaperManager;
++import android.content.Context;
++public class WallpaperTypeSettingsEx extends SettingsPreferenceFragment {
++	
++	public static final int SCREEN_WALLPAPER_MODE = 0;
++	public static final int LOCK_WALLPAPER_MODE = 1;
++	private static final String HOME_WP_SETTING = "homescreen";
++	private static final String LOCK_WP_SETTING = "lockscreen";
++	private static final String ALL_WP_SETTING = "allscreen";
++	public Context mContext;
++	@Override
++	protected int getMetricsCategory() {
++	    return MetricsLogger.WALLPAPER_TYPE;
++	}
++
++	@Override
++    public void onCreate(Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++		mContext = getActivity();
++        addPreferencesFromResource(R.xml.display_settings_wallpaper);
++		Log.e("chengrq","WallpaperTypeSettingsEx");
++        //populateWallpaperTypes();
++    }
++	 @Override
++    public boolean onPreferenceTreeClick(final PreferenceScreen preferenceScreen,
++            final Preference preference) {
++        final Context context = mContext;
++        Intent intent = new Intent(Intent.ACTION_SET_WALLPAPER);
++		intent.setPackage("com.android.launcher3");
++        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
++
++		if (findPreference(HOME_WP_SETTING) == preference) {
++            intent.putExtra("flag", WallpaperManager.SCREEN_WP_MODE);
++            context.startActivity(intent);
++        } else if (findPreference(LOCK_WP_SETTING) == preference) {
++            intent.putExtra("flag", WallpaperManager.LOCK_WP_MODE);
++            context.startActivity(intent);
++        } else if (findPreference(ALL_WP_SETTING) == preference) {
++            intent.putExtra("flag", WallpaperManager.ALL_WP_MODE);
++            context.startActivity(intent);
++        }
++
++        return true;
++    }
++    private void populateWallpaperTypes() {
++        // Search for activities that satisfy the ACTION_SET_WALLPAPER action
++        Intent intent = new Intent(Intent.ACTION_SET_WALLPAPER);
++        final PackageManager pm = getPackageManager();
++        List<ResolveInfo> rList = pm.queryIntentActivities(intent,
++                PackageManager.MATCH_DEFAULT_ONLY);
++
++        final PreferenceScreen parent = getPreferenceScreen();
++        parent.setOrderingAsAdded(false);
++        // Add Preference items for each of the matching activities
++        for (ResolveInfo info : rList) {
++            Preference pref = new Preference(getActivity());
++            Intent prefIntent = new Intent(intent);
++            prefIntent.setComponent(new ComponentName(
++                    info.activityInfo.packageName, info.activityInfo.name));
++            pref.setIntent(prefIntent);
++            CharSequence label = info.loadLabel(pm);
++            if (label == null) label = info.activityInfo.packageName;
++            pref.setTitle(label);
++            parent.addPreference(pref);
++        }
++    }
++}
+-- 
+1.7.9.5
+

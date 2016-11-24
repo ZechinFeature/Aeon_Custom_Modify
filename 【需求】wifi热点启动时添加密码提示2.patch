@@ -1,0 +1,83 @@
+From b94b005c989e941b50ad2f6665ad0ee0bf3e1da5 Mon Sep 17 00:00:00 2001
+From: guoxiaolin <guo.xiaolin@eastaeon.com>
+Date: Fri, 18 Mar 2016 15:17:52 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91wifi=E7=83=AD?=
+ =?UTF-8?q?=E7=82=B9=E5=90=AF=E5=8A=A8=E6=97=B6=E6=B7=BB=E5=8A=A0=E5=AF=86=E7?=
+ =?UTF-8?q?=A0=81=E6=8F=90=E7=A4=BA2?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../res/layout/wifi_ap_password_dialog.xml         |   59 ++++++++++++++++++++
+ 1 file changed, 59 insertions(+)
+ create mode 100755 alps/packages/apps/Settings/res/layout/wifi_ap_password_dialog.xml
+
+diff --git a/alps/packages/apps/Settings/res/layout/wifi_ap_password_dialog.xml b/alps/packages/apps/Settings/res/layout/wifi_ap_password_dialog.xml
+new file mode 100755
+index 0000000..585b3bb
+--- /dev/null
++++ b/alps/packages/apps/Settings/res/layout/wifi_ap_password_dialog.xml
+@@ -0,0 +1,59 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!-- Copyright (C) 2010 The Android Open Source Project
++
++     Licensed under the Apache License, Version 2.0 (the "License");
++     you may not use this file except in compliance with the License.
++     You may obtain a copy of the License at
++
++          http://www.apache.org/licenses/LICENSE-2.0
++
++     Unless required by applicable law or agreed to in writing, software
++     distributed under the License is distributed on an "AS IS" BASIS,
++     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++     See the License for the specific language governing permissions and
++     limitations under the License.
++-->
++
++<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
++         android:layout_width="300sp"
++         android:layout_height="wrap_content"
++         android:fadeScrollbars="false">
++
++    <LinearLayout
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:descendantFocusability="beforeDescendants"
++            android:focusableInTouchMode="true"
++            android:orientation="vertical">
++
++            <LinearLayout
++                    android:layout_width="match_parent"
++                    android:layout_height="wrap_content"
++                    style="@style/wifi_item">
++
++                <TextView android:id="@+id/tssid"
++                        android:layout_width="match_parent"
++                        android:layout_height="wrap_content"
++						android:text="@string/wifi_ssid"
++                        style="@style/wifi_item_label" />
++                <EditText android:id="@+id/ssid"
++                        android:layout_width="match_parent"
++                        android:layout_height="wrap_content"
++						android:textDirection="locale"
++						android:editable="false"
++                        style="@style/wifi_item_edit_content" />
++				<TextView android:id="@+id/tpassword"
++                        android:layout_width="match_parent"
++                        android:layout_height="wrap_content"
++						android:text="@string/security_passwords_title"
++						style="@style/wifi_item_label"
++						/>
++				<EditText android:id="@+id/password"
++                        android:layout_width="match_parent"
++                        android:layout_height="wrap_content"
++						android:editable="false"
++						android:textDirection="locale"
++                        style="@style/wifi_item_edit_content" />
++            </LinearLayout>
++	</LinearLayout>
++</ScrollView>
+-- 
+1.7.9.5
+

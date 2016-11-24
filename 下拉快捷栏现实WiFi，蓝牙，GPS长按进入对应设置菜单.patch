@@ -1,0 +1,149 @@
+From ca846db0c25243775285126e5fecfe11832cea5b Mon Sep 17 00:00:00 2001
+From: "Deng.yang" <deng.yang@eastaeon.com>
+Date: Fri, 11 Mar 2016 18:11:28 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E4=B8=8B=E6=8B?=
+ =?UTF-8?q?=89=E5=BF=AB=E6=8D=B7=E6=A0=8F=E7=8E=B0=E5=AE=9EWiFi=EF=BC=8C=E8=93?=
+ =?UTF-8?q?=9D=E7=89=99=EF=BC=8CGPS=E9=95=BF=E6=8C=89=E8=BF=9B=E5=85=A5=E5=AF?=
+ =?UTF-8?q?=B9=E5=BA=94=E8=AE=BE=E7=BD=AE=E8=8F=9C=E5=8D=95?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../src/com/android/systemui/qs/QSPanel.java       |    3 +++
+ .../src/com/android/systemui/qs/QSTileView.java    |    1 +
+ .../android/systemui/qs/tiles/BluetoothTile.java   |    9 ++++++++-
+ .../android/systemui/qs/tiles/LocationTile.java    |    9 +++++++++
+ .../com/android/systemui/qs/tiles/WifiTile.java    |    7 +++++++
+ 5 files changed, 28 insertions(+), 1 deletion(-)
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/QSPanel.java
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/QSTileView.java
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/BluetoothTile.java
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/LocationTile.java
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/WifiTile.java
+
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/QSPanel.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/QSPanel.java
+old mode 100644
+new mode 100755
+index 94d5170..5f829a7
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/QSPanel.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/QSPanel.java
+@@ -44,6 +44,7 @@ import com.android.systemui.statusbar.policy.BrightnessMirrorController;
+ 
+ import java.util.ArrayList;
+ import java.util.Collection;
++import android.util.Log;
+ 
+ /** View that represents the quick settings tile panel. **/
+ public class QSPanel extends ViewGroup {
+@@ -322,6 +323,7 @@ public class QSPanel extends ViewGroup {
+         final View.OnLongClickListener longClick = new View.OnLongClickListener() {
+             @Override
+             public boolean onLongClick(View v) {
++				Log.d("QSPanel----->","onLongClick----");
+                 r.tile.longClick();
+                 return true;
+             }
+@@ -394,6 +396,7 @@ public class QSPanel extends ViewGroup {
+                 @Override
+                 public void onClick(View v) {
+                     mHost.startActivityDismissingKeyguard(settingsIntent);
++					Log.d("QSPanel--------->","settingsIntent = " + settingsIntent);
+                 }
+             });
+ 
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/QSTileView.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/QSTileView.java
+old mode 100644
+new mode 100755
+index 7ff4362..75e4404
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/QSTileView.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/QSTileView.java
+@@ -185,6 +185,7 @@ public class QSTileView extends ViewGroup {
+         }
+         if (dual) {
+             mTopBackgroundView.setOnClickListener(mClickPrimary);
++			mTopBackgroundView.setOnLongClickListener(mLongClick);
+             setOnClickListener(null);
+             setClickable(false);
+             setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/BluetoothTile.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/BluetoothTile.java
+old mode 100644
+new mode 100755
+index abce31f..148e225
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/BluetoothTile.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/BluetoothTile.java
+@@ -79,7 +79,7 @@ public class BluetoothTile extends QSTile<QSTile.BooleanState>  {
+         MetricsLogger.action(mContext, getMetricsCategory(), !isEnabled);
+         mController.setBluetoothEnabled(!isEnabled);
+     }
+-
++	
+     @Override
+     protected void handleSecondaryClick() {
+         if (!mState.value) {
+@@ -88,6 +88,13 @@ public class BluetoothTile extends QSTile<QSTile.BooleanState>  {
+         }
+         showDetail(true);
+     }
++	
++	@Override
++	protected void handleLongClick() {
++		android.util.Log.d("BluetoothTile-------->","handleLongClick-----");
++        Intent intent = new Intent("android.settings.BLUETOOTH_SETTINGS");
++        mHost.startActivityDismissingKeyguard(intent);
++    }
+ 
+     @Override
+     protected void handleUpdateState(BooleanState state, Object arg) {
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/LocationTile.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/LocationTile.java
+old mode 100644
+new mode 100755
+index e6fade4..00c4d90
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/LocationTile.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/LocationTile.java
+@@ -18,6 +18,8 @@ package com.android.systemui.qs.tiles;
+ 
+ import com.android.internal.logging.MetricsLogger;
+ import com.android.systemui.R;
++import android.content.ComponentName;
++import android.content.Intent;
+ import com.android.systemui.qs.QSTile;
+ import com.android.systemui.statusbar.policy.KeyguardMonitor;
+ import com.android.systemui.statusbar.policy.LocationController;
+@@ -65,6 +67,13 @@ public class LocationTile extends QSTile<QSTile.BooleanState> {
+         mEnable.setAllowAnimation(true);
+         mDisable.setAllowAnimation(true);
+     }
++	
++	@Override
++	protected void handleLongClick() {
++		android.util.Log.d("LocationTile-------->","handleLongClick-----");
++        Intent intent = new Intent("android.settings.LOCATION_SOURCE_SETTINGS");
++        mHost.startActivityDismissingKeyguard(intent);
++    }
+ 
+     @Override
+     protected void handleUpdateState(BooleanState state, Object arg) {
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/WifiTile.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/WifiTile.java
+old mode 100644
+new mode 100755
+index e654efd..c92c22b
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/WifiTile.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/qs/tiles/WifiTile.java
+@@ -114,6 +114,13 @@ public class WifiTile extends QSTile<QSTile.SignalState> {
+         }
+         showDetail(true);
+     }
++	
++	@Override
++	protected void handleLongClick() {
++		android.util.Log.d("BluetoothTile-------->","handleLongClick-----");
++        Intent intent = new Intent("android.settings.WIFI_SETTINGS");
++        mHost.startActivityDismissingKeyguard(intent);
++    }
+ 
+     @Override
+     protected void handleUpdateState(SignalState state, Object arg) {
+-- 
+1.7.9.5
+

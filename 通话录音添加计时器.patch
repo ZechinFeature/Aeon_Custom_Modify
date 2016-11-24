@@ -1,0 +1,96 @@
+From d1e2c574d66fa200e0a0a30e6b3d1a9939753a4d Mon Sep 17 00:00:00 2001
+From: guoxiaolin <guo.xiaolin@eastaeon.com>
+Date: Tue, 15 Mar 2016 19:41:27 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E9=80=9A=E8=AF?=
+ =?UTF-8?q?=9D=E5=BD=95=E9=9F=B3=E6=B7=BB=E5=8A=A0=E8=AE=A1=E6=97=B6=E5=99=A8?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../InCallUI/res/layout/call_card_fragment.xml     |    8 +++++++-
+ .../src/com/android/incallui/CallCardFragment.java |   13 ++++++++++++-
+ 2 files changed, 19 insertions(+), 2 deletions(-)
+ mode change 100644 => 100755 alps/packages/apps/InCallUI/res/layout/call_card_fragment.xml
+ mode change 100644 => 100755 alps/packages/apps/InCallUI/src/com/android/incallui/CallCardFragment.java
+
+diff --git a/alps/packages/apps/InCallUI/res/layout/call_card_fragment.xml b/alps/packages/apps/InCallUI/res/layout/call_card_fragment.xml
+old mode 100644
+new mode 100755
+index ee3a7cc..a26125a
+--- a/alps/packages/apps/InCallUI/res/layout/call_card_fragment.xml
++++ b/alps/packages/apps/InCallUI/res/layout/call_card_fragment.xml
+@@ -86,7 +86,7 @@
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:layout_below="@id/primary_call_info_container" />
+-
++		
+         <!-- M:[Voice Record]record icon -->
+         <!-- M:fix ALPS02297097,recording icon still at the right
+         side as Arabic,correct layout_gravity from right to end -->
+@@ -97,6 +97,12 @@
+                   android:layout_marginEnd="10dip"
+                   android:layout_marginTop="10dip"
+                   android:visibility="gone" />
++		<Chronometer android:id="@+id/voiceRecorderTime"
++				  android:layout_width="wrap_content"
++				  android:layout_height="wrap_content"
++				  android:layout_toRightOf="@id/voiceRecorderIcon"
++				  android:textAppearance="?android:attr/textAppearanceMedium"
++				  android:background="@android:color/white" />
+ 
+     </FrameLayout>
+ 
+diff --git a/alps/packages/apps/InCallUI/src/com/android/incallui/CallCardFragment.java b/alps/packages/apps/InCallUI/src/com/android/incallui/CallCardFragment.java
+old mode 100644
+new mode 100755
+index 9ca40f4..e33d38f
+--- a/alps/packages/apps/InCallUI/src/com/android/incallui/CallCardFragment.java
++++ b/alps/packages/apps/InCallUI/src/com/android/incallui/CallCardFragment.java
+@@ -65,7 +65,8 @@ import com.mediatek.incallui.wrapper.FeatureOptionWrapper;
+ 
+ import java.util.List;
+ import java.util.Locale;
+-
++import android.widget.Chronometer;
++import android.os.SystemClock;
+ /**
+  * Fragment for call card.
+  */
+@@ -1409,8 +1410,11 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
+ 
+     /// M: [Voice Record]recording indication icon @{
+     private ImageView mVoiceRecorderIcon;
++	private Chronometer mVoiceRecorderTime;
+ 
+     private void initVoiceRecorderIcon(View view) {
++		mVoiceRecorderTime = (Chronometer) view.findViewById(R.id.voiceRecorderTime);
++		mVoiceRecorderTime.setVisibility(View.INVISIBLE);
+         mVoiceRecorderIcon = (ImageView) view.findViewById(R.id.voiceRecorderIcon);
+         mVoiceRecorderIcon.setImageResource(R.drawable.voice_record);
+         mVoiceRecorderIcon.setVisibility(View.INVISIBLE);
+@@ -1419,6 +1423,7 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
+     @Override
+     public void updateVoiceRecordIcon(boolean show) {
+         mVoiceRecorderIcon.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
++		mVoiceRecorderTime.setVisibility(show ? View.VISIBLE : View.INVISIBLE);
+         AnimationDrawable ad = (AnimationDrawable) mVoiceRecorderIcon.getDrawable();
+         if (ad != null) {
+             if (show && !ad.isRunning()) {
+@@ -1427,6 +1432,12 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
+                 ad.stop();
+             }
+         }
++        if (show) {
++			mVoiceRecorderTime.setBase(SystemClock.elapsedRealtime()); 
++			mVoiceRecorderTime.start();  
++        } else {
++			mVoiceRecorderTime.stop(); 
++			}
+         /// M:[RCS] plugin API @{
+         ExtensionManager.getRCSeCallCardExt().updateVoiceRecordIcon(show);
+         /// @}
+-- 
+1.7.9.5
+

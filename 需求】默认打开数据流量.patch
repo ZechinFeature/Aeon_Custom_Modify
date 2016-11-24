@@ -1,0 +1,139 @@
+From 42c58af29f46ef638c6cb901f08f18e44422b2cc Mon Sep 17 00:00:00 2001
+From: wanghuan <wang.huan@eastaeon.com>
+Date: Mon, 11 Apr 2016 11:18:12 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82=E3=80=91=E9=BB=98=E8=AE=A4=E6?=
+ =?UTF-8?q?=89=93=E5=BC=80=E6=95=B0=E6=8D=AE=E6=B5=81=E9=87=8F?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../com/android/internal/telephony/PhoneBase.java  |    4 ++--
+ .../telephony/dataconnection/DataSubSelector.java  |   24 ++++++++++----------
+ 2 files changed, 14 insertions(+), 14 deletions(-)
+ mode change 100644 => 100755 alps/frameworks/opt/telephony/src/java/com/mediatek/internal/telephony/dataconnection/DataSubSelector.java
+
+diff --git a/alps/frameworks/opt/telephony/src/java/com/android/internal/telephony/PhoneBase.java b/alps/frameworks/opt/telephony/src/java/com/android/internal/telephony/PhoneBase.java
+index 9f6f4cc..5a629a8 100644
+--- a/alps/frameworks/opt/telephony/src/java/com/android/internal/telephony/PhoneBase.java
++++ b/alps/frameworks/opt/telephony/src/java/com/android/internal/telephony/PhoneBase.java
+@@ -2657,12 +2657,12 @@ public abstract class PhoneBase extends Handler implements Phone {
+             restoreSavedNetworkSelection(null);
+         }
+         /// M: default data customization, we use DataSubSelector for op.
+-        if (OPERATOR_OM.equals(SystemProperties.get(PROPERTY_OPERATOR, OPERATOR_OM)) &&
++        /*if (OPERATOR_OM.equals(SystemProperties.get(PROPERTY_OPERATOR, OPERATOR_OM)) &&
+                 (!CdmaFeatureOptionUtils.isCT6MSupport() ||
+                 TelephonyManager.getDefault().getPhoneCount() == 1)) {
+             Rlog.d(LOG_TAG, "load version om. restore data switch.");
+             mDcTracker.setDataEnabled(getDataEnabled());
+-        }
++        }*/
+     }
+ 
+     protected void setPreferredNetworkTypeIfSimLoaded() {
+diff --git a/alps/frameworks/opt/telephony/src/java/com/mediatek/internal/telephony/dataconnection/DataSubSelector.java b/alps/frameworks/opt/telephony/src/java/com/mediatek/internal/telephony/dataconnection/DataSubSelector.java
+old mode 100644
+new mode 100755
+index a5dc457..4a58f08
+--- a/alps/frameworks/opt/telephony/src/java/com/mediatek/internal/telephony/dataconnection/DataSubSelector.java
++++ b/alps/frameworks/opt/telephony/src/java/com/mediatek/internal/telephony/dataconnection/DataSubSelector.java
+@@ -507,7 +507,7 @@ public class DataSubSelector {
+         }
+         return false;
+     }
+-
++/*
+     private void subSelectorForOm(Intent intent) {
+         log("DataSubSelector for OM: only for capability switch; for default data, use google");
+ 
+@@ -592,9 +592,9 @@ public class DataSubSelector {
+         // clean system property
+         resetSimStatus();
+         resetNewSimSlot();
+-    }
++    }*/
+ 
+-    /*private void subSelectorForOm(Intent intent) {
++    private void subSelectorForOm(Intent intent) {
+         int phoneId = SubscriptionManager.INVALID_PHONE_INDEX;
+         int insertedSimCount = 0;
+         int insertedStatus = 0;
+@@ -604,7 +604,7 @@ public class DataSubSelector {
+         log("DataSubSelector for OM");
+ 
+         for (int i = 0; i < mPhoneNum; i++) {
+-            currIccId[i] = SystemProperties.get(PROPERTY_ICCID + (i + 1));
++            currIccId[i] = SystemProperties.get(PROPERTY_ICCID[i]);
+             if (!NO_SIM_VALUE.equals(currIccId[i])) {
+                 ++insertedSimCount;
+                 insertedStatus = insertedStatus | (1 << i);
+@@ -640,7 +640,7 @@ public class DataSubSelector {
+                 if (setCapability(phoneId)) {
+                     setDefaultData(phoneId);
+                 }
+-                setDataEnable(false);
++                setDataEnabled(phoneId, true);
+             } else {
+                 if (defaultIccid == null || "".equals(defaultIccid)) {
+                     //It happened from two SIMs without default SIM -> remove one SIM.
+@@ -652,7 +652,7 @@ public class DataSubSelector {
+                     if (setCapability(phoneId)) {
+                         setDefaultData(phoneId);
+                     }
+-                    setDataEnable(false);
++                    setDataEnabled(phoneId, true);
+                 } else {
+                     if (defaultIccid.equals(currIccId[phoneId])) {
+                         // Case 2: Single SIM + Defult Data SIM:
+@@ -672,7 +672,7 @@ public class DataSubSelector {
+                         if (setCapability(phoneId)) {
+                             setDefaultData(phoneId);
+                         }
+-                        setDataEnable(false);
++                        setDataEnabled(phoneId, true);
+                     }
+                 }
+             }
+@@ -695,9 +695,9 @@ public class DataSubSelector {
+                     // 3. 34G: Sub1
+                     log("C4: Multi SIM + All New SIM: Set 34G to sub1");
+                     if (setCapability(PhoneConstants.SIM_ID_1)) {
+-                        setDefaultData(SubscriptionManager.INVALID_PHONE_INDEX);
++                        setDefaultData(PhoneConstants.SIM_ID_1);
+                     }
+-                    setDataEnable(false);
++                    setDataEnabled(PhoneConstants.SIM_ID_1,true);
+                 } else {
+                     if (defaultIccid == null || "".equals(defaultIccid)) {
+                         //Not found previous default SIM, don't change.
+@@ -707,7 +707,7 @@ public class DataSubSelector {
+                         // 3. 34G: No Change
+                         log("C6: Multi SIM + New SIM + Non Default SIM: No Change");
+                         setDefaultData(SubscriptionManager.INVALID_PHONE_INDEX);
+-                        setDataEnable(false);
++                        //setDataEnable(false);
+                     } else {
+                         for (int i = 0; i < mPhoneNum; i++) {
+                             if (defaultIccid.equals(currIccId[i])) {
+@@ -733,7 +733,7 @@ public class DataSubSelector {
+                             // 3. 34G: No Change
+                             log("C6: Multi SIM + New SIM + Non Default SIM: No Change");
+                             setDefaultData(SubscriptionManager.INVALID_PHONE_INDEX);
+-                            setDataEnable(false);
++                            //setDataEnable(false);
+                         }
+                     }
+                 }
+@@ -773,7 +773,7 @@ public class DataSubSelector {
+                 }
+             }
+         }
+-    }*/
++    }
+ 
+     private void subSelectorForOp02(Intent intent) {
+         int phoneId = SubscriptionManager.INVALID_PHONE_INDEX;
+-- 
+1.7.9.5
+

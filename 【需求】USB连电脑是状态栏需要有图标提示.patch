@@ -1,0 +1,152 @@
+From 01879a7807c27a4c49dac34665d3a85e7a48d40d Mon Sep 17 00:00:00 2001
+From: "xia.youying" <xia.youying@eastaeon.com>
+Date: Thu, 18 Aug 2016 18:16:11 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91USB=E8=BF=9E=E7?=
+ =?UTF-8?q?=94=B5=E8=84=91=E6=98=AF=E7=8A=B6=E6=80=81=E6=A0=8F=E9=9C=80=E8=A6?=
+ =?UTF-8?q?=81=E6=9C=89=E5=9B=BE=E6=A0=87=E6=8F=90=E7=A4=BA?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ alps/frameworks/base/api/current.txt               |    1 +
+ alps/frameworks/base/api/system-current.txt        |    1 +
+ .../res/drawable-xhdpi/stat_notify_plug_usb.png    |  Bin 0 -> 1193 bytes
+ .../res/drawable-xxhdpi/stat_notify_plug_usb.png   |  Bin 0 -> 743 bytes
+ .../frameworks/base/core/res/res/values/public.xml |    3 ++-
+ .../com/android/server/usb/UsbDeviceManager.java   |    5 ++++-
+ 6 files changed, 8 insertions(+), 2 deletions(-)
+ create mode 100755 alps/frameworks/base/core/res/res/drawable-xhdpi/stat_notify_plug_usb.png
+ create mode 100755 alps/frameworks/base/core/res/res/drawable-xxhdpi/stat_notify_plug_usb.png
+ mode change 100644 => 100755 alps/frameworks/base/services/usb/java/com/android/server/usb/UsbDeviceManager.java
+
+diff --git a/alps/frameworks/base/api/current.txt b/alps/frameworks/base/api/current.txt
+index 35196d2..00f3b04 100644
+--- a/alps/frameworks/base/api/current.txt
++++ b/alps/frameworks/base/api/current.txt
+@@ -1617,6 +1617,7 @@ package android {
+     field public static final int stat_notify_error = 17301624; // 0x1080078
+     field public static final int stat_notify_missed_call = 17301631; // 0x108007f
+     field public static final int stat_notify_more = 17301625; // 0x1080079
++    field public static final int stat_notify_plug_usb = 17301684; // 0x10800b4
+     field public static final int stat_notify_sdcard = 17301626; // 0x108007a
+     field public static final int stat_notify_sdcard_prepare = 17301675; // 0x10800ab
+     field public static final int stat_notify_sdcard_usb = 17301627; // 0x108007b
+diff --git a/alps/frameworks/base/api/system-current.txt b/alps/frameworks/base/api/system-current.txt
+index 5e707bf..d2eb0ff 100644
+--- a/alps/frameworks/base/api/system-current.txt
++++ b/alps/frameworks/base/api/system-current.txt
+@@ -1713,6 +1713,7 @@ package android {
+     field public static final int stat_notify_error = 17301624; // 0x1080078
+     field public static final int stat_notify_missed_call = 17301631; // 0x108007f
+     field public static final int stat_notify_more = 17301625; // 0x1080079
++    field public static final int stat_notify_plug_usb = 17301684; // 0x10800b4
+     field public static final int stat_notify_sdcard = 17301626; // 0x108007a
+     field public static final int stat_notify_sdcard_prepare = 17301675; // 0x10800ab
+     field public static final int stat_notify_sdcard_usb = 17301627; // 0x108007b
+diff --git a/alps/frameworks/base/core/res/res/drawable-xhdpi/stat_notify_plug_usb.png b/alps/frameworks/base/core/res/res/drawable-xhdpi/stat_notify_plug_usb.png
+new file mode 100755
+index 0000000000000000000000000000000000000000..202fd570121414dedd3cd9aeb47f70f4331bcedb
+GIT binary patch
+literal 1193
+zcmV;a1XlZrP)<h;3K|Lk000e1NJLTq001xm001xu1^@s6R|5Hm00004XF*Lt006O%
+z3;baP0000WV@Og>004R>004l5008;`004mK004C`008P>0026e000+ooVrmw00006
+zVoOIv00000008+zyMF)x010qNS#tmY3labT3lag+-G2N400a$5L_t(&-tC#Yt6WtS
+z#=kX>#H0u&5+#CSY%FXdqDZcd5VY_nNUje=4OZ#WSO^v=Oc7G$53o)VkgMESSO^B=
+zgNTHbHlm24h>(Eh8t**L&*H3Ymd7(Q=S=3#oGUKa%$~I$v%YVyz4uysr2pkVEI<or
+zE!vK0jkmJ;mXO3c@FZ|B>KZTZHU``a{0Mvl?A<c%6aak4Ejj0H?M2%+&Ts=dUO(-I
+z_kn@ePk38r(YB5Pko^8dH+TccfFaNWt^tq7zKxM!{8NmVpMeK`wMLdYzde)XG_%aB
+z2PIvQv?1v}Nl&=`vZNm*?U1x&X5Rv>Fs^w5916@IDrs*6J4cktn|-Ff=tk`Tx{~&U
+zraeH{+qSuGS<<hPe)7*)U-tPXdPr>-a(_<@Wo9-^ZDuwE`err&hGE#y%=!R9*OjzW
+zQWl6z^=?&rY5@Su{WdGnQ)e!p14%<kY2&7P<-JiEKr#||M$+rbSK&P~J3oc-azicD
+z%k;AY;Km=3^uBH_`3u0al8!4sdFlYkBn=9>+AC0Z6QA%ge@g26556kth`Uyu`R;H6
+ztwgtd<^cR;+2!nXy(AxgICZNsm4ALGY0bwc-RF{4C4FCYzB-$DsQj2~d0oz4ThiCz
+z`&jXl%FOJtr00MePKHT(+sr<SeJ9OVc?H}>PB}Ym2hn!ME_etq(RckAPN7F}6W{6g
+z#kNWF)CK^w&FreAli^1<Bpo-ibqC3q@g}KjW|^<T-ICr??(b<o$;|pyh)7b$h0NLe
+zJ?I9KdR6WLZ@&pVAn7&b2f|+EexB@DuVGJZ05Y>IT<_+(8_sZhjL-IfdnCOn>3K=_
+z$7v;fCF!iBPkf~&`hIN*$;werRC->H`3aT!ZTGNv#RIt^@TrH=Mfn1Fc`lh+0FV-v
+zLCCiLWk~4PD>3{_;H3ia_NKmGgrwymU=8?Vgki6EUi@^(%tkW4usj)f3^)V)QUc^-
+z;N9RtSLV+67{jf=;9bBQ&TdhX`y35MH{)f(jcJANU0@mb0JvEM;QcGd`SS!~MOJ}F
+zfz_}QE3TjUlge$Ulx9YXZ=B_hnO%|e&O8X5Sx%gQNPnMLyS5a7GEAZVkNwhg0O`Hw
+zdeB{;BH@|8q|FR00hhuiz631AK8=%bQy&I?bHg()xbAT5+ZahVDzKmY5f=~mDAcb3
+z`{S6~m02;7+~Sy|-O9t^c;<Ipx7+)~F^vF_*gT*-K`BdalKwzpOd|j!S=acN1T;m~
+zH4gwOhh6hI%h)w<TPuudhIlB^0X_?1bS!vVXCYy91pw(7-3MGO39T;z`(oc&$fhvi
+z46jIf#8p=%txov}JYN~d?q*zIo92sz7dYjAgfwf@Hbwpd%$!bkQ|UE600000NkvXX
+Hu0mjf7)mDH
+
+literal 0
+HcmV?d00001
+
+diff --git a/alps/frameworks/base/core/res/res/drawable-xxhdpi/stat_notify_plug_usb.png b/alps/frameworks/base/core/res/res/drawable-xxhdpi/stat_notify_plug_usb.png
+new file mode 100755
+index 0000000000000000000000000000000000000000..2dfca078cff1a40efb179ca9a3efb029935b5cad
+GIT binary patch
+literal 743
+zcmV<D0vP>?P)<h;3K|Lk000e1NJLTq002k;002k`1^@s6RqeA!00004XF*Lt006O%
+z3;baP0000WV@Og>004R>004l5008;`004mK004C`008P>0026e000+ooVrmw00006
+zVoOIv00000008+zyMF)x010qNS#tmY3labT3lag+-G2N400K)%L_t(|+U=X&b=p7>
+zMt5`aPErBsfD&AS(*fzg>A)pWg6$5{0qMXcs06u#n+KL-AX;W6Bxa<Y`v^#Ud(Sfa
+zqa_5#aU92SMgUj?Ywa8+0am~}@UET3B)|)w?6mWk0(jzo9<_6s0NBt?TYWuBb*Cjy
+z-SsFHWr;fL5wI(eQ)fK_wmsz3RgY3pZhHz+t4C2=*oipKg2iYe+ZXKs*7>R(U?`V8
+zF2}7s(R+}93leZa0xn2kG(o@vus@x*09)+_njp!^u?JQK_c){P=W}SgIfiY7oG;Z1
+zBEO$=$y&INNkL=Opl^kr`!T|I-JRLaq>nS?u3j?cI&PF30d2V6lRjdM--UY&TC7ej
+zXsluW_l@r_AM%@EMRTE{#nt4<HAUC~qu7@7iKz=Z5z|aLw9isdiI{{qDP4>p4$sY=
+zOT}P)V?PtTD0Ihl&y;QM+ZQ7UDr!W5i1~`?(a3D07A@wak^7;IT(p>rhOSd%+QLR}
+z1VPIX(;;fb;oMJCAZlNYn2fB)9zQ?8@MLddQN=$$?X23ORtOV7?Tlt1v*^^$b;QI8
+ziV*yC$82#y0xn3v1qrwy0T(2oE-0<n+K$&-;7L25DxCkrC%c;0&Z#A5*JJHk*WVGi
+zex4}DgGN@Z8uaT<*W8TCdI$NiLl@!!h$+w#G-$Q1v4B+{=B=Y8=<l7bxfv}%uXnm;
+zzEJkG<4B{OS3}T-vS(*4>DgIzBuUqLQll-$#J(?wV|qWs=iKNcgzzWE_@<rBaU91n
+Z%s;xEq7q;&fARnT002ovPDHLkV1i36MJ50M
+
+literal 0
+HcmV?d00001
+
+diff --git a/alps/frameworks/base/core/res/res/values/public.xml b/alps/frameworks/base/core/res/res/values/public.xml
+index 96c18e2..08d88c7 100755
+--- a/alps/frameworks/base/core/res/res/values/public.xml
++++ b/alps/frameworks/base/core/res/res/values/public.xml
+@@ -1499,6 +1499,7 @@
+ 
+   <public type="drawable" name="dialog_holo_dark_frame" id="0x010800b2" />
+   <public type="drawable" name="dialog_holo_light_frame" id="0x010800b3" />
++  <public type="drawable" name="stat_notify_plug_usb" id="0x010800b4" />
+ 
+   <public type="style" name="Theme.WithActionBar" id="0x01030069" />
+   <public type="style" name="Theme.NoTitleBar.OverlayActionModes" id="0x0103006a" />
+@@ -2654,7 +2655,7 @@
+     <public type="id" name="accessibilityActionScrollDown" id="0x0102003a" />
+     <public type="id" name="accessibilityActionScrollRight" id="0x0102003b" />
+     <public type="id" name="accessibilityActionContextClick" id="0x0102003c" />
+-
++	
+     <public type="string" name="fingerprint_icon_content_description" />
+ 
+ 	<java-symbol type="string" name="global_action_power_reboot_radio" />
+diff --git a/alps/frameworks/base/services/usb/java/com/android/server/usb/UsbDeviceManager.java b/alps/frameworks/base/services/usb/java/com/android/server/usb/UsbDeviceManager.java
+old mode 100644
+new mode 100755
+index 4a7183a..fb0e418
+--- a/alps/frameworks/base/services/usb/java/com/android/server/usb/UsbDeviceManager.java
++++ b/alps/frameworks/base/services/usb/java/com/android/server/usb/UsbDeviceManager.java
+@@ -1294,7 +1294,7 @@ public class UsbDeviceManager {
+                             .setOngoing(true)
+                             .setTicker(title)
+                             .setDefaults(0)  // please be quiet
+-                            .setPriority(Notification.PRIORITY_MIN)
++                            .setPriority(Notification.PRIORITY_HIGH)
+                             .setColor(mContext.getColor(
+                                     com.android.internal.R.color.system_notification_accent_color))
+                             .setContentTitle(title)
+@@ -1302,6 +1302,9 @@ public class UsbDeviceManager {
+                             .setContentIntent(pi)
+                             .setVisibility(Notification.VISIBILITY_PUBLIC)
+                             .build();
++					//xiayy add 0818s
++						notification.icon = com.android.internal.R.drawable.stat_notify_plug_usb;
++					//xiayy add 0818e
+                     mNotificationManager.notifyAsUser(null, id, notification,
+                             UserHandle.ALL);
+                     mUsbNotificationId = id;
+-- 
+1.7.9.5
+

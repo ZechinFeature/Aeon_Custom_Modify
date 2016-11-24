@@ -1,0 +1,166 @@
+From 74506b0774ab45c6c7996659880790be8ee1ef0d Mon Sep 17 00:00:00 2001
+From: buxinchun <bu.xinchun@eastaeon.com>
+Date: Fri, 20 May 2016 22:55:15 +0800
+Subject: [PATCH] =?UTF-8?q?[Camera][=E6=96=B0=E5=8A=9F=E8=83=BD][=E9=9C=80=E6?=
+ =?UTF-8?q?=B1=82]=20=E7=9B=B8=E6=9C=BA=E4=B8=AD=E7=BB=99=E5=89=8D=E5=90=8E=E6?=
+ =?UTF-8?q?=91=84=E5=83=8F=E5=A4=B4=E9=BB=98=E8=AE=A4=E8=AE=BE=E7=BD=AE=E4=B8?=
+ =?UTF-8?q?=8D=E4=B8=80=E6=A0=B7=E7=9A=84=E5=88=9D=E5=A7=8B=E9=9F=B3=E9=87=8F?=
+ =?UTF-8?q?=E9=94=AE=E5=8A=9F=E8=83=BD.?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../packages/apps/Camera/res/values/arrays.xml     |    7 +++
+ .../apps/Camera/res/xml/camera_preferences.xml     |    2 +-
+ .../Camera/res/xml/camera_preferences_no_ratio.xml |    2 +-
+ .../mediatek/camera/setting/SettingDataBase.java   |    2 +-
+ .../camera/setting/preference/ListPreference.java  |   49 +++++++++++++++++++-
+ 5 files changed, 58 insertions(+), 4 deletions(-)
+
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/arrays.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/arrays.xml
+index 7214d75..111411e 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/arrays.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/arrays.xml
+@@ -868,4 +868,11 @@
+         <item>volume</item>
+     </string-array>
+     <!-- END. For Camera_Volume_Response, By Xia.Fei, 20160317 -->
++    <!-- Begin: Added by bu.xinchun 2016-05-20. Set two different default value
++       of volume key for each camera. -->
++    <string-array name="pref_camera_volume_response_default_values" translatable="false">
++        <item>zoom</item>
++        <item>volume</item>
++    </string-array>
++    <!-- End: Added by bu.xinchun 2016-05-20. -->
+ </resources>
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/xml/camera_preferences.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/xml/camera_preferences.xml
+index 2617653..8410491 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/xml/camera_preferences.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/xml/camera_preferences.xml
+@@ -150,7 +150,7 @@
+     <!-- START. For Camera_Volume_Response, By Xia.Fei, 20160317 -->
+     <ListPreference
+         camera:key="pref_volume_response_key"
+-        camera:defaultValue="@string/pref_camera_volume_response_default"
++        camera:defaultValue="@array/pref_camera_volume_response_default_values"
+         camera:title="@string/pref_camera_volume_response_title"
+         camera:entries="@array/pref_camera_volume_response_entries"
+         camera:entryValues="@array/pref_camera_volume_response_entryvalues"/>
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/xml/camera_preferences_no_ratio.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/xml/camera_preferences_no_ratio.xml
+index 1ac4cb5..c3f33e0 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/xml/camera_preferences_no_ratio.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/xml/camera_preferences_no_ratio.xml
+@@ -150,7 +150,7 @@
+     <!-- START. For Camera_Volume_Response, By Xia.Fei, 20160317 -->
+     <ListPreference
+         camera:key="pref_volume_response_key"
+-        camera:defaultValue="@string/pref_camera_volume_response_default"
++        camera:defaultValue="@array/pref_camera_volume_response_default_values"
+         camera:title="@string/pref_camera_volume_response_title"
+         camera:entries="@array/pref_camera_volume_response_entries"
+         camera:entryValues="@array/pref_camera_volume_response_entryvalues"/>
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingDataBase.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingDataBase.java
+index 612d331..2674cb4 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingDataBase.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingDataBase.java
+@@ -319,7 +319,7 @@ public class SettingDataBase {
+         RESET_STATE_VALUE[SettingConstants.ROW_SETTING_GESTURE_SHOT]         = new String[]{"off", "on"};
+         RESET_STATE_VALUE[SettingConstants.ROW_SETTING_MUTE_RECORDING_SOUND] = new String[]{"0", "1"};
+         RESET_STATE_VALUE[SettingConstants.ROW_SETTING_HEARTBEAT_MONITOR]    = new String[]{"true", "false"};
+-        RESET_STATE_VALUE[SettingConstants.ROW_SETTING_VOLUME_RESPONSE]      = new String[]{"zoom"};//For Camera_Volume_Response, By Xia.Fei, 20160317
++        RESET_STATE_VALUE[SettingConstants.ROW_SETTING_VOLUME_RESPONSE]      = new String[]{"zoom", "volume"};//For Camera_Volume_Response, By Xia.Fei, 20160317
+         RESET_STATE_VALUE[SettingConstants.ROW_SETTING_DNG] = new String[]{"off", "on"};
+     }
+     
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/preference/ListPreference.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/preference/ListPreference.java
+index c21f07d..d604f3d 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/preference/ListPreference.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/preference/ListPreference.java
+@@ -43,6 +43,7 @@ import android.content.res.TypedArray;
+ import android.util.AttributeSet;
+ import android.util.TypedValue;
+ 
++import com.android.camera.CameraHolder;
+ import com.android.camera.R;
+ 
+ import com.mediatek.camera.setting.SettingConstants;
+@@ -79,10 +80,12 @@ public class ListPreference extends CameraPreference {
+     private final String mKey;
+     protected String[] mExtendedValues;
+ 
++    private Context mCtx; // Added by bu.xinchun 2016-05-20
+     public ListPreference(Context context, AttributeSet attrs,
+             SharedPreferencesTransfer prefTransfer) {
+         super(context, attrs, prefTransfer);
+ 
++        mCtx = context;
+         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.ListPreference, 0, 0);
+ 
+         mKey = a.getString(R.styleable.ListPreference_key);
+@@ -152,10 +155,48 @@ public class ListPreference extends CameraPreference {
+         mEntryValues = values == null ? new CharSequence[0] : values;
+     }
+ 
++    /* Begin: Added by bu.xinchun 2016-05-20. */
++    private String getDefaultVolumePrefValue() {
++        String value = null;
++        String strCameraId = getSharedPreferences(
++                SettingConstants.KEY_CAMERA_ID).getString(
++                        SettingConstants.KEY_CAMERA_ID,
++                            mCtx.getString(R.string.pref_camera_id_default));
++        final int curCameraId = Integer.parseInt(strCameraId);
++        final int frontCameraId = CameraHolder.instance().getFrontCameraId();
++
++        if (mDefaultValues != null) {
++            if (frontCameraId == curCameraId) {
++                if (mDefaultValues.length > 1 && mDefaultValues[1] != null) {
++                    value = mDefaultValues[1].toString();
++                } else if (mDefaultValues[0] != null) {
++                    value = mDefaultValues[0].toString();
++                }
++            } else {
++                if (mDefaultValues[0] != null) {
++                    value = mDefaultValues[0].toString();
++                }
++            }
++        }
++        return value;
++    }
++    /* End: Added by bu.xinchun 2016-05-20. */
++
+     public String getValue() {
+         if (!mLoaded) {
+             String defaultValue = findSupportedDefaultValue();
+-            mValue = getSharedPreferences(mKey).getString(mKey, defaultValue);
++            /* Begin: Modified by bu.xinchun 2016-05-20. */
++            //mValue = getSharedPreferences(mKey).getString(mKey, defaultValue);
++
++            if (SettingConstants.KEY_VOLUME_RESPONESE.equals(mKey)) {
++                mValue = getSharedPreferences(mKey).getString(mKey, null);
++                if (mValue == null) {
++                    mValue = getDefaultVolumePrefValue();
++                }
++            } else {
++                mValue = getSharedPreferences(mKey).getString(mKey, defaultValue);
++            }
++            /* End: Modified by bu.xinchun 2016-05-20. */
+             mLoaded = true;
+             if (!isValid(mValue)) {
+                 mValue = defaultValue;
+@@ -180,6 +221,12 @@ public class ListPreference extends CameraPreference {
+ 
+     public String getDefaultValue() {
+         if (mDefaultValues != null && mDefaultValues.length > 0) {
++            /* Begin: Added by bu.xinchun 2016-05-20. */
++            if (SettingConstants.KEY_VOLUME_RESPONESE.equals(mKey)) {
++                return getDefaultVolumePrefValue();
++            }
++            /* End: Added by bu.xinchun 2016-05-20. */
++
+             if (mDefaultValues[0] == null) {
+                 return null;
+             } else {
+-- 
+1.7.9.5
+

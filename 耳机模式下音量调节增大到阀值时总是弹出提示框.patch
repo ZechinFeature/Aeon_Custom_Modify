@@ -1,0 +1,85 @@
+From bd25c80e6eec962af97fbcfbdc2801c674142567 Mon Sep 17 00:00:00 2001
+From: server2 <server2@eastaeon.com>
+Date: Mon, 13 Jun 2016 20:54:44 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=E8=80=B3=E6=9C=BA=E6=A8=A1=E5?=
+ =?UTF-8?q?=BC=8F=E4=B8=8B=E9=9F=B3=E9=87=8F=E8=B0=83=E8=8A=82=E5=A2=9E=E5=A4?=
+ =?UTF-8?q?=A7=E5=88=B0=E9=98=80=E5=80=BC=E6=97=B6=E6=80=BB=E6=98=AF=E5=BC=B9?=
+ =?UTF-8?q?=E5=87=BA=E6=8F=90=E7=A4=BA=E6=A1=86=20I?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../com/android/server/audio/AudioService.java     |   23 ++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
+ mode change 100644 => 100755 alps/frameworks/base/services/core/java/com/android/server/audio/AudioService.java
+
+diff --git a/alps/frameworks/base/services/core/java/com/android/server/audio/AudioService.java b/alps/frameworks/base/services/core/java/com/android/server/audio/AudioService.java
+old mode 100644
+new mode 100755
+index 46dd821..6dcbc1c
+--- a/alps/frameworks/base/services/core/java/com/android/server/audio/AudioService.java
++++ b/alps/frameworks/base/services/core/java/com/android/server/audio/AudioService.java
+@@ -3206,7 +3206,6 @@ public class AudioService extends IAudioService.Stub {
+         synchronized (mSafeMediaVolumeState) {
+             if (mSafeMediaVolumeState == SAFE_MEDIA_VOLUME_INACTIVE) {
+                 int device = getDeviceForStream(AudioSystem.STREAM_MUSIC);
+-
+                 if ((device & mSafeMediaVolumeDevices) != 0) {
+                     sendMsg(mAudioHandler,
+                             MSG_CHECK_MUSIC_ACTIVE,
+@@ -5642,7 +5641,8 @@ public class AudioService extends IAudioService.Stub {
+     private static final int UNSAFE_VOLUME_MUSIC_ACTIVE_MS_MAX = (20 * 3600 * 1000); // 20 hours
+     private static final int MUSIC_ACTIVE_POLL_PERIOD_MS = 60000;  // 1 minute polling interval
+     private static final int SAFE_VOLUME_CONFIGURE_TIMEOUT_MS = 30000;  // 30s after boot completed
+-
++	private boolean bIsFirstBoot = true;//add by huangx 20160613
++	
+     private void setSafeMediaVolumeEnabled(boolean on, String caller) {
+         synchronized (mSafeMediaVolumeState) {
+             if ((mSafeMediaVolumeState != SAFE_MEDIA_VOLUME_NOT_CONFIGURED) &&
+@@ -5692,6 +5692,16 @@ public class AudioService extends IAudioService.Stub {
+     }
+ 
+     private boolean checkSafeMediaVolume(int streamType, int index, int device) {
++		//Begin add by huangx 20160613
++		if(bIsFirstBoot && (index == mSafeMediaVolumeIndex) ){
++			//setSafeMediaVolumeEnabled(true);
++			mMusicActiveMs = 0;
++			mSafeMediaVolumeState = SAFE_MEDIA_VOLUME_ACTIVE;
++			bIsFirstBoot = false;
++			//Log.i("huangx","checkSafeMediaVolume() ..1 mMusicActiveMs = "+mMusicActiveMs+" mSafeMediaVolumeState = "+mSafeMediaVolumeState);
++		}
++		//Log.i("huangx","checkSafeMediaVolume() ..3 streamType = "+streamType+" mIndex = "+index+"  device = "+device+" mSafeMediaVolumeIndex="+mSafeMediaVolumeIndex);
++		//End
+         synchronized (mSafeMediaVolumeState) {
+             if ((mSafeMediaVolumeState == SAFE_MEDIA_VOLUME_ACTIVE) &&
+                     (mStreamVolumeAlias[streamType] == AudioSystem.STREAM_MUSIC) &&
+@@ -5708,15 +5718,24 @@ public class AudioService extends IAudioService.Stub {
+         enforceVolumeController("disable the safe media volume");
+         synchronized (mSafeMediaVolumeState) {
+             setSafeMediaVolumeEnabled(false, callingPackage);
++			
+             if (mPendingVolumeCommand != null) {
+                 onSetStreamVolume(mPendingVolumeCommand.mStreamType,
+                                   mPendingVolumeCommand.mIndex,
+                                   mPendingVolumeCommand.mFlags,
+                                   mPendingVolumeCommand.mDevice,
+                                   callingPackage);
++				//Log.i("huangx","disableSafeMediaVolume() ...2 mStreamType = "+mPendingVolumeCommand.mStreamType+" mIndex = "+mPendingVolumeCommand.mIndex);
++				//Log.i("huangx","disableSafeMediaVolume() ...2 mFlags = "+mPendingVolumeCommand.mFlags+" mDevice = "+mPendingVolumeCommand.mDevice);
+                 mPendingVolumeCommand = null;
+             }
++			//Begin add by huangx 20160613
++			if(!bIsFirstBoot){
++				bIsFirstBoot = true;
++			}
++			//End
+         }
++		
+     }
+ 
+     //==========================================================================================
+-- 
+1.7.9.5
+

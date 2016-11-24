@@ -1,0 +1,212 @@
+From d07c2282db003b7303deef75436f176d6cf9be5f Mon Sep 17 00:00:00 2001
+From: chengjianfeng <cheng.jianfeng@eastaeon.com>
+Date: Fri, 19 Aug 2016 13:58:06 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=E6=89=93=E5=BC=80=E6=95=B0=E6?=
+ =?UTF-8?q?=8D=AE=E9=93=BE=E6=8E=A5=E6=97=B6=EF=BC=8C=E5=A2=9E=E5=8A=A0=E6=8F?=
+ =?UTF-8?q?=90=E7=A4=BA=E8=AF=AD?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../Settings/res/layout/pol_data_open_warm.xml     |   53 ++++++++++++++
+ .../apps/Settings/res/values-pl/strings.xml        |    7 ++
+ alps/packages/apps/Settings/res/values/strings.xml |    7 ++
+ .../src/com/android/settings/DataUsageSummary.java |   73 +++++++++++++++++++-
+ 4 files changed, 138 insertions(+), 2 deletions(-)
+ create mode 100755 alps/packages/apps/Settings/res/layout/pol_data_open_warm.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/res/values-pl/strings.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/res/values/strings.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/src/com/android/settings/DataUsageSummary.java
+
+diff --git a/alps/packages/apps/Settings/res/layout/pol_data_open_warm.xml b/alps/packages/apps/Settings/res/layout/pol_data_open_warm.xml
+new file mode 100755
+index 0000000..749f5ba
+--- /dev/null
++++ b/alps/packages/apps/Settings/res/layout/pol_data_open_warm.xml
+@@ -0,0 +1,53 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:background="#FFFFFF"
++    android:orientation="vertical" >
++	<TextView
++        android:id="@+id/pol_data_open_title"
++        android:layout_width="wrap_content"
++        android:layout_height="match_parent"
++        android:paddingLeft="10dp"
++        android:paddingTop="10dp"
++        android:textSize="22sp"
++        android:text="@string/pol_data_open_title" />
++    <TextView
++        android:id="@+id/pol_data_open_message"
++        android:padding="15dp"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:textSize="15sp"
++        android:text="@string/pol_data_open_message" />
++    <CheckBox 
++        android:id="@+id/pol_data_open_checkbox"
++        android:checked="false"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:layout_marginLeft="20dp"
++        android:text="@string/no_warm_text"/>
++    <LinearLayout 
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:paddingTop="15dp"
++        android:gravity="center_horizontal"
++        android:orientation="horizontal">
++        <TextView 
++            android:id="@+id/pol_data_open_cancle"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:paddingBottom="20dp"
++            android:textSize="18sp"
++            android:text="@string/pol_data_open_cancle_text"/>
++        <TextView 
++            android:id="@+id/pol_data_open_ok"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:paddingLeft="120dp"
++            android:paddingBottom="20dp"
++            android:textSize="18sp"
++            android:text="@string/pol_data_open_ok_text"/>
++        
++    </LinearLayout>
++
++</LinearLayout>
+diff --git a/alps/packages/apps/Settings/res/values-pl/strings.xml b/alps/packages/apps/Settings/res/values-pl/strings.xml
+old mode 100644
+new mode 100755
+index 46a7716..a871157
+--- a/alps/packages/apps/Settings/res/values-pl/strings.xml
++++ b/alps/packages/apps/Settings/res/values-pl/strings.xml
+@@ -2916,4 +2916,11 @@
+     <string name="write_settings_description" msgid="6868293938839954623">"To uprawnienie umożliwia aplikacji modyfikowanie ustawień systemu."</string>
+     <string name="write_settings_on" msgid="8230580416068832239">"Tak"</string>
+     <string name="write_settings_off" msgid="5156104383386336233">"Nie"</string>
++
++	<string name="pol_data_open_message">OSTRZEŻENIE: Transmisja danych przez sieć komórkową może się wiązać z naliczeniem dodatkowych opłat przez operatora. Czy włączyć transmisję danych przez sieć komórkową?</string>
++	<string name="pol_data_open_title">Uwaga</string>
++	<string name="pol_data_open_ok_text">OK</string>
++	<string name="pol_data_open_cancle_text">Anuluj</string>
++	
++	<string name="no_warm_text">Nie pokazuj tego więcej</string>
+ </resources>
+diff --git a/alps/packages/apps/Settings/res/values/strings.xml b/alps/packages/apps/Settings/res/values/strings.xml
+old mode 100644
+new mode 100755
+index b176da1..2ab90db
+--- a/alps/packages/apps/Settings/res/values/strings.xml
++++ b/alps/packages/apps/Settings/res/values/strings.xml
+@@ -6999,4 +6999,11 @@
+     <!-- Summary of app not allowed to write system settings [CHAR LIMIT=45] -->
+     <string name="write_settings_off">No</string>
+     <string name="show_battery_perent">Battery Percentage</string>
++
++	<string name="pol_data_open_message">WARNING: The transmission of data over the cellular network may be associated with the accrual of additional fees by the operator. Enable transmission of data over the cellular network?</string>
++	<string name="pol_data_open_title">Attention</string>
++	<string name="pol_data_open_ok_text">OK</string>
++	<string name="pol_data_open_cancle_text">Cancle</string>
++	
++	<string name="no_warm_text">Do not show this again</string>
+ </resources>
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/DataUsageSummary.java b/alps/packages/apps/Settings/src/com/android/settings/DataUsageSummary.java
+old mode 100644
+new mode 100755
+index 6a89625..6691048
+--- a/alps/packages/apps/Settings/src/com/android/settings/DataUsageSummary.java
++++ b/alps/packages/apps/Settings/src/com/android/settings/DataUsageSummary.java
+@@ -170,6 +170,12 @@ import java.util.List;
+ import java.util.Locale;
+ import java.util.Map;
+ import java.util.Set;
++import android.app.AlertDialog;
++import android.view.LayoutInflater;
++import android.view.WindowManager;
++import android.widget.CompoundButton;
++import android.widget.CompoundButton.OnCheckedChangeListener;
++import android.widget.CheckBox;
+ 
+ /**
+  * Panel showing data usage history across various networks, including options
+@@ -1258,8 +1264,71 @@ public class DataUsageSummary extends HighlightingFragment implements Indexable
+         mTelephonyManager.setDataEnabled(subId, enabled);
+         mMobileDataEnabled.put(String.valueOf(subId), enabled);
+         updatePolicy(false);
+-    }
+-
++		if (enabled && isDataOpenAlertShow(getActivity())){
++			dataOpenAlertShow(getActivity());
++		}
++    }
++	private  AlertDialog dataOpenaAlert = null;
++	TextView dataOpenCancle,dataOpenOk;
++	CheckBox dataOpenCheckbox;
++	private void dataOpenAlertShow(Context mContext){
++		LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
++		View mView = inflater.inflate(R.layout.pol_data_open_warm, null);
++		CheckBoxListener checkBoxListener = new CheckBoxListener();
++		dataOpenCheckbox = (CheckBox) mView.findViewById(R.id.pol_data_open_checkbox);
++		dataOpenCancle = (TextView) mView.findViewById(R.id.pol_data_open_cancle);
++		dataOpenOk = (TextView) mView.findViewById(R.id.pol_data_open_ok);
++		dataOpenCheckbox.setOnCheckedChangeListener(checkBoxListener);
++		dataOpenOk.setOnClickListener(mOnClickListener);
++		dataOpenCancle.setOnClickListener(mOnClickListener);
++
++		dataOpenaAlert =new AlertDialog.Builder(mContext.getApplicationContext())
++		.setView(mView)
++		.create();
++		dataOpenaAlert.setCanceledOnTouchOutside(true);
++		dataOpenaAlert.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);  
++		dataOpenaAlert.show();
++	}
++	private void alertCancel() {
++		if (dataOpenaAlert!=null) {
++			dataOpenaAlert.cancel();
++			dataOpenaAlert=null;
++		}
++	}
++	private boolean isDataOpenAlertShow(Context mContext) {
++		SharedPreferences sp = mContext.getSharedPreferences("pol_data_open_show", Context.MODE_PRIVATE);
++		boolean show = sp.getBoolean("is_pol_data_open_show", true);
++		return show;
++	}
++	OnClickListener mOnClickListener = new OnClickListener() {
++		
++		@Override
++		public void onClick(View v) {
++			// TODO Auto-generated method stub
++			switch (v.getId()) {
++			case R.id.pol_data_open_ok:
++				alertCancel();
++				break;
++			case R.id.pol_data_open_cancle:
++				alertCancel();
++				break;
++			default:
++				break;
++			}
++		}
++	};
++	class CheckBoxListener implements OnCheckedChangeListener{
++		@Override
++		public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
++			// TODO Auto-generated method stub
++			if (isChecked) {
++				 SharedPreferences sp = getActivity().getSharedPreferences("pol_data_open_show", Context.MODE_PRIVATE);
++				 SharedPreferences.Editor editor = sp.edit();
++				 editor.putBoolean("is_pol_data_open_show", !isChecked);
++				 editor.apply();
++			}
++		}
++	};
+     private boolean isNetworkPolicyModifiable(NetworkPolicy policy) {
+         if (LOGD)
+             Log.d(TAG, "policy isn't null ? " + (policy != null) + ", bandWidthControl: "
+-- 
+1.7.9.5
+

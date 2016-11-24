@@ -1,0 +1,77 @@
+From 0f82bde1a4d79899bedea14feb054567079165ce Mon Sep 17 00:00:00 2001
+From: "li.chao1" <li.chao1@eastaeon.com>
+Date: Fri, 22 Apr 2016 14:55:21 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=20=E7=B3=BB=E7=BB=9F=E6=9D=83?=
+ =?UTF-8?q?=E9=99=90=E6=8F=90=E9=86=92=EF=BC=9A=E6=8A=8A=E4=B8=80=E4=BA=9B=E7?=
+ =?UTF-8?q?=B3=BB=E7=BB=9FAPP=E5=8A=A0=E5=85=A5=E7=99=BD=E5=90=8D=E5=8D=95?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../server/pm/DefaultPermissionGrantPolicy.java    |   46 ++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
+ mode change 100644 => 100755 alps/frameworks/base/services/core/java/com/android/server/pm/DefaultPermissionGrantPolicy.java
+
+diff --git a/alps/frameworks/base/services/core/java/com/android/server/pm/DefaultPermissionGrantPolicy.java b/alps/frameworks/base/services/core/java/com/android/server/pm/DefaultPermissionGrantPolicy.java
+old mode 100644
+new mode 100755
+index d3dd7a0..160de19
+--- a/alps/frameworks/base/services/core/java/com/android/server/pm/DefaultPermissionGrantPolicy.java
++++ b/alps/frameworks/base/services/core/java/com/android/server/pm/DefaultPermissionGrantPolicy.java
+@@ -598,6 +598,52 @@ final class DefaultPermissionGrantPolicy {
+                     && doesPackageSupportRuntimePermissions(musicPackage)) {
+                 grantRuntimePermissionsLPw(musicPackage, STORAGE_PERMISSIONS, userId);
+             }
++			
++			//FM
++			PackageParser.Package fmPackage = getSystemPackageLPr("com.android.fmradio");
++			if (fmPackage != null) {
++				grantRuntimePermissionsLPw(fmPackage, STORAGE_PERMISSIONS, userId);
++				grantRuntimePermissionsLPw(fmPackage, PHONE_PERMISSIONS, userId);
++				grantRuntimePermissionsLPw(fmPackage, LOCATION_PERMISSIONS, userId);
++				grantRuntimePermissionsLPw(fmPackage, MICROPHONE_PERMISSIONS, userId);
++		    }
++
++			//File Manager
++			PackageParser.Package fileManagerPackage = getSystemPackageLPr("com.mediatek.filemanager");
++			if (fileManagerPackage != null) {
++				grantRuntimePermissionsLPw(fileManagerPackage, STORAGE_PERMISSIONS, userId);
++			}
++			//Broswer
++			PackageParser.Package broswerPackage = getSystemPackageLPr("com.android.browser");
++			if (broswerPackage != null) {
++				grantRuntimePermissionsLPw(broswerPackage, STORAGE_PERMISSIONS, userId);
++				grantRuntimePermissionsLPw(broswerPackage, LOCATION_PERMISSIONS, userId);
++				grantRuntimePermissionsLPw(broswerPackage, CAMERA_PERMISSIONS, userId);
++				grantRuntimePermissionsLPw(broswerPackage, MICROPHONE_PERMISSIONS, userId);
++				grantRuntimePermissionsLPw(broswerPackage, CONTACTS_PERMISSIONS, userId);
++			}
++			//clock
++			PackageParser.Package clockPackage = getSystemPackageLPr("com.android.deskclock");
++			if (clockPackage != null) {
++				grantRuntimePermissionsLPw(clockPackage, STORAGE_PERMISSIONS, userId);
++				grantRuntimePermissionsLPw(clockPackage, PHONE_PERMISSIONS, userId);
++			}
++			//flashlight
++			PackageParser.Package flPackage = getSystemPackageLPr("com.eastaeon.flashlight");
++			if (flPackage != null) {
++				grantRuntimePermissionsLPw(flPackage, CAMERA_PERMISSIONS, userId);
++			}
++			//soundrecorder
++			PackageParser.Package srPackage = getSystemPackageLPr("com.android.soundrecorder");
++			if (srPackage != null) {
++				grantRuntimePermissionsLPw(srPackage, MICROPHONE_PERMISSIONS, userId);
++				grantRuntimePermissionsLPw(srPackage, STORAGE_PERMISSIONS, userId);
++			}
++			//MediaProvider
++			PackageParser.Package mpPackage = getSystemPackageLPr("com.android.providers.media.MediaProvider");
++			if (mpPackage != null) {
++				grantRuntimePermissionsLPw(mpPackage, STORAGE_PERMISSIONS, userId);
++			}
+ 
+             mService.mSettings.onDefaultRuntimePermissionsGrantedLPr(userId);
+         }
+-- 
+1.7.9.5
+

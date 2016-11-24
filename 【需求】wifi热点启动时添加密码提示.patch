@@ -1,0 +1,104 @@
+From 7fd9f1e2040ced0490381469c11c6d3a8f915e13 Mon Sep 17 00:00:00 2001
+From: guoxiaolin <guo.xiaolin@eastaeon.com>
+Date: Fri, 18 Mar 2016 15:08:58 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91wifi=E7=83=AD?=
+ =?UTF-8?q?=E7=82=B9=E5=90=AF=E5=8A=A8=E6=97=B6=E6=B7=BB=E5=8A=A0=E5=AF=86=E7?=
+ =?UTF-8?q?=A0=81=E6=8F=90=E7=A4=BA?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../mediatek/wifi/hotspot/TetherWifiSettings.java  |   35 +++++++++++++++++++-
+ 1 file changed, 34 insertions(+), 1 deletion(-)
+
+diff --git a/alps/packages/apps/Settings/src/com/mediatek/wifi/hotspot/TetherWifiSettings.java b/alps/packages/apps/Settings/src/com/mediatek/wifi/hotspot/TetherWifiSettings.java
+index 047ee4f..b2f8af7 100755
+--- a/alps/packages/apps/Settings/src/com/mediatek/wifi/hotspot/TetherWifiSettings.java
++++ b/alps/packages/apps/Settings/src/com/mediatek/wifi/hotspot/TetherWifiSettings.java
+@@ -41,6 +41,7 @@ import android.view.ViewGroup;
+ import android.view.ViewParent;
+ import android.view.WindowManager;
+ import android.widget.TextView;
++import android.widget.EditText;
+ import android.widget.Toast;
+ 
+ import com.android.settings.InstrumentedFragment;
+@@ -51,7 +52,6 @@ import com.android.settings.wifi.WifiApDialog;
+ import com.mediatek.wifi.hotspot.TetherWifiApEnabler;
+ 
+ import java.util.List;
+-
+ /*
+  * Displays preferences for Tethering.
+  */
+@@ -96,6 +96,12 @@ public class TetherWifiSettings extends SettingsPreferenceFragment
+ 
+     private List<HotspotClient> mClientList;
+     private View mDetailView;
++	private View mPasswordView;
++	private EditText ssid_TV;
++	private String ssid_str="";
++	private String password_str="";
++	private EditText password_TV;
++	private static  boolean isOnce = true;
+ 
+     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+         @Override
+@@ -150,6 +156,10 @@ public class TetherWifiSettings extends SettingsPreferenceFragment
+         mIntentFilter.addAction(WifiManager.WIFI_AP_STATE_CHANGED_ACTION);
+         mConnectedCategory = (PreferenceCategory) findPreference(CONNECTED_CATEGORY);
+         mBlockedCategory = (PreferenceCategory) findPreference(BLOCKED_CATEGORY);
++		mPasswordView =getActivity().getLayoutInflater().
++                inflate(R.layout.wifi_ap_password_dialog, null);
++		ssid_TV=  (EditText)mPasswordView.findViewById(R.id.ssid);
++		password_TV=  (EditText)mPasswordView.findViewById(R.id.password);
+         mDetailView = getActivity().getLayoutInflater().
+                 inflate(R.layout.wifi_ap_client_dialog, null);
+     }
+@@ -207,6 +217,8 @@ public class TetherWifiSettings extends SettingsPreferenceFragment
+             mCreateNetwork.setSummary(String.format(activity.getString(CONFIG_SUBTEXT),
+                     mWifiConfig.SSID,
+                     mSecurityType[index]));
++			password_str=mWifiConfig.preSharedKey;
++			ssid_str=mWifiConfig.SSID;	
+         }
+     }
+ 
+@@ -403,12 +415,33 @@ public class TetherWifiSettings extends SettingsPreferenceFragment
+                 break;
+             case WifiManager.WIFI_AP_STATE_ENABLED:
+                 setPreferenceState(true);
++		//guoxl add
++		if(mBandwidth.isEnabled() && isOnce ){
++			 ViewParent parent = mPasswordView.getParent();
++            if (parent != null && parent instanceof ViewGroup) {
++                ((ViewGroup) parent).removeView(mPasswordView);
++            }
++			isOnce=false;
++			ssid_TV.setText(ssid_str);
++            password_TV.setText(password_str);
++			AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
++            .setTitle(R.string.wifi_hotspot_checkbox_text)
++            .setView(mPasswordView)
++            .setPositiveButton(com.android.internal.R.string.ok,
++                    new DialogInterface.OnClickListener() {
++                public void onClick(DialogInterface dialog, int which) {
++                }
++            })
++            .create();
++			alertDialog.show();
++		}
+                 break;
+             case WifiManager.WIFI_AP_STATE_DISABLING:
+                 setPreferenceState(false);
+                 removeDialog(DIALOG_WPS_CONNECT);
+                 break;
+             case WifiManager.WIFI_AP_STATE_DISABLED:
++				isOnce=true;
+                 setPreferenceState(false);
+                 removeDialog(DIALOG_WPS_CONNECT);
+                 break;
+-- 
+1.7.9.5
+

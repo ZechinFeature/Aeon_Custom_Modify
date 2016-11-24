@@ -1,0 +1,53 @@
+From 77f71b5bc50daeaf5019e73522b09284a8699c15 Mon Sep 17 00:00:00 2001
+From: xieyuanfu <xie.yuanfu@eastaeon.com>
+Date: Fri, 8 Apr 2016 11:19:17 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E9=97=B9=E9=92?=
+ =?UTF-8?q?=9F--=E6=AF=8F=E5=91=A8=E7=9A=84=E7=AC=AC=E4=B8=80=E5=A4=A9=E5=BA?=
+ =?UTF-8?q?=94=E8=AF=A5=E8=AE=BE=E4=B8=BA=E5=91=A8=E4=B8=80?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../com/android/deskclock/AlarmClockFragment.java  |    2 +-
+ .../DeskClock/src/com/android/deskclock/Utils.java |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+ mode change 100644 => 100755 alps/packages/apps/DeskClock/src/com/android/deskclock/AlarmClockFragment.java
+
+diff --git a/alps/packages/apps/DeskClock/src/com/android/deskclock/AlarmClockFragment.java b/alps/packages/apps/DeskClock/src/com/android/deskclock/AlarmClockFragment.java
+old mode 100644
+new mode 100755
+index d35f632..14b8293
+--- a/alps/packages/apps/DeskClock/src/com/android/deskclock/AlarmClockFragment.java
++++ b/alps/packages/apps/DeskClock/src/com/android/deskclock/AlarmClockFragment.java
+@@ -159,13 +159,13 @@ public abstract class AlarmClockFragment extends DeskClockFragment implements
+ 
+         // A reference used to create mDayOrder
+         private final int[] DAY_ORDER = new int[] {
+-                Calendar.SUNDAY,
+                 Calendar.MONDAY,
+                 Calendar.TUESDAY,
+                 Calendar.WEDNESDAY,
+                 Calendar.THURSDAY,
+                 Calendar.FRIDAY,
+                 Calendar.SATURDAY,
++                Calendar.SUNDAY,
+         };
+ 
+     private Interpolator mExpandInterpolator;
+diff --git a/alps/packages/apps/DeskClock/src/com/android/deskclock/Utils.java b/alps/packages/apps/DeskClock/src/com/android/deskclock/Utils.java
+index a4dea53..3a40d15 100755
+--- a/alps/packages/apps/DeskClock/src/com/android/deskclock/Utils.java
++++ b/alps/packages/apps/DeskClock/src/com/android/deskclock/Utils.java
+@@ -815,7 +815,7 @@ public class Utils {
+         final SimpleDateFormat longFormat = new SimpleDateFormat(DATE_FORMAT_LONG);
+ 
+         // Create a date (2014/07/20) that is a Sunday
+-        final long aSunday = new GregorianCalendar(2014, Calendar.JULY, 20).getTimeInMillis();
++        final long aSunday = new GregorianCalendar(2014, Calendar.JULY, 21).getTimeInMillis();
+ 
+         for (int i = 0; i < DaysOfWeek.DAYS_IN_A_WEEK; i++) {
+             final long dayMillis = aSunday + i * DateUtils.DAY_IN_MILLIS;
+-- 
+1.7.9.5
+

@@ -1,0 +1,537 @@
+From 1ea6e830b0c55ba07d868da8a00b12321a32737b Mon Sep 17 00:00:00 2001
+From: "Xia.Fei" <xia.fei@eastaeon.com>
+Date: Thu, 17 Mar 2016 10:14:07 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82][Camera]=E5=A2=9E=E5=8A=A0=E7?=
+ =?UTF-8?q?=9B=B8=E6=9C=BA=E5=BF=AB=E9=97=A8=E9=9F=B3=E5=BC=80=E5=85=B3?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+与L相比，少了com/android/camera/mock/hardware/MockCamera.java文件，故未对此文件做处理。
+---
+ .../base/core/res/res/values-mcc404/config.xml     |    2 +-
+ .../base/core/res/res/values-mcc405/config.xml     |    2 +-
+ .../base/core/res/res/values-mcc440/config.xml     |    2 +-
+ .../base/core/res/res/values-mcc450/config.xml     |    2 +-
+ .../apps/Camera/res/values-zh-rCN/strings.xml      |    6 +++++
+ .../packages/apps/Camera/res/values/arrays.xml     |   11 +++++++++
+ .../packages/apps/Camera/res/values/strings.xml    |    7 ++++++
+ .../apps/Camera/res/xml/camera_preferences.xml     |   11 ++++++++-
+ .../src/com/android/camera/AndroidCamera.java      |    9 +++++++
+ .../src/com/android/camera/CameraManager.java      |   25 ++++++++++++++++++++
+ .../Camera/src/com/android/camera/ICamera.java     |    5 ++++
+ .../src/com/android/camera/actor/PhotoActor.java   |   13 ++++++++++
+ .../src/com/android/camera/actor/VideoActor.java   |   19 +++++++++++++++
+ .../android/camera/bridge/CameraDeviceImpl.java    |   11 +++++++++
+ .../com/android/camera/ui/SettingListLayout.java   |    1 +
+ .../addition/continuousshot/ContinuousShot.java    |   14 ++++++++++-
+ .../src/com/mediatek/camera/mode/PhotoMode.java    |   15 ++++++++++++
+ .../camera/platform/ICameraDeviceManager.java      |    5 ++++
+ .../mediatek/camera/setting/SettingConstants.java  |   12 +++++++++-
+ .../mediatek/camera/setting/SettingDataBase.java   |    6 +++++
+ 20 files changed, 171 insertions(+), 7 deletions(-)
+ mode change 100644 => 100755 alps/frameworks/base/core/res/res/values-mcc404/config.xml
+ mode change 100644 => 100755 alps/frameworks/base/core/res/res/values-mcc405/config.xml
+ mode change 100644 => 100755 alps/frameworks/base/core/res/res/values-mcc440/config.xml
+ mode change 100644 => 100755 alps/frameworks/base/core/res/res/values-mcc450/config.xml
+
+diff --git a/alps/frameworks/base/core/res/res/values-mcc404/config.xml b/alps/frameworks/base/core/res/res/values-mcc404/config.xml
+old mode 100644
+new mode 100755
+index 17539d8..a22f57b
+--- a/alps/frameworks/base/core/res/res/values-mcc404/config.xml
++++ b/alps/frameworks/base/core/res/res/values-mcc404/config.xml
+@@ -24,5 +24,5 @@
+         <item>405</item>
+     </string-array>
+     <!-- Whether camera shutter sound is forced or not  (country specific). -->
+-    <bool name="config_camera_sound_forced">true</bool>
++    <bool name="config_camera_sound_forced">false</bool>
+ </resources>
+diff --git a/alps/frameworks/base/core/res/res/values-mcc405/config.xml b/alps/frameworks/base/core/res/res/values-mcc405/config.xml
+old mode 100644
+new mode 100755
+index 17539d8..a22f57b
+--- a/alps/frameworks/base/core/res/res/values-mcc405/config.xml
++++ b/alps/frameworks/base/core/res/res/values-mcc405/config.xml
+@@ -24,5 +24,5 @@
+         <item>405</item>
+     </string-array>
+     <!-- Whether camera shutter sound is forced or not  (country specific). -->
+-    <bool name="config_camera_sound_forced">true</bool>
++    <bool name="config_camera_sound_forced">false</bool>
+ </resources>
+diff --git a/alps/frameworks/base/core/res/res/values-mcc440/config.xml b/alps/frameworks/base/core/res/res/values-mcc440/config.xml
+old mode 100644
+new mode 100755
+index 4ca1677..14e7f2a
+--- a/alps/frameworks/base/core/res/res/values-mcc440/config.xml
++++ b/alps/frameworks/base/core/res/res/values-mcc440/config.xml
+@@ -20,6 +20,6 @@
+ <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+ 
+     <!-- Whether camera shutter sound is forced or not  (country specific). -->
+-    <bool name="config_camera_sound_forced">true</bool>
++    <bool name="config_camera_sound_forced">false</bool>
+ 
+ </resources>
+diff --git a/alps/frameworks/base/core/res/res/values-mcc450/config.xml b/alps/frameworks/base/core/res/res/values-mcc450/config.xml
+old mode 100644
+new mode 100755
+index 2a2bd76..dcd9f9f
+--- a/alps/frameworks/base/core/res/res/values-mcc450/config.xml
++++ b/alps/frameworks/base/core/res/res/values-mcc450/config.xml
+@@ -19,6 +19,6 @@
+ <resources>
+ 
+     <!-- Whether camera shutter sound is forced or not  (country specific). -->
+-    <bool name="config_camera_sound_forced">true</bool>
++    <bool name="config_camera_sound_forced">false</bool>
+ 
+ </resources>
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values-zh-rCN/strings.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values-zh-rCN/strings.xml
+index 8e5bb7b..488a768 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values-zh-rCN/strings.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values-zh-rCN/strings.xml
+@@ -240,4 +240,10 @@
+     <string name="video_reach_size_limit" msgid="6179877322015552390">"已达到大小上限。"</string>
+     <string name="pano_dialog_title" msgid="5755531234434437697">"全景图"</string>
+     <string name="panorama_guide_choose_direction">沿着要拍摄的方向移动相机</string>
++
++    <!-- START. For Shutter Sound, By Xia.Fei -->
++    <string name="pref_camera_shutter_sound_title">快门声音</string>
++    <string name="pref_camera_shutter_sound_entry_off">关</string>
++    <string name="pref_camera_shutter_sound_entry_on">开</string>
++    <!-- END. For Shutter Sound, By Xia.Fei -->
+ </resources>
+\ No newline at end of file
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/arrays.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/arrays.xml
+index 7013fc6..4475270 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/arrays.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/arrays.xml
+@@ -829,4 +829,15 @@
+         <item>off</item>
+         <item>on</item>
+     </string-array>
++
++    <!-- START. For Shutter Sound, By Xia.Fei -->
++    <string-array name="pref_camera_shutter_sound_entries">
++        <item>@string/pref_camera_shutter_sound_entry_off</item>
++        <item>@string/pref_camera_shutter_sound_entry_on</item>
++    </string-array>
++    <string-array name="pref_camera_shutter_sound_entryvalues" translatable="false">
++        <item>off</item>
++        <item>on</item>
++    </string-array>
++    <!-- END. For Shutter Sound, By Xia.Fei -->
+ </resources>
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/strings.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/strings.xml
+index 7a28fb6..4fa549b 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/strings.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/strings.xml
+@@ -391,4 +391,11 @@
+     <string name="panorama3d_guide_move" translatable="false">Move device towards right</string>
+     <string name="panorama3d_guide_capture" translatable="false">Move device to overlap the two lines</string>
+     <string name="pref_stereo3d_mode_default" translatable="false">0</string>
++
++    <!-- START. For Shutter Sound, By Xia.Fei -->
++    <string name="pref_camera_shutter_sound_default" translatable="false">off</string>
++    <string name="pref_camera_shutter_sound_title">Shutter Sound</string>
++    <string name="pref_camera_shutter_sound_entry_off">Off</string>
++    <string name="pref_camera_shutter_sound_entry_on">On</string>
++    <!-- END. For Shutter Sound, By Xia.Fei -->
+ </resources>
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/xml/camera_preferences.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/xml/camera_preferences.xml
+index 8e2394b..c5acd9e 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/xml/camera_preferences.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/xml/camera_preferences.xml
+@@ -284,7 +284,16 @@
+             camera:title="@string/pref_face_beauty_mode_title"
+             camera:entries="@array/pref_camera_multi_face_beauty_entries"
+             camera:entryValues="@array/pref_camera_multi_face_beauty_entryvalues"/>
+-            
++
++        <!-- START. For Shutter Sound, By Xia.Fei -->
++        <ListPreference
++            camera:key="pref_shutter_sound_key"
++            camera:defaultValue="@string/pref_camera_shutter_sound_default"
++            camera:title="@string/pref_camera_shutter_sound_title"
++            camera:entries="@array/pref_camera_shutter_sound_entries"
++            camera:entryValues="@array/pref_camera_shutter_sound_entryvalues"/>
++        <!-- END. For Shutter Sound, By Xia.Fei -->
++
+     <IconListPreference
+             camera:key="pref_hdr_key"
+             camera:defaultValue="@string/pref_camera_hdr_default"
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/AndroidCamera.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/AndroidCamera.java
+index 5ccfef0..8911bda 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/AndroidCamera.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/AndroidCamera.java
+@@ -363,4 +363,13 @@ public class AndroidCamera implements ICamera {
+     public void cancelMainFaceInfo() {
+         mCamera.cancelMainFaceInfo();
+     }
++
++    //START. For Shutter Sound, By Xia.Fei
++    public void enableShutterSound() {
++        mCamera.enableShutterSound(true);
++    }
++    public void disnableShutterSound() {
++        mCamera.enableShutterSound(false);
++    }
++    //END. For Shutter Sound, By Xia.Fei
+ }
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/CameraManager.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/CameraManager.java
+index e255ffd..38b0068 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/CameraManager.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/CameraManager.java
+@@ -146,6 +146,11 @@ public class CameraManager {
+     private Object mFaceDetectionSync = new Object();
+     private boolean mFaceDetectionRunning = false;
+ 
++    //START. For Shutter Sound, By Xia.Fei
++    private static final int ENABLE_SHUTTER_SOUND = 931;
++    private static final int DISNABLE_SHUTTER_SOUND = 932;
++    //END. For Shutter Sound, By Xia.Fei
++
+     public CameraManager(String subTag) {
+         Log.i(TAG, "[CameraManager]constructor,subTag = " + subTag);
+         mSubTag = mSubTag + "/" + subTag;
+@@ -288,6 +293,15 @@ public class CameraManager {
+                     mFaceDetectionRunning = false;
+                     return;
+ 
++                //START. For Shutter Sound, By Xia.Fei
++                case ENABLE_SHUTTER_SOUND:
++                    mCamera.enableShutterSound();
++                    return;
++                case DISNABLE_SHUTTER_SOUND:
++                    mCamera.disnableShutterSound();
++                    return;
++                //END. For Shutter Sound, By Xia.Fei
++
+                 case RECONNECT:
+                     mReconnectException = null;
+                     try {
+@@ -616,6 +630,17 @@ public class CameraManager {
+             }
+         }
+ 
++        //START. For Shutter Sound, By Xia.Fei
++        public void enableShutterSound(){
++            mCameraHandler.sendEmptyMessage(ENABLE_SHUTTER_SOUND);
++            waitDone();
++        }
++        public void disnableShutterSound(){
++            mCameraHandler.sendEmptyMessage(DISNABLE_SHUTTER_SOUND);
++            waitDone();
++        }
++        //END. For Shutter Sound, By Xia.Fei
++
+         public void unlock() {
+             mCameraHandler.sendEmptyMessage(UNLOCK);
+             waitDone();
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/ICamera.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/ICamera.java
+index efa0443..bd7b857 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/ICamera.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/ICamera.java
+@@ -178,6 +178,11 @@ public interface ICamera {
+     void takePicture(ShutterCallback shutter, PictureCallback raw, PictureCallback postview,
+             PictureCallback jpeg);
+ 
++    //START. For Shutter Sound, By Xia.Fei
++    void enableShutterSound();
++    void disnableShutterSound();
++    //END. For Shutter Sound, By Xia.Fei
++
+     void unlock();
+ 
+     public void setOneShotPreviewCallback(PreviewCallback cb);
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/actor/PhotoActor.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/actor/PhotoActor.java
+index 06ea7cf..a4dee31 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/actor/PhotoActor.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/actor/PhotoActor.java
+@@ -115,6 +115,10 @@ public class PhotoActor extends CameraActor implements FocusManager.Listener,
+     private final AutoFocusCallback mAutoFocusCallback = new AutoFocusCallback();
+     private final AutoFocusMoveCallback mAutoFocusMoveCallback = new AutoFocusMoveCallback();
+     private final ICameraAppUi mICameraAppUi;
++
++    //START. For Shutter Sound, By Xia.Fei
++    private boolean mShutterSoundEnabled;
++    //END. For Shutter Sound, By Xia.Fei
+     
+     public PhotoActor(CameraActivity context, ModuleManager moduleManager, int mode) {
+         super(context);
+@@ -605,6 +609,15 @@ public class PhotoActor extends CameraActor implements FocusManager.Listener,
+     
+     @Override
+     public boolean capture() {
++        //START. For Shutter Sound, By Xia.Fei
++        mShutterSoundEnabled="on".equals(mModuleManager.getSettingController().getSettingValue(SettingConstants.KEY_CAMERA_SHUTTER_SOUND));
++        Log.e("hhq","mShutterSoundEnabled : " + mShutterSoundEnabled);
++        if(mShutterSoundEnabled){
++            mCameraActivity.getCameraDevice().enableShutterSound();
++        }else{
++            mCameraActivity.getCameraDevice().disnableShutterSound();
++        }
++        //END. For Shutter Sound, By Xia.Fei
+         return false;
+     }
+     
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/actor/VideoActor.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/actor/VideoActor.java
+index 8f1a1cc..0fcf563 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/actor/VideoActor.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/actor/VideoActor.java
+@@ -61,6 +61,10 @@ import com.mediatek.camera.platform.ICameraAppUi;
+ import com.mediatek.camera.platform.ICameraAppUi.CommonUiType;
+ import com.mediatek.camera.util.Log;
+ 
++//START. For Shutter Sound, By Xia.Fei
++import com.mediatek.camera.setting.SettingConstants;
++//END. For Shutter Sound, By Xia.Fei
++
+ //public class VideoActor extends CameraActor implements FocusManager.Listener {
+ public class VideoActor extends CameraActor {
+     private static final String TAG = "VideoActor";
+@@ -74,6 +78,10 @@ public class VideoActor extends CameraActor {
+     private CameraErrorCallback mErrorCallback = new CameraErrorCallback();
+     
+     private final ICameraAppUi mCameraAppUI;
++
++    //START. For Shutter Sound, By Xia.Fei
++    public boolean mshutterEnabled;
++    //END. For Shutter Sound, By Xia.Fei
+     
+     public VideoActor(CameraActivity context, ModuleManager moduleManager, int mode) {
+         super(context);
+@@ -131,6 +139,17 @@ public class VideoActor extends CameraActor {
+         return mCurrentMode;
+     }
+     
++    //START. For Shutter Sound, By Xia.Fei
++    public boolean enableShutter(){
++        mshutterEnabled="on".equals(mModuleManager.getSettingController().getSettingValue(SettingConstants.KEY_CAMERA_SHUTTER_SOUND));
++        if(mshutterEnabled){
++            return true;
++        }else{
++            return false;
++        }
++    }
++    //END. For Shutter Sound, By Xia.Fei
++
+     @Override
+     public OnShutterButtonListener getVideoShutterButtonListener() {
+         return mVideoShutterListener;
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/bridge/CameraDeviceImpl.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/bridge/CameraDeviceImpl.java
+index 4dd3536..c7f2427 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/bridge/CameraDeviceImpl.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/bridge/CameraDeviceImpl.java
+@@ -529,6 +529,17 @@ public class CameraDeviceImpl implements ICameraDevice {
+         mCameraDevice.stopSmileDetection();
+     }
+ 
++    //START. For Shutter Sound, By Xia.Fei
++    @Override
++    public void enableShutterSound() {
++        mCameraDevice.enableShutterSound();
++    }
++    @Override
++    public void disnableShutterSound() {
++        mCameraDevice.disnableShutterSound();
++    }
++    //END. For Shutter Sound, By Xia.Fei
++
+     private class ContinuousShotListenerImpl implements ContinuousShotCallback {
+         private ContinuousShotListener mCallback;
+ 
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/ui/SettingListLayout.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/ui/SettingListLayout.java
+index 764b6cf..053ef61 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/ui/SettingListLayout.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/ui/SettingListLayout.java
+@@ -149,6 +149,7 @@ public class SettingListLayout extends FrameLayout implements InLineSettingItem.
+                 || SettingConstants.KEY_CAMERA_FACE_DETECT.equals(pref.getKey())
+                 || SettingConstants.KEY_HDR.equals(pref.getKey())
+                 || SettingConstants.KEY_GESTURE_SHOT.equals(pref.getKey())
++                || SettingConstants.KEY_CAMERA_SHUTTER_SOUND.equals(pref.getKey())//For Shutter Sound, By Xia.Fei
+                 || SettingConstants.KEY_SMILE_SHOT.equals(pref.getKey())
+                 || SettingConstants.KEY_SLOW_MOTION.equals(pref.getKey())
+                 || SettingConstants.KEY_CAMERA_AIS.equals(pref.getKey())
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/addition/continuousshot/ContinuousShot.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/addition/continuousshot/ContinuousShot.java
+index 88a7883..04da886 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/addition/continuousshot/ContinuousShot.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/addition/continuousshot/ContinuousShot.java
+@@ -109,6 +109,10 @@ public class ContinuousShot extends CameraAddition implements ContinuousShotList
+     private boolean mIsClearMemoryLimit;
+     private boolean mIsSupportIndicator;
+ 
++    //START. For Shutter Sound, By Xia.Fei
++    private boolean mShutterSoundEnabled;
++    //END. For Shutter Sound, By Xia.Fei
++
+     // Continuous shot state
+     private enum State {
+         STATE_INIT, STATE_OPENED,
+@@ -412,7 +416,15 @@ public class ContinuousShot extends CameraAddition implements ContinuousShotList
+             // start play sound only at first time when continuous shot
+             if (getCurrentState() == State.STATE_CAPTURING) {
+                 mMemoryManager.start();
+-                mCaptureSound.play();
++
++                //START. For Shutter Sound, By Xia.Fei
++                mShutterSoundEnabled="on".equals(mISettingCtrl.getSettingValue(SettingConstants.KEY_CAMERA_SHUTTER_SOUND));
++                //int camerId = mICameraDeviceManager.getCurrentCameraId();
++                if(mShutterSoundEnabled){
++                    mCaptureSound.play();
++                }
++                //END. For Shutter Sound, By Xia.Fei
++
+                 // start to show speed indicator 0/MaxNum
+                 // showSpeedIndicator();
+             }
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/mode/PhotoMode.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/mode/PhotoMode.java
+index 94af7c5..b86cf1d 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/mode/PhotoMode.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/mode/PhotoMode.java
+@@ -102,6 +102,10 @@ public class PhotoMode extends CameraMode implements FocusListener, ICameraAddit
+     // but if application receive onCanCapture firstly, move the restartPreview to onCanCapture.
+     private int mCapturedImageCount = 0;
+ 
++    //START. For Shutter Sound, By Xia.Fei
++    private boolean mShutterSoundEnabled;
++    //END. For Shutter Sound, By Xia.Fei
++
+     public PhotoMode(ICameraContext cameraContext) {
+         super(cameraContext);
+         Log.i(TAG, "[PhotoMode]constructor...");
+@@ -176,6 +180,17 @@ public class PhotoMode extends CameraMode implements FocusListener, ICameraAddit
+     public boolean capture() {
+         Log.i(TAG, "[capture]...");
+ 
++        //START. For Shutter Sound, By Xia.Fei
++        mShutterSoundEnabled="on".equals(mISettingCtrl.getSettingValue(SettingConstants.KEY_CAMERA_SHUTTER_SOUND));
++        Log.e("hhq","mShutterSoundEnabled : " + mShutterSoundEnabled);
++        int camerId = mICameraDeviceManager.getCurrentCameraId();
++        if(mShutterSoundEnabled){
++            mICameraDeviceManager.getCameraDevice(camerId).enableShutterSound();
++        }else{
++            mICameraDeviceManager.getCameraDevice(camerId).disnableShutterSound();
++        }
++        //END. For Shutter Sound, By Xia.Fei
++
+         long start = System.currentTimeMillis();
+         mCaptureStartTime = System.currentTimeMillis();
+         mPostViewPictureCallbackTime = 0;
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/platform/ICameraDeviceManager.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/platform/ICameraDeviceManager.java
+index e178ce9..7461399 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/platform/ICameraDeviceManager.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/platform/ICameraDeviceManager.java
+@@ -286,5 +286,10 @@ public interface ICameraDeviceManager {
+         public void setMainFaceCoordinate(int x, int y);
+ 
+         public void cancelMainFaceInfo();
++
++        //START. For Shutter Sound, By Xia.Fei
++        void enableShutterSound();
++        void disnableShutterSound();
++        //END. For Shutter Sound, By Xia.Fei
+     }
+ }
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingConstants.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingConstants.java
+index ee41996..f69166e 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingConstants.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingConstants.java
+@@ -48,7 +48,8 @@ public class SettingConstants {
+     public static final String KEY_VERSION                          = "pref_version_key";
+     public static final String KEY_LOCAL_VERSION                    = "pref_local_version_key";
+     
+-    public static final int SETTING_COUNT = 61;
++    //SETTING_COUNT = ROW_xxx_nums + 1. For Shutter Sound, By Xia.Fei
++    public static final int SETTING_COUNT = 62;
+     // setting key
+     public static final String KEY_CAMERA_ID                 = "pref_camera_id_key";
+     public static final String KEY_JPEG_QUALITY              = "pref_camera_jpegquality_key";
+@@ -117,6 +118,10 @@ public class SettingConstants {
+     public static final String KEY_FB_EXTEME_BEAUTY_SUPPORTED    = "fb-extreme-beauty-supported";
+     public static final String KEY_INTO_VIDEO_FACE_BEAUTY_NORMAL = "face-beauty-normal";
+     
++    //START. For Shutter Sound, By Xia.Fei
++    public static final String KEY_CAMERA_SHUTTER_SOUND        = "pref_shutter_sound_key";
++    public static final int ROW_SETTING_CAMERA_SHUTTER_SOUND = 61;//camera, set SETTING_COUNT = 62
++    //END. For Shutter Sound, By Xia.Fei
+     // setting index
+     public static final int ROW_SETTING_FACE_BEAUTY               = 0;
+     public static final int ROW_SETTING_PANORAMA                  = 1;
+@@ -202,6 +207,7 @@ public class SettingConstants {
+         SETTING_TYPE[ROW_SETTING_STEREO_MODE]               = ONLY_IN_PEFERENCE;
+         SETTING_TYPE[ROW_SETTING_FACEBEAUTY_PROPERTIES]     = ONLY_IN_PEFERENCE;
+         SETTING_TYPE[ROW_SETTING_CAMERA_FACE_DETECT]        = ONLY_IN_PEFERENCE;
++        SETTING_TYPE[ROW_SETTING_CAMERA_SHUTTER_SOUND]      = ONLY_IN_PEFERENCE;//For Shutter Sound, By Xia.Fei
+         SETTING_TYPE[ROW_SETTING_SMILE_SHOT]                = ONLY_IN_PEFERENCE;
+         SETTING_TYPE[ROW_SETTING_ASD]                       = ONLY_IN_PEFERENCE;
+         SETTING_TYPE[ROW_SETTING_GESTURE_SHOT]              = ONLY_IN_PEFERENCE;
+@@ -303,6 +309,7 @@ public class SettingConstants {
+         KEYS_FOR_SETTING[ROW_SETTING_FACEBEAUTY_SKIN_COLOR] = KEY_FACE_BEAUTY_SKIN_COLOR;
+         KEYS_FOR_SETTING[ROW_SETTING_FACEBEAUTY_SHARP]      = KEY_FACE_BEAUTY_SHARP;
+         KEYS_FOR_SETTING[ROW_SETTING_CAMERA_FACE_DETECT]    = KEY_CAMERA_FACE_DETECT;
++        KEYS_FOR_SETTING[ROW_SETTING_CAMERA_SHUTTER_SOUND]  = KEY_CAMERA_SHUTTER_SOUND;//For Shutter Sound, By Xia.Fei
+         KEYS_FOR_SETTING[ROW_SETTING_HDR]                   = KEY_HDR;
+         KEYS_FOR_SETTING[ROW_SETTING_SMILE_SHOT]            = KEY_SMILE_SHOT;
+         KEYS_FOR_SETTING[ROW_SETTING_ASD]                   = KEY_ASD;
+@@ -361,6 +368,7 @@ public class SettingConstants {
+         ROW_SETTING_AIS,//camera
+         ROW_SETTING_VOICE,//camera
+         ROW_SETTING_CAMERA_FACE_DETECT,//camera
++        ROW_SETTING_CAMERA_SHUTTER_SOUND,//For Shutter Sound, By Xia.Fei
+         ROW_SETTING_GESTURE_SHOT,
+         ROW_SETTING_SMILE_SHOT,//camera
+         ROW_SETTING_ASD,//camera
+@@ -397,6 +405,7 @@ public class SettingConstants {
+         ROW_SETTING_ZSD,// camera
+         ROW_SETTING_VOICE,// camera
+         ROW_SETTING_CAMERA_FACE_DETECT,// camera
++        ROW_SETTING_CAMERA_SHUTTER_SOUND,//For Shutter Sound, By Xia.Fei
+         ROW_SETTING_SELF_TIMER,// camera
+         ROW_SETTING_CONTINUOUS_NUM,// camera
+         ROW_SETTING_ISO,// camera
+@@ -473,6 +482,7 @@ public class SettingConstants {
+         ROW_SETTING_PICTURE_RATIO,// camera
+         ROW_SETTING_VOICE,// camera
+         ROW_SETTING_CAMERA_FACE_DETECT,// camera
++        ROW_SETTING_CAMERA_SHUTTER_SOUND,//For Shutter Sound, By Xia.Fei
+         ROW_SETTING_MULTI_FACE_MODE,// vFB Camera
+         ROW_SETTING_HDR, 
+         ROW_SETTING_SMILE_SHOT, 
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingDataBase.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingDataBase.java
+index e4456b6..680855b 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingDataBase.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingDataBase.java
+@@ -195,6 +195,10 @@ public class SettingDataBase {
+         MATRIX_RESTRICTION_STATE[SettingConstants.ROW_SETTING_CAMERA_FACE_DETECT]    = new int[]{
+                 STATE_E0, STATE_E0, STATE_R1, STATE_R0, STATE_R1, STATE_E0,
+                 STATE_R0, STATE_R0, STATE_R1, STATE_R1, STATE_E0};//50: face detection
++        MATRIX_RESTRICTION_STATE[SettingConstants.ROW_SETTING_CAMERA_SHUTTER_SOUND]  = new int[]{
++                STATE_E0, STATE_E0, STATE_E0, STATE_E0, STATE_E0,
++                STATE_E0, STATE_E0,  STATE_E0, STATE_E0, STATE_E0,
++                STATE_E0, STATE_E0, STATE_E0, STATE_D0};//50: //For Shutter Sound, By Xia.Fei
+         MATRIX_RESTRICTION_STATE[SettingConstants.ROW_SETTING_MULTI_FACE_MODE]       = new int[]{
+                 STATE_E0, STATE_E0, STATE_E0, STATE_E0, STATE_E0, STATE_D0,
+                 STATE_E0, STATE_D0, STATE_E0, STATE_E0, STATE_E0};//55: multi-face mode
+@@ -276,6 +280,7 @@ public class SettingDataBase {
+         RESET_STATE_VALUE[SettingConstants.ROW_SETTING_FACEBEAUTY_SKIN_COLOR] = new String[]{"0"};//middle
+         RESET_STATE_VALUE[SettingConstants.ROW_SETTING_FACEBEAUTY_SHARP]      = new String[]{"0"};//middle
+         RESET_STATE_VALUE[SettingConstants.ROW_SETTING_CAMERA_FACE_DETECT]    = new String[]{"off", "on"};
++        RESET_STATE_VALUE[SettingConstants.ROW_SETTING_CAMERA_SHUTTER_SOUND]  = new String[]{"off", "on"};//For Shutter Sound, By Xia.Fei
+         RESET_STATE_VALUE[SettingConstants.ROW_SETTING_MULTI_FACE_MODE]       = new String[]{"Single", "Multi","OFF"};
+         RESET_STATE_VALUE[SettingConstants.ROW_SETTING_RECORDING_HINT]        = new String[]{Boolean.toString(false), Boolean.toString(true)};
+         RESET_STATE_VALUE[SettingConstants.ROW_SETTING_CAPTURE_MODE]          = new String[]{
+@@ -356,6 +361,7 @@ public class SettingDataBase {
+         DEFAULT_VALUE_FOR_SETTING_ID[SettingConstants.ROW_SETTING_FACEBEAUTY_BIG_EYES]   = R.string.pref_facebeauty_big_eys_default;
+ 
+         DEFAULT_VALUE_FOR_SETTING_ID[SettingConstants.ROW_SETTING_CAMERA_FACE_DETECT]    = R.string.pref_camera_face_detect_default;
++        DEFAULT_VALUE_FOR_SETTING_ID[SettingConstants.ROW_SETTING_CAMERA_SHUTTER_SOUND]  = R.string.pref_camera_shutter_sound_default;
+         DEFAULT_VALUE_FOR_SETTING_ID[SettingConstants.ROW_SETTING_MULTI_FACE_MODE]       = UNKNOWN;
+         DEFAULT_VALUE_FOR_SETTING_ID[SettingConstants.ROW_SETTING_SMILE_SHOT]            = R.string.pref_smile_shot_default;
+         DEFAULT_VALUE_FOR_SETTING_ID[SettingConstants.ROW_SETTING_HDR]                   = R.string.pref_camera_hdr_default;
+-- 
+1.7.9.5
+

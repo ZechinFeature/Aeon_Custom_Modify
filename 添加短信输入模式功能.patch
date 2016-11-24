@@ -1,0 +1,201 @@
+From c54c0e3a15bfa0ec45225b095ee78e76ee905f72 Mon Sep 17 00:00:00 2001
+From: guoxiaolin <guo.xiaolin@eastaeon.com>
+Date: Wed, 9 Mar 2016 14:21:47 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E6=B7=BB=E5=8A?=
+ =?UTF-8?q?=A0=E7=9F=AD=E4=BF=A1=E8=BE=93=E5=85=A5=E6=A8=A1=E5=BC=8F=E5=8A=9F?=
+ =?UTF-8?q?=E8=83=BD?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../com/mediatek/mms/ext/DefaultOpComposeExt.java  |   15 +++++++-
+ .../ext/DefaultOpSmsSingleRecipientSenderExt.java  |   18 ++++++++-
+ .../android/mms/transaction/SmsMessageSender.java  |    2 +-
+ .../mms/transaction/SmsSingleRecipientSender.java  |    4 +-
+ .../com/android/mms/ui/ComposeMessageActivity.java |   39 +++++++++++++++++---
+ 5 files changed, 66 insertions(+), 12 deletions(-)
+ mode change 100644 => 100755 alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/transaction/SmsMessageSender.java
+ mode change 100644 => 100755 alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/transaction/SmsSingleRecipientSender.java
+ mode change 100644 => 100755 alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
+
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/ext/src/com/mediatek/mms/ext/DefaultOpComposeExt.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/ext/src/com/mediatek/mms/ext/DefaultOpComposeExt.java
+index 5eaae65..79157a9 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/ext/src/com/mediatek/mms/ext/DefaultOpComposeExt.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/ext/src/com/mediatek/mms/ext/DefaultOpComposeExt.java
+@@ -76,7 +76,9 @@ import com.mediatek.mms.callback.ISlideshowModelCallback;
+ import com.mediatek.mms.callback.ITextSizeAdjustHost;
+ import com.mediatek.mms.callback.IComposeActivityCallback;
+ import com.mediatek.mms.callback.IWorkingMessageCallback;
+-
++import android.content.SharedPreferences;
++import android.preference.PreferenceManager;
++import android.telephony.gsm.SmsMessage;
+ 
+ public class DefaultOpComposeExt extends ContextWrapper implements IOpComposeExt {
+     private static final String TAG = "Mms/MmsComposeImpl";
+@@ -367,7 +369,16 @@ public class DefaultOpComposeExt extends ContextWrapper implements IOpComposeExt
+ 
+     @Override
+     public int getSmsEncodingType(int encodingType, Context context) {
+-        return encodingType;
++ 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
++		String encodingTypes = preferences.getString("pref_key_sms_input_mode","ENCODING_UNKNOWN");
++		if(encodingTypes.equals("GSM alphabet")){
++			encodingType = SmsMessage.ENCODING_7BIT;
++		}else if(encodingTypes.equals("Unicode")){
++			encodingType = SmsMessage.ENCODING_16BIT;
++		}else {
++			encodingType = SmsMessage.ENCODING_UNKNOWN;
++		}
++		return encodingType;
+     }
+ 
+     @Override
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/ext/src/com/mediatek/mms/ext/DefaultOpSmsSingleRecipientSenderExt.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/ext/src/com/mediatek/mms/ext/DefaultOpSmsSingleRecipientSenderExt.java
+index 5af1cb8..7b6228d 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/ext/src/com/mediatek/mms/ext/DefaultOpSmsSingleRecipientSenderExt.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/ext/src/com/mediatek/mms/ext/DefaultOpSmsSingleRecipientSenderExt.java
+@@ -6,7 +6,10 @@ import android.app.PendingIntent;
+ import android.content.Context;
+ 
+ import com.mediatek.mms.ext.IOpSmsSingleRecipientSenderExt;
+-
++import android.content.SharedPreferences;
++import android.preference.PreferenceManager;
++import android.telephony.gsm.SmsMessage;
++import android.util.Log;
+ public class DefaultOpSmsSingleRecipientSenderExt implements IOpSmsSingleRecipientSenderExt {
+ 
+     @Override
+@@ -24,6 +27,17 @@ public class DefaultOpSmsSingleRecipientSenderExt implements IOpSmsSingleRecipie
+ 
+     @Override
+     public int sendMessagePrepare(Context context, int codingType) {
+-        return codingType;
++		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
++		String encodingTypes = preferences.getString("pref_key_sms_input_mode","ENCODING_UNKNOWN");
++		Log.d("wangjian","encodingTypes = "+encodingTypes);
++		if(encodingTypes.equals("GSM alphabet")){
++			codingType = SmsMessage.ENCODING_7BIT;
++		}else if(encodingTypes.equals("Unicode")){
++			codingType = SmsMessage.ENCODING_16BIT;
++		}else{
++			codingType = SmsMessage.ENCODING_UNKNOWN;
++		}
++		Log.d("wangjian","encodingValue = "+codingType);
++			return codingType;
+     }
+ }
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/transaction/SmsMessageSender.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/transaction/SmsMessageSender.java
+old mode 100644
+new mode 100755
+index b9f396d..d6fb2a4
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/transaction/SmsMessageSender.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/transaction/SmsMessageSender.java
+@@ -51,7 +51,7 @@ public class SmsMessageSender implements MessageSender {
+     protected final Context mContext;
+     protected final int mNumberOfDests;
+     private final String[] mDests;
+-    protected final String mMessageText;
++    protected  String mMessageText;
+     protected final String mServiceCenter;
+     protected final long mThreadId;
+     protected int mSubId;
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/transaction/SmsSingleRecipientSender.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/transaction/SmsSingleRecipientSender.java
+old mode 100644
+new mode 100755
+index 4aab62f..06eb360
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/transaction/SmsSingleRecipientSender.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/transaction/SmsSingleRecipientSender.java
+@@ -63,7 +63,9 @@ public class SmsSingleRecipientSender extends SmsMessageSender {
+             // one.
+             throw new MmsException("Null message body or have multiple destinations.");
+         }
+-
++		//œ --> oe   Œ --> OE
++		mMessageText = mMessageText.replaceAll("\\u0152","OE");
++		mMessageText = mMessageText.replaceAll("\\u0153","oe");
+         /// M:Code analyze 002,add a variable to caculate the length of sms @{
+         int codingType = SmsMessage.ENCODING_UNKNOWN;
+         codingType = mOpSmsSenderExt.sendMessagePrepare(mContext, codingType);
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
+old mode 100644
+new mode 100755
+index 913fedf..d057948
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ComposeMessageActivity.java
+@@ -1022,18 +1022,25 @@ public class ComposeMessageActivity extends Activity
+         int[] params = null;
+ 
+         int encodingType = SmsMessage.ENCODING_UNKNOWN;
+-
++		boolean use7bitOnly = false;
+         encodingType = mOpComposeExt.getSmsEncodingType(encodingType, ComposeMessageActivity.this);
+-
+-        params = SmsMessage.calculateLength(text, false, encodingType);
++		MmsLog.d(TAG, "encodingType = " + encodingType);
++		if(encodingType == SmsMessage.ENCODING_7BIT){
++			use7bitOnly = true;
++		}
++        params = SmsMessage.calculateLength(text, use7bitOnly, encodingType);
+             /* SmsMessage.calculateLength returns an int[4] with:
+              *   int[0] being the number of SMS's required,
+              *   int[1] the number of code units used,
+              *   int[2] is the number of code units remaining until the next message.
+              *   int[3] is the encoding type that should be used for the message.
++			 *	 int[4] use for deciding Whether to prompt the user.
+              */
+         final int msgCount = params[0];
+         final int remainingInCurrentMessage = params[2];
++		final int shouldHintFor7bit = params[4];
++		mShouldprompt = (shouldHintFor7bit > 0) ? true : false;
++		MmsLog.d(TAG, "shouldHintFor7bit = "+shouldHintFor7bit);
+         MmsLog.d(TAG, "updateCounter(): message remainingInCurrentMessage = " + remainingInCurrentMessage);
+         /*
+         if (!MmsConfig.getMultipartSmsEnabled()) {
+@@ -1081,7 +1088,7 @@ public class ComposeMessageActivity extends Activity
+                 }
+ 
+                 MmsLog.d(TAG, "updateCounter requiresMms = " + mWorkingMessage.requiresMms() + " line count = " + mTextEditor.getLineCount());
+-                if (mWorkingMessage.requiresMms() || mTextEditor.getLineCount() <= 1) {
++                if (mWorkingMessage.requiresMms() || mTextEditor.getLineCount() <= 0) {
+                     mTextCounter.setVisibility(View.GONE);
+                     return;
+                 }
+@@ -9971,10 +9978,30 @@ public class ComposeMessageActivity extends Activity
+         return MessageUtils.formatTimeStampString(this, (long) (time * 1000L), true);
+     }
+ 
+-    private void checkBeforeSendMessage(boolean bCheckEcmMode) {
++    private void checkBeforeSendMessage(final boolean bCheckEcmMode) {
+         boolean needSendIpMessage = mIpCompose.checkIpMessageBeforeSendMessage(mSelectedSubId, bCheckEcmMode);
+         if (!needSendIpMessage) {
+-            sendMessage(bCheckEcmMode);
++			if(mShouldprompt){
++				updateSendButtonState();
++				AlertDialog.Builder builder = new AlertDialog.Builder(this);
++				builder.setTitle(R.string.input_mode_alert_title);
++				builder.setMessage(R.string.input_mode_alert_message);
++				builder.setNegativeButton(R.string.input_mode_alert_cancel,null).create();
++				builder.setPositiveButton(R.string.input_mode_alert_send, new OnClickListener() {
++					
++					@Override
++					public void onClick(DialogInterface dialog, int which) {
++						// TODO Auto-generated method stub
++						mShouldprompt = false;
++						sendMessage(bCheckEcmMode);
++						
++					}
++				}).create();
++				builder.create().show();
++			}else{
++				sendMessage(bCheckEcmMode);
++			}
++            
+         }
+     }
+ 
+-- 
+1.7.9.5
+

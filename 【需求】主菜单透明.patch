@@ -1,0 +1,76 @@
+From d79d4a290d7f8b337d40186db320b45e4f473b45 Mon Sep 17 00:00:00 2001
+From: guoxiaolin <guo.xiaolin@eastaeon.com>
+Date: Mon, 11 Apr 2016 13:53:32 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E4=B8=BB=E8=8F?=
+ =?UTF-8?q?=9C=E5=8D=95=E9=80=8F=E6=98=8E?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../Launcher3/res/drawable/quantum_panel_shape.xml |    2 +-
+ alps/packages/apps/Launcher3/res/values/colors.xml |    2 +-
+ .../src/com/android/launcher3/Launcher.java        |    6 ++++--
+ .../LauncherStateTransitionAnimation.java          |    2 ++
+ 4 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/alps/packages/apps/Launcher3/res/drawable/quantum_panel_shape.xml b/alps/packages/apps/Launcher3/res/drawable/quantum_panel_shape.xml
+index 1083615..1afbc63 100755
+--- a/alps/packages/apps/Launcher3/res/drawable/quantum_panel_shape.xml
++++ b/alps/packages/apps/Launcher3/res/drawable/quantum_panel_shape.xml
+@@ -16,7 +16,7 @@
+ -->
+ <shape xmlns:android="http://schemas.android.com/apk/res/android"
+        android:shape="rectangle">
+-    <solid android:color="@color/quantum_panel_bg_color" />
++    <solid android:color="@android:color/transparent" />
+     <corners
+         android:radius="2dp" />
+ </shape>
+\ No newline at end of file
+diff --git a/alps/packages/apps/Launcher3/res/values/colors.xml b/alps/packages/apps/Launcher3/res/values/colors.xml
+index e75ba41..6cf0a31 100755
+--- a/alps/packages/apps/Launcher3/res/values/colors.xml
++++ b/alps/packages/apps/Launcher3/res/values/colors.xml
+@@ -32,7 +32,7 @@
+     <color name="workspace_edge_effect_color">#FFFFFFFF</color>
+     <color name="folder_edge_effect_color">#FF757575</color>
+ 
+-    <color name="quantum_panel_text_color">#FF666666</color>
++    <color name="quantum_panel_text_color">#FFFFFF</color>
+     <color name="quantum_panel_transparent_bg_text_color">#FFFFFF</color>
+     <color name="quantum_panel_bg_color">#FFF5F5F5</color>
+     <color name="quantum_panel_bg_color_dark">#FF374248</color>
+diff --git a/alps/packages/apps/Launcher3/src/com/android/launcher3/Launcher.java b/alps/packages/apps/Launcher3/src/com/android/launcher3/Launcher.java
+index 84b67d4..4fbaf19 100755
+--- a/alps/packages/apps/Launcher3/src/com/android/launcher3/Launcher.java
++++ b/alps/packages/apps/Launcher3/src/com/android/launcher3/Launcher.java
+@@ -1143,8 +1143,10 @@ public class Launcher extends Activity
+             // Don't update the predicted apps if the user is returning to launcher in the apps
+             // view after launching an app, as they may be depending on the UI to be static to
+             // switch to another app, otherwise, if it was
+-            showAppsView(false /* animated */, false /* resetListToTop */,
+-                    !launchedFromApp /* updatePredictedApps */, false /* focusSearchBar */);
++			mWorkspace.setVisibility(View.INVISIBLE); //mtk add
++			mPageIndicators.setAlpha(0f);    //mtk add
++			showAppsView(true /* animated */, true /* resetListToTop */,
++					!launchedFromApp /* updatePredictedApps */, false /* focusSearchBar */);     // mtk modify
+         } else if (mOnResumeState == State.WIDGETS) {
+             showWidgetsView(false, false);
+         }
+diff --git a/alps/packages/apps/Launcher3/src/com/android/launcher3/LauncherStateTransitionAnimation.java b/alps/packages/apps/Launcher3/src/com/android/launcher3/LauncherStateTransitionAnimation.java
+index cdde8c1..06fbfbe 100755
+--- a/alps/packages/apps/Launcher3/src/com/android/launcher3/LauncherStateTransitionAnimation.java
++++ b/alps/packages/apps/Launcher3/src/com/android/launcher3/LauncherStateTransitionAnimation.java
+@@ -139,6 +139,8 @@ public class LauncherStateTransitionAnimation {
+                     }
+                     public void onAnimationEnd(Animator animation) {
+                         allAppsButtonView.setVisibility(View.VISIBLE);
++						 Workspace workspace= mLauncher.getWorkspace();//mtk add
++						 workspace.setVisibility(View.INVISIBLE);//mtk add
+                     }
+                 };
+             }
+-- 
+1.7.9.5
+

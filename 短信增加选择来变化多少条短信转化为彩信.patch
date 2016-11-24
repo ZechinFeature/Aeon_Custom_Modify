@@ -1,0 +1,214 @@
+From 63a20fac50c65b4c895ee93fa06edf7cc22cdfa7 Mon Sep 17 00:00:00 2001
+From: guoxiaolin <guo.xiaolin@eastaeon.com>
+Date: Wed, 9 Mar 2016 13:41:10 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E7=9F=AD=E4=BF?=
+ =?UTF-8?q?=A1=E5=A2=9E=E5=8A=A0=E9=80=89=E6=8B=A9=E6=9D=A5=E5=8F=98=E5=8C=96?=
+ =?UTF-8?q?=E5=A4=9A=E5=B0=91=E6=9D=A1=E7=9F=AD=E4=BF=A1=E8=BD=AC=E5=8C=96=E4?=
+ =?UTF-8?q?=B8=BA=E5=BD=A9=E4=BF=A1?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../packages/apps/Mms/res/values/arrays.xml        |   13 ++++++++
+ .../packages/apps/Mms/res/values/strings.xml       |   14 +++++++++
+ .../apps/Mms/src/com/android/mms/MmsConfig.java    |   28 ++++++++++++++++-
+ .../mediatek/setting/SmsPreferenceActivity.java    |   33 ++++++++++++++++++--
+ 4 files changed, 84 insertions(+), 4 deletions(-)
+ mode change 100644 => 100755 alps/vendor/mediatek/proprietary/packages/apps/Mms/res/values/arrays.xml
+
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/values/arrays.xml b/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/values/arrays.xml
+old mode 100644
+new mode 100755
+index d8357e5..f922fa6
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/values/arrays.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/values/arrays.xml
+@@ -76,4 +76,17 @@
+     <string-array name="empty_subject_strings">
+         <item>no subject</item>
+     </string-array>
++	
++	<!-- dy add for SMS size limit for converting to MMS start-->
++	<string-array name="pref_smstomms_choices">
++        <item>Over 4 segments</item>
++        <item>Over 6 segments</item>
++		<item>Over 10 segments</item>
++    </string-array>
++    <string-array name="pref_smstomms_values">
++    	<item>5</item>
++		<item>7</item>
++        <item>11</item>
++    </string-array>
++	<!-- dy add for SMS size limit for converting to MMS end-->
+ </resources>
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/values/strings.xml b/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/values/strings.xml
+index 666d33d..ec763e6 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/values/strings.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/res/values/strings.xml
+@@ -840,5 +840,19 @@
+     <string name="banner_sms_promo_title_initial">Messaging is not your SMS app</string>
+     <string name="banner_sms_promo_title_application"><xliff:g id="appName">%s</xliff:g> is your SMS app</string>
+     <string name="banner_sms_promo_message">You can change this in Settings</string>
++	<!-- dy add for SMS size limit for converting to MMS start-->
++    <string name="action_smstomms">SMS size limit for converting to MMS</string>
++	<string name="smstomms_title">SMS size limit for converting to MMS</string>
++	<string name="preference_smstomms_title">SMS size limit for converting to MMS</string>
++	<string name="smstomms_dialog_title">SMS size limit for converting to MMS</string>
++	<string name="preference_smstomms_summary">When SMS size is over the given value,SMS converts to MMS</string>
++	<!-- dy add for SMS size limit for converting to MMS end-->
++	<string name="banner_sms_promo_message">You can change this in Settings</string>
++    <string name="input_mode_alert_title">Attention</string>
++	<string name="input_mode_alert_message">
++		Message may be corrupted on recipient device. Please change input mode to Automatic in Settings.
++	</string>
++	<string name="input_mode_alert_cancel">Cancel</string>
++	<string name="input_mode_alert_send">Send</string>
+ </resources>
+ 
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/MmsConfig.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/MmsConfig.java
+index 590e8f0..464db6a 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/MmsConfig.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/MmsConfig.java
+@@ -181,6 +181,17 @@ public class MmsConfig {
+     
+     private static int sSmsToMmsTextThreshold = 4;
+     private static int sSmsToMmsTextThresholdForCT = 7;
++	
++	//dy add start 
++    public static final String SMSTOMMS_TEXT4 = "5";
++    public static final String SMSTOMMS_TEXT6 = "7";
++    public static final String SMSTOMMS_TEXT10 = "11";
++	private static int SMSTOMMS_4 = 5;
++	private static int SMSTOMMS_6 = 7;
++	private static int SMSTOMMS_10 = 11;
++	public static final String SMS_TO_MMS_TEXT_THRESHOLD = "pref_key_smstomms";
++	//dy add end
++	
+ 
+     private static void initPlugin(Context context) {
+         mOpConfigExt = OpMessageUtils.getOpMessagePlugin().getOpMmsConfigExt();
+@@ -609,7 +620,10 @@ public class MmsConfig {
+         if (FeatureOption.MTK_C2K_SUPPORT) {
+             return getSmsToMmsTextThresholdForC2K(mContext);
+         }
+-        return sSmsToMmsTextThreshold;
++		//dy add start
++		updateSmsToMmsTextThreshold(mContext);
++		//dy add end
++		return sSmsToMmsTextThreshold ;
+     }
+ 
+     /// M: change this to plugin
+@@ -773,4 +787,16 @@ public class MmsConfig {
+         return mOpConfigExt.getMmsServiceConfig();
+     }
+     /// @}
++	
++	public static void updateSmsToMmsTextThreshold(Context context) {
++        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
++        String Threshold = sp.getString("pref_key_smstomms", SMSTOMMS_TEXT10);
++        if (Threshold.equals(SMSTOMMS_TEXT4)) {
++            sSmsToMmsTextThreshold = SMSTOMMS_4;
++        } else if (Threshold.equals(SMSTOMMS_TEXT6)) {
++            sSmsToMmsTextThreshold = SMSTOMMS_6;
++        } else {
++            sSmsToMmsTextThreshold = SMSTOMMS_10;
++        }
++    }
+ }
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/setting/SmsPreferenceActivity.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/setting/SmsPreferenceActivity.java
+index ea02349..a5b3d11 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/setting/SmsPreferenceActivity.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/mediatek/setting/SmsPreferenceActivity.java
+@@ -85,7 +85,10 @@ public class SmsPreferenceActivity extends PreferenceActivity implements
+     public static final String SMS_SAVE_LOCATION = "pref_key_sms_save_location";
+ 
+     public static final String SMS_INPUT_MODE = "pref_key_sms_input_mode";
+-
++	
++	// dy add 
++	public static final String SMS_TO_MMS = "pref_key_smstomms";
++	
+     public static final String SMS_SETTINGS = "pref_key_sms_settings";
+ 
+     public static final String PREFERENCE_KEY = "PREFERENCE_KEY";
+@@ -130,7 +133,10 @@ public class SmsPreferenceActivity extends PreferenceActivity implements
+     private ListPreference mSmsLocation;
+ 
+     private ListPreference mSmsInputMode;
+-
++	
++	//dy add 
++    private ListPreference mSmstoMms;
++	
+     private static final String LOCATION_PHONE = "Phone";
+ 
+     private static final String LOCATION_SIM = "Sim";
+@@ -144,6 +150,17 @@ public class SmsPreferenceActivity extends PreferenceActivity implements
+ 
+     ///M: plug-in for Op
+     private IOpSmsPreferenceActivityExt mOpSmsPreferenceActivityExt;
++	
++	//dy add start 
++    public static final String SMSTOMMS_TEXT4 = "5";
++    public static final String SMSTOMMS_TEXT6 = "7";
++    public static final String SMSTOMMS_TEXT10 = "11";
++	private int SMSTOMMS_4 = 5;
++	private int SMSTOMMS_6 = 7;
++	private int SMSTOMMS_10 = 11;
++	public static final String SMS_TO_MMS_TEXT_THRESHOLD = "pref_key_smstomms";
++	//dy add end
++	//dy add end
+ 
+     @Override
+     protected void onResume() {
+@@ -168,6 +185,7 @@ public class SmsPreferenceActivity extends PreferenceActivity implements
+         } else {
+             editor.putString(DEVICE_TYPE, "Device");
+         }
++		String stored = sp.getString("pref_key_smstomms", SMSTOMMS_TEXT10);
+         editor.commit();
+ 
+         // For mSmsLocation;
+@@ -264,6 +282,9 @@ public class SmsPreferenceActivity extends PreferenceActivity implements
+         addSmsInputModePreference();
+         mOpSmsPreferenceActivityExt.setMessagePreferences(SmsPreferenceActivity.this, smsCategory,
+                 SimStateMonitor.getInstance().getSubCount());
++		
++		// dy add for SMS size limit for converting to MMS start 
++		mSmstoMms = (ListPreference)findPreference(SMS_TO_MMS);
+ 
+     }
+ 
+@@ -530,6 +551,7 @@ public class SmsPreferenceActivity extends PreferenceActivity implements
+                 }
+             }
+         }
++		editor.putString("pref_key_smstomms",SMSTOMMS_TEXT10);
+ 
+         mOpSmsPreferenceActivityExt.restoreDefaultPreferences(this, editor);
+         editor.apply();
+@@ -545,6 +567,7 @@ public class SmsPreferenceActivity extends PreferenceActivity implements
+         }
+ 
+         final String key = preference.getKey();
++		String stored = (String) arg1;
+         if (preference == mSmsLocation && !(SimStateMonitor.getInstance().getSubCount() > 1)) {
+             if (!getResources().getBoolean(R.bool.isTablet)) {
+                 mSmsLocation.setSummary(MessageUtils.getVisualTextName(this, (String) arg1,
+@@ -555,7 +578,11 @@ public class SmsPreferenceActivity extends PreferenceActivity implements
+                         R.array.pref_tablet_sms_save_location_choices,
+                         R.array.pref_tablet_sms_save_location_values));
+             }
+-        }
++		}else if (SMS_TO_MMS.equals(key)) {
++            mSmstoMms.setValue(stored);
++            android.util.Log.i("dy","stored =" + stored);
++			MmsConfig.updateSmsToMmsTextThreshold(this);
++        }	
+ 
+         return true;
+     }
+-- 
+1.7.9.5
+

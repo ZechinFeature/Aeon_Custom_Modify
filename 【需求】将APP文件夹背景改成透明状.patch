@@ -1,0 +1,44 @@
+From 883572db62c5734f6f21bd24377c2be934431446 Mon Sep 17 00:00:00 2001
+From: xieyuanfu <xie.yuanfu@eastaeon.com>
+Date: Thu, 7 Apr 2016 16:45:47 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E5=B0=86APP=E6?=
+ =?UTF-8?q?=96=87=E4=BB=B6=E5=A4=B9=E8=83=8C=E6=99=AF=E6=94=B9=E6=88=90=E9=80?=
+ =?UTF-8?q?=8F=E6=98=8E=E7=8A=B6?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../apps/Launcher3/res/layout/user_folder.xml      |    2 +-
+ alps/packages/apps/Launcher3/res/values/colors.xml |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/alps/packages/apps/Launcher3/res/layout/user_folder.xml b/alps/packages/apps/Launcher3/res/layout/user_folder.xml
+index 252ebf0..c463c95 100755
+--- a/alps/packages/apps/Launcher3/res/layout/user_folder.xml
++++ b/alps/packages/apps/Launcher3/res/layout/user_folder.xml
+@@ -18,7 +18,7 @@
+     xmlns:launcher="http://schemas.android.com/apk/res-auto"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+-    android:background="@drawable/quantum_panel"
++    android:background="#55000000"
+     android:elevation="5dp"
+     android:orientation="vertical" >
+ 
+diff --git a/alps/packages/apps/Launcher3/res/values/colors.xml b/alps/packages/apps/Launcher3/res/values/colors.xml
+index e75ba41..c05b8d0 100755
+--- a/alps/packages/apps/Launcher3/res/values/colors.xml
++++ b/alps/packages/apps/Launcher3/res/values/colors.xml
+@@ -32,7 +32,7 @@
+     <color name="workspace_edge_effect_color">#FFFFFFFF</color>
+     <color name="folder_edge_effect_color">#FF757575</color>
+ 
+-    <color name="quantum_panel_text_color">#FF666666</color>
++    <color name="quantum_panel_text_color">#FFFFFFFF</color>
+     <color name="quantum_panel_transparent_bg_text_color">#FFFFFF</color>
+     <color name="quantum_panel_bg_color">#FFF5F5F5</color>
+     <color name="quantum_panel_bg_color_dark">#FF374248</color>
+-- 
+1.7.9.5
+

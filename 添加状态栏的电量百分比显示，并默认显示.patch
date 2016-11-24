@@ -1,0 +1,373 @@
+From 2c31299f164d408abce34e5ca64755e0b6799558 Mon Sep 17 00:00:00 2001
+From: guoxiaolin <guo.xiaolin@eastaeon.com>
+Date: Wed, 9 Mar 2016 13:58:56 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E6=B7=BB=E5=8A?=
+ =?UTF-8?q?=A0=E7=8A=B6=E6=80=81=E6=A0=8F=E7=9A=84=E7=94=B5=E9=87=8F=E7=99=BE?=
+ =?UTF-8?q?=E5=88=86=E6=AF=94=E6=98=BE=E7=A4=BA=EF=BC=8C=E5=B9=B6=E9=BB=98=E8?=
+ =?UTF-8?q?=AE=A4=E6=98=BE=E7=A4=BA?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ alps/frameworks/base/api/current.txt               |    1 +
+ alps/frameworks/base/api/system-current.txt        |    1 +
+ .../base/core/java/android/provider/Settings.java  |    2 +
+ .../packages/SystemUI/res/layout/status_bar.xml    |   11 +++
+ .../SystemUI/res/values-sw600dp/dimens.xml         |    2 +-
+ .../base/packages/SystemUI/res/values/dimens.xml   |    2 +-
+ .../statusbar/phone/KeyguardStatusBarView.java     |    1 +
+ .../systemui/statusbar/phone/PhoneStatusBar.java   |    1 +
+ .../statusbar/policy/BatteryController.java        |   86 +++++++++++++++++++-
+ alps/packages/apps/Settings/res/values/strings.xml |    2 +-
+ .../settings/fuelgauge/PowerUsageExts.java         |   30 +++++++
+ 11 files changed, 133 insertions(+), 6 deletions(-)
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/res/values-sw600dp/dimens.xml
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/res/values/dimens.xml
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/KeyguardStatusBarView.java
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/policy/BatteryController.java
+
+diff --git a/alps/frameworks/base/api/current.txt b/alps/frameworks/base/api/current.txt
+index 69ca70e..137f48e 100755
+--- a/alps/frameworks/base/api/current.txt
++++ b/alps/frameworks/base/api/current.txt
+@@ -26592,6 +26592,7 @@ package android.provider {
+     field public static final java.lang.String PARENTAL_CONTROL_REDIRECT_URL = "parental_control_redirect_url";
+     field public static final java.lang.String SELECTED_INPUT_METHOD_SUBTYPE = "selected_input_method_subtype";
+     field public static final java.lang.String SETTINGS_CLASSNAME = "settings_classname";
++    field public static final java.lang.String SHOW_BATTERY_PERENT = "show_battery_perent";
+     field public static final java.lang.String SKIP_FIRST_USE_HINTS = "skip_first_use_hints";
+     field public static final java.lang.String SYS_PROP_SETTING_VERSION = "sys.settings_secure_version";
+     field public static final java.lang.String TOUCH_EXPLORATION_ENABLED = "touch_exploration_enabled";
+diff --git a/alps/frameworks/base/api/system-current.txt b/alps/frameworks/base/api/system-current.txt
+index 32b5902..aab5d0b 100755
+--- a/alps/frameworks/base/api/system-current.txt
++++ b/alps/frameworks/base/api/system-current.txt
+@@ -28651,6 +28651,7 @@ package android.provider {
+     field public static final java.lang.String PARENTAL_CONTROL_REDIRECT_URL = "parental_control_redirect_url";
+     field public static final java.lang.String SELECTED_INPUT_METHOD_SUBTYPE = "selected_input_method_subtype";
+     field public static final java.lang.String SETTINGS_CLASSNAME = "settings_classname";
++    field public static final java.lang.String SHOW_BATTERY_PERENT = "show_battery_perent";
+     field public static final java.lang.String SKIP_FIRST_USE_HINTS = "skip_first_use_hints";
+     field public static final java.lang.String SYS_PROP_SETTING_VERSION = "sys.settings_secure_version";
+     field public static final java.lang.String TOUCH_EXPLORATION_ENABLED = "touch_exploration_enabled";
+diff --git a/alps/frameworks/base/core/java/android/provider/Settings.java b/alps/frameworks/base/core/java/android/provider/Settings.java
+index 34e604a..9366d50 100755
+--- a/alps/frameworks/base/core/java/android/provider/Settings.java
++++ b/alps/frameworks/base/core/java/android/provider/Settings.java
+@@ -6407,6 +6407,8 @@ public final class Settings {
+         public static final String USB_AUDIO_AUTOMATIC_ROUTING_DISABLED =
+                 "usb_audio_automatic_routing_disabled";
+ 
++		public static final String SHOW_BATTERY_PERENT = "show_battery_perent";
++
+         /**
+          * The timeout in milliseconds before the device fully goes to sleep after
+          * a period of inactivity.  This value sets an upper bound on how long the device
+diff --git a/alps/frameworks/base/packages/SystemUI/res/layout/status_bar.xml b/alps/frameworks/base/packages/SystemUI/res/layout/status_bar.xml
+index 2063df3..5362568 100755
+--- a/alps/frameworks/base/packages/SystemUI/res/layout/status_bar.xml
++++ b/alps/frameworks/base/packages/SystemUI/res/layout/status_bar.xml
+@@ -85,6 +85,17 @@
+ 
+             <include layout="@layout/system_icons" />
+ 
++			 <TextView 
++              android:id="@+id/battery_percentage"
++              android:layout_width="wrap_content"
++              android:layout_height="wrap_content"
++              android:layout_marginStart="2.5dp"
++              android:layout_gravity="center_vertical"
++              android:paddingEnd="@dimen/battery_level_padding_end"
++              android:textColor="#ffffff"
++              android:textSize="14sp"
++			  android:importantForAccessibility="noHideDescendants"/>
++
+             <com.android.systemui.statusbar.policy.Clock
+                 android:id="@+id/clock"
+                 android:textAppearance="@style/TextAppearance.StatusBar.Clock"
+diff --git a/alps/frameworks/base/packages/SystemUI/res/values-sw600dp/dimens.xml b/alps/frameworks/base/packages/SystemUI/res/values-sw600dp/dimens.xml
+old mode 100644
+new mode 100755
+index d5ff26e..2ad12d7
+--- a/alps/frameworks/base/packages/SystemUI/res/values-sw600dp/dimens.xml
++++ b/alps/frameworks/base/packages/SystemUI/res/values-sw600dp/dimens.xml
+@@ -70,7 +70,7 @@
+     <dimen name="multi_user_avatar_keyguard_size">30dp</dimen>
+ 
+     <!-- end margin for multi user switch in collapsed quick settings -->
+-    <dimen name="multi_user_switch_keyguard_margin">6dp</dimen>
++    <dimen name="multi_user_switch_keyguard_margin">2dp</dimen>
+ 
+     <!-- Margin on the left side of the carrier text on Keyguard -->
+     <dimen name="keyguard_carrier_text_margin">24dp</dimen>
+diff --git a/alps/frameworks/base/packages/SystemUI/res/values/dimens.xml b/alps/frameworks/base/packages/SystemUI/res/values/dimens.xml
+old mode 100644
+new mode 100755
+index 03ea73c..fbc0da2
+--- a/alps/frameworks/base/packages/SystemUI/res/values/dimens.xml
++++ b/alps/frameworks/base/packages/SystemUI/res/values/dimens.xml
+@@ -382,7 +382,7 @@
+     <dimen name="multi_user_switch_collapsed_margin">13dp</dimen>
+ 
+     <!-- end margin for multi user switch in collapsed quick settings -->
+-    <dimen name="multi_user_switch_keyguard_margin">3dp</dimen>
++    <dimen name="multi_user_switch_keyguard_margin">1dp</dimen>
+ 
+     <!-- end margin for system icons if multi user switch is hidden -->
+     <dimen name="system_icons_switcher_hidden_expanded_margin">16dp</dimen>
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/KeyguardStatusBarView.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/KeyguardStatusBarView.java
+old mode 100644
+new mode 100755
+index e5b6338..6f8dcc2
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/KeyguardStatusBarView.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/KeyguardStatusBarView.java
+@@ -144,6 +144,7 @@ public class KeyguardStatusBarView extends RelativeLayout
+     public void setBatteryController(BatteryController batteryController) {
+         mBatteryController = batteryController;
+         ((BatteryMeterView) findViewById(R.id.battery)).setBatteryController(batteryController);
++		batteryController.addLabelView((TextView)findViewById(R.id.battery_level));
+     }
+ 
+     public void setUserSwitcherController(UserSwitcherController controller) {
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
+old mode 100644
+new mode 100755
+index 3f6495b..a6e9668
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBar.java
+@@ -843,6 +843,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
+         mLocationController = new LocationControllerImpl(mContext,
+                 mHandlerThread.getLooper()); // will post a notification
+         mBatteryController = new BatteryController(mContext);
++		mBatteryController.addLabelView((TextView) mStatusBarView.findViewById(R.id.battery_percentage));
+         mBatteryController.addStateChangedCallback(new BatteryStateChangeCallback() {
+             @Override
+             public void onPowerSaveChanged() {
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/policy/BatteryController.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/policy/BatteryController.java
+old mode 100644
+new mode 100755
+index d1b69ab..8e0f325
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/policy/BatteryController.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/policy/BatteryController.java
+@@ -16,6 +16,7 @@
+ 
+ package com.android.systemui.statusbar.policy;
+ 
++import android.app.Activity;
+ import android.content.BroadcastReceiver;
+ import android.content.Context;
+ import android.content.Intent;
+@@ -27,7 +28,12 @@ import android.util.Log;
+ import java.io.FileDescriptor;
+ import java.io.PrintWriter;
+ import java.util.ArrayList;
+-
++//start add by lych
++import android.widget.ImageView;
++import android.widget.TextView;
++import android.provider.Settings;
++import android.view.View;
++//end add
+ public class BatteryController extends BroadcastReceiver {
+     private static final String TAG = "BatteryController";
+     private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
+@@ -40,14 +46,33 @@ public class BatteryController extends BroadcastReceiver {
+     private boolean mCharging;
+     private boolean mCharged;
+     private boolean mPowerSave;
++	
++     //  add start 
++       private ArrayList<ImageView> mIconViews = new ArrayList<ImageView>();
++       private ArrayList<TextView> mLabelViews = new ArrayList<TextView>();
++       private boolean mShouldShowBatteryPercentage = false;
++       private String mBatteryPercentage = "100%";
++       private Context mContext;
++       private static final String CHANGE_BATTERY_PERCENTAGE = "SHOW_BATTERY_PERENT";
++       //  add end 
++       
+ 
+     public BatteryController(Context context) {
+         mPowerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+ 
++		// add start
++               mContext = context;
++               mShouldShowBatteryPercentage = (Settings.Secure.getInt(context
++               .getContentResolver(), Settings.Secure.SHOW_BATTERY_PERENT, 0) != 0);
++               //mShouldShowBatteryPercentage = false ; //add for debug
++               Log.i(TAG,"-----BatteryController-----mShouldShowBatteryPercentage=" + mShouldShowBatteryPercentage);
++         //dy add start
+         IntentFilter filter = new IntentFilter();
+         filter.addAction(Intent.ACTION_BATTERY_CHANGED);
+         filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED);
+-        filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGING);
++        filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGING);		
++		filter.addAction(CHANGE_BATTERY_PERCENTAGE);
++        filter.addAction(Intent.ACTION_USER_SWITCHED);
+         context.registerReceiver(this, filter);
+ 
+         updatePowerSave();
+@@ -83,13 +108,23 @@ public class BatteryController extends BroadcastReceiver {
+                     BatteryManager.BATTERY_STATUS_UNKNOWN);
+             mCharged = status == BatteryManager.BATTERY_STATUS_FULL;
+             mCharging = mCharged || status == BatteryManager.BATTERY_STATUS_CHARGING;
+-
++			refreshBatteryPercentage();
+             fireBatteryLevelChanged();
+         } else if (action.equals(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)) {
+             updatePowerSave();
+         } else if (action.equals(PowerManager.ACTION_POWER_SAVE_MODE_CHANGING)) {
+             setPowerSave(intent.getBooleanExtra(PowerManager.EXTRA_POWER_SAVE_MODE, false));
+         }
++		else if (action.equals(CHANGE_BATTERY_PERCENTAGE)) {
++            mShouldShowBatteryPercentage  =  intent.getBooleanExtra("open",true);
++            Log.d(TAG, "----aeon add broadcast mShouldShowBatteryPercentage =" + mShouldShowBatteryPercentage);
++            refreshBatteryPercentage();
++        } 
++        else if (Intent.ACTION_USER_SWITCHED.equals(action)) {
++            mShouldShowBatteryPercentage = (Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.SHOW_BATTERY_PERENT, 0) != 0);
++            Log.d(TAG, "----mShouldShowBatteryPercentage =" + mShouldShowBatteryPercentage);
++            refreshBatteryPercentage();
++        }
+     }
+ 
+     public boolean isPowerSave() {
+@@ -119,8 +154,53 @@ public class BatteryController extends BroadcastReceiver {
+         for (int i = 0; i < N; i++) {
+             mChangeCallbacks.get(i).onPowerSaveChanged();
+         }
++		refreshBatteryPercentage();
+     }
+ 
++       //  add batterypic start
++       public void addIconView(ImageView v) {
++       mIconViews.add(v);
++       }       
++       
++       public void addLabelView(TextView v) {
++               Log.i("dy","v.id=" + v.getId());
++        mLabelViews.add(v);
++    }
++       
++       private  String getBatteryPercentage(Intent batteryChangedIntent) {
++        int level = batteryChangedIntent.getIntExtra("level", 0);
++        int scale = batteryChangedIntent.getIntExtra("scale", 100);
++        return String.valueOf(level * 100 / scale) + "%";
++    }
++       
++    private void refreshBatteryPercentage() {
++        /*if (mLabelViews.size() > 0) {
++            TextView v = mLabelViews.get(0);
++            if (v != null) {
++                if (mShouldShowBatteryPercentage) {
++                    v.setText(mBatteryPercentage);
++                    v.setVisibility(View.VISIBLE);
++                } else {
++                    v.setVisibility(View.GONE);
++                }
++            }
++        } */
++		     mBatteryPercentage=mLevel+"%";
++               for (int i=0; i<mLabelViews.size(); i++) {
++                TextView v = mLabelViews.get(i);
++                if (v != null) {
++                if (mShouldShowBatteryPercentage) {
++                    v.setText(mBatteryPercentage);
++                    v.setVisibility(View.VISIBLE);
++                } else {
++                    v.setVisibility(View.GONE);
++                }
++            }
++            }
++               
++    }
++       // add batteryPercentage end
++       
+     public interface BatteryStateChangeCallback {
+         void onBatteryLevelChanged(int level, boolean pluggedIn, boolean charging);
+         void onPowerSaveChanged();
+diff --git a/alps/packages/apps/Settings/res/values/strings.xml b/alps/packages/apps/Settings/res/values/strings.xml
+index 7596941..bd949ab 100755
+--- a/alps/packages/apps/Settings/res/values/strings.xml
++++ b/alps/packages/apps/Settings/res/values/strings.xml
+@@ -7002,7 +7002,7 @@
+     <!-- Summary of app not allowed to write system settings [CHAR LIMIT=45] -->
+     <string name="write_settings_off">No</string>
+ 
+-   <string name="show_battery_perent">Battery Percentage</string>
++   <string name="show_battery_perent">Battery percentage in notification bar</string>
+ 	<!-- add by lych 201511208 -->
+ 	<string name="total_space">Total space</string>
+ 	<string name="memory_space">System memory</string>
+diff --git a/alps/packages/apps/Settings/src/com/mediatek/settings/fuelgauge/PowerUsageExts.java b/alps/packages/apps/Settings/src/com/mediatek/settings/fuelgauge/PowerUsageExts.java
+index ab83d20..b14f2a9 100755
+--- a/alps/packages/apps/Settings/src/com/mediatek/settings/fuelgauge/PowerUsageExts.java
++++ b/alps/packages/apps/Settings/src/com/mediatek/settings/fuelgauge/PowerUsageExts.java
+@@ -9,18 +9,26 @@ import android.util.Log;
+ 
+ import com.android.settings.R;
+ import com.mediatek.settings.FeatureOption;
++// start add by lych
++import android.preference.CheckBoxPreference;
++import android.preference.Preference.OnPreferenceClickListener;
++import android.provider.Settings;
++import android.content.Intent;
++// end add
+ 
+ public class PowerUsageExts {
+ 
+     private static final String TAG = "PowerUsageSummary";
+ 
+     private static final String KEY_BACKGROUND_POWER_SAVING = "background_power_saving";
++	private static final String KEY_SHOW_POWER_PERENT = "show_battery_perent";
+     // Declare the first preference BgPowerSavingPrf order here,
+     // other preference order over this value.
+     private static final int PREFERENCE_ORDER_FIRST = -100;
+     private Context mContext;
+     private PreferenceScreen mPowerUsageScreen;
+     private SwitchPreference mBgPowerSavingPrf;
++	private SwitchPreference pref;  //show battery perent 
+ 
+     public PowerUsageExts(Context context, PreferenceScreen appListGroup) {
+         mContext = context;
+@@ -40,7 +48,17 @@ public class PowerUsageExts {
+                     Settings.System.BG_POWER_SAVING_ENABLE, 1) != 0);
+             mPowerUsageScreen.addPreference(mBgPowerSavingPrf);
+         }
++		addPreference(); //init 
+     }
++	
++	private void addPreference(){	
++            pref = new SwitchPreference(mContext);
++            pref.setKey(KEY_SHOW_POWER_PERENT);
++            pref.setTitle(R.string.show_battery_perent);
++            pref.setOrder(-2);	
++			pref.setChecked(Settings.Secure.getInt(mContext.getContentResolver(),Settings.Secure.SHOW_BATTERY_PERENT, 0) != 0);;
++			mPowerUsageScreen.addPreference(pref);  			
++	}
+ 
+     // on click
+     public boolean onPowerUsageExtItemsClick(PreferenceScreen preferenceScreen,
+@@ -59,6 +77,18 @@ public class PowerUsageExts {
+             // If user click on PowerSaving preference just return here
+             return true;
+         }
++		else if(KEY_SHOW_POWER_PERENT.equals(preference.getKey())){
++			SwitchPreference pref = (SwitchPreference) preference;
++			boolean checked = pref.isChecked();
++            Settings.Secure.putInt(mContext.getContentResolver(),Settings.Secure.SHOW_BATTERY_PERENT, checked?1:0);
++            if(checked){							 
++                mContext.sendBroadcast(new Intent("SHOW_BATTERY_PERENT").putExtra("open", true));
++            }else{
++				mContext.sendBroadcast(new Intent("SHOW_BATTERY_PERENT").putExtra("open", false));
++            }   
++            // If user click on PowerSaving preference just return here
++            return true;						
++        }          
+         return false;
+     }
+ }
+-- 
+1.7.9.5
+

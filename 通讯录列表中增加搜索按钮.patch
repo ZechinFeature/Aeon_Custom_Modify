@@ -1,0 +1,97 @@
+From 75d16b70377db7dd6d36f1ba83c0ef6157a62303 Mon Sep 17 00:00:00 2001
+From: "deng.yanjun" <deng.yanjun@eastaeon.com>
+Date: Fri, 21 Oct 2016 17:09:04 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82][=E9=80=9A=E8=AE=AF=E5=BD=95]?=
+ =?UTF-8?q?=E9=80=9A=E8=AE=AF=E5=BD=95=E5=88=97=E8=A1=A8=E4=B8=AD=E5=A2=9E=E5?=
+ =?UTF-8?q?=8A=A0=E6=90=9C=E7=B4=A2=E6=8C=89=E9=92=AE.Y?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../list/ContactListMultiChoiceActivity.java       |   30 ++------------------
+ 1 file changed, 3 insertions(+), 27 deletions(-)
+ mode change 100644 => 100755 alps/packages/apps/Contacts/src/com/mediatek/contacts/list/ContactListMultiChoiceActivity.java
+
+diff --git a/alps/packages/apps/Contacts/src/com/mediatek/contacts/list/ContactListMultiChoiceActivity.java b/alps/packages/apps/Contacts/src/com/mediatek/contacts/list/ContactListMultiChoiceActivity.java
+old mode 100644
+new mode 100755
+index a482e20..0c9e776
+--- a/alps/packages/apps/Contacts/src/com/mediatek/contacts/list/ContactListMultiChoiceActivity.java
++++ b/alps/packages/apps/Contacts/src/com/mediatek/contacts/list/ContactListMultiChoiceActivity.java
+@@ -187,12 +187,11 @@ public class ContactListMultiChoiceActivity extends ContactsActivity implements
+     public boolean onCreateOptionsMenu(Menu menu) {
+         super.onCreateOptionsMenu(menu);
+ 
+-       /* MenuInflater inflater = getMenuInflater();
++        MenuInflater inflater = getMenuInflater();
+         inflater.inflate(R.menu.mtk_list_multichoice, menu);
+ 
+         MenuItem optionItem = menu.findItem(R.id.search_menu_item);
+-        optionItem.setTitle(R.string.menu_search);*/
+-
++        optionItem.setTitle(R.string.menu_search);
+         return true;
+     }
+ 
+@@ -300,10 +299,6 @@ public class ContactListMultiChoiceActivity extends ContactsActivity implements
+ 
+         case ContactsRequestAction.ACTION_PICK_MULTIPLE_PHONES:
+             mListFragment = new PhoneNumbersPickerFragment();
+-            //M:Op01 Rcs get intent data for filter @{
+-            ExtensionManager.getInstance().getRcsExtension().
+-                    getIntentData(getIntent(), mListFragment);
+-            /** @} */
+             break;
+ 
+         case ContactsRequestAction.ACTION_PICK_MULTIPLE_DATAS:
+@@ -448,10 +443,6 @@ public class ContactListMultiChoiceActivity extends ContactsActivity implements
+                         (PhoneAndEmailsPickerFragment) mListFragment;
+                 fragment.markItemsAsSelectedForCheckedGroups(ids);
+             }
+-            // M:OP01 RCS will mark item for selected group in phone numbers
+-            // list@{
+-            ExtensionManager.getInstance().getRcsExtension().getGroupListResult(mListFragment, ids);
+-            /** @} */
+         }
+ 
+     }
+@@ -631,11 +622,6 @@ public class ContactListMultiChoiceActivity extends ContactsActivity implements
+ 
+     @Override
+     public boolean onPrepareOptionsMenu(Menu menu) {
+-
+-        ExtensionManager.getInstance().getOp01Extension().
+-                addGroupMenu(this, menu, mListFragment);
+-
+-  /*
+         MenuItem menuItem = menu.findItem(R.id.search_menu_item);
+         if (mIsSearchMode) {
+             // if SearchMode, search Menu is disable.
+@@ -644,22 +630,12 @@ public class ContactListMultiChoiceActivity extends ContactsActivity implements
+         } else {
+             // if ListMode, search Menu is display.
+             menuItem.setVisible(true);
+-            if (mListFragment instanceof MultiPhoneAndEmailsPickerFragment) {
++            if (mListFragment instanceof PhoneAndEmailsPickerFragment) {
+                 MenuItem groupsItem = menu.findItem(R.id.groups);
+                 groupsItem.setVisible(true);
+             }
+-            //M:OP01 RCS will add menu item in list@{
+-            ExtensionManager.getInstance().getRcsExtension().
+-                    addListMenuOptions(this, menu, menuItem, mListFragment);
+             return super.onPrepareOptionsMenu(menu);
+         }
+-
+-        */
+-        //M:OP01 RCS will add menu item in list@{
+-        ExtensionManager.getInstance().getRcsExtension().
+-                addListMenuOptions(this, menu, null, mListFragment);
+-        /** @} */
+-        return true;
+     }
+ 
+     private void hideSoftKeyboard(View view) {
+-- 
+1.7.9.5
+

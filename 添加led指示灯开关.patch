@@ -1,0 +1,262 @@
+From 0746aa465be0a7cee950de194e3c6c976e2d5cc9 Mon Sep 17 00:00:00 2001
+From: liuyuanchang <liu.yuanchang@eastaeon.com>
+Date: Wed, 31 Aug 2016 09:38:25 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=E6=B7=BB=E5=8A=A0led=E6=8C=87?=
+ =?UTF-8?q?=E7=A4=BA=E7=81=AF=E5=BC=80=E5=85=B3?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ alps/frameworks/base/api/current.txt               |    1 +
+ alps/frameworks/base/api/system-current.txt        |    1 +
+ .../base/core/java/android/provider/Settings.java  |    2 ++
+ .../android/providers/settings/DatabaseHelper.java |    1 +
+ .../java/com/android/server/BatteryService.java    |   17 +++++++++++++++
+ .../notification/NotificationManagerService.java   |   16 +++++++++++++-
+ .../apps/Settings/res/values-zh-rCN/strings.xml    |    2 ++
+ alps/packages/apps/Settings/res/values/strings.xml |    3 +++
+ .../apps/Settings/res/xml/display_settings.xml     |    6 +++++
+ .../src/com/android/settings/DisplaySettings.java  |   23 ++++++++++++++++++++
+ 10 files changed, 71 insertions(+), 1 deletion(-)
+ mode change 100644 => 100755 alps/frameworks/base/services/core/java/com/android/server/notification/NotificationManagerService.java
+ mode change 100644 => 100755 alps/packages/apps/Settings/res/xml/display_settings.xml
+ mode change 100644 => 100755 alps/packages/apps/Settings/src/com/android/settings/DisplaySettings.java
+
+diff --git a/alps/frameworks/base/api/current.txt b/alps/frameworks/base/api/current.txt
+index d050484..4133fd9 100644
+--- a/alps/frameworks/base/api/current.txt
++++ b/alps/frameworks/base/api/current.txt
+@@ -26686,6 +26686,7 @@ package android.provider {
+     field public static final deprecated java.lang.String INSTALL_NON_MARKET_APPS = "install_non_market_apps";
+     field public static final java.lang.String INTER_AUTO_RECORDING = "international_auto_recording_key";
+     field public static final android.provider.Settings.System.Validator INTER_AUTO_RECORDING_VALIDATOR;
++    field public static final java.lang.String LED_NOTIFICATION_LIGHT_MODE = "led_notification_light_mode";
+     field public static final deprecated java.lang.String LOCATION_PROVIDERS_ALLOWED = "location_providers_allowed";
+     field public static final deprecated java.lang.String LOCK_PATTERN_ENABLED = "lock_pattern_autolock";
+     field public static final deprecated java.lang.String LOCK_PATTERN_TACTILE_FEEDBACK_ENABLED = "lock_pattern_tactile_feedback_enabled";
+diff --git a/alps/frameworks/base/api/system-current.txt b/alps/frameworks/base/api/system-current.txt
+index f68f716..d07eeb5 100644
+--- a/alps/frameworks/base/api/system-current.txt
++++ b/alps/frameworks/base/api/system-current.txt
+@@ -28745,6 +28745,7 @@ package android.provider {
+     field public static final deprecated java.lang.String INSTALL_NON_MARKET_APPS = "install_non_market_apps";
+     field public static final java.lang.String INTER_AUTO_RECORDING = "international_auto_recording_key";
+     field public static final android.provider.Settings.System.Validator INTER_AUTO_RECORDING_VALIDATOR;
++    field public static final java.lang.String LED_NOTIFICATION_LIGHT_MODE = "led_notification_light_mode";
+     field public static final deprecated java.lang.String LOCATION_PROVIDERS_ALLOWED = "location_providers_allowed";
+     field public static final deprecated java.lang.String LOCK_PATTERN_ENABLED = "lock_pattern_autolock";
+     field public static final deprecated java.lang.String LOCK_PATTERN_TACTILE_FEEDBACK_ENABLED = "lock_pattern_tactile_feedback_enabled";
+diff --git a/alps/frameworks/base/core/java/android/provider/Settings.java b/alps/frameworks/base/core/java/android/provider/Settings.java
+index 9cb4979..965e6ce 100755
+--- a/alps/frameworks/base/core/java/android/provider/Settings.java
++++ b/alps/frameworks/base/core/java/android/provider/Settings.java
+@@ -2808,6 +2808,8 @@ public final class Settings {
+         @Deprecated
+         public static final String AUTO_TIME_ZONE = Global.AUTO_TIME_ZONE;
+ 
++		public static final String LED_NOTIFICATION_LIGHT_MODE = "led_notification_light_mode"; // add by lych
++
+         /**
+          * Display times as 12 or 24 hours
+          *   12
+diff --git a/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java b/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+index b6b65b7..9084349 100755
+--- a/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
++++ b/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+@@ -2442,6 +2442,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
+             loadIntegerSetting(stmt, Settings.System.POINTER_SPEED,
+                R.integer.def_pointer_speed);
+ 
++			loadSetting(stmt, Settings.System.LED_NOTIFICATION_LIGHT_MODE,1); // 1 default. open the led notification light
+ 
+             loadStringSetting(stmt, Settings.System.DATE_FORMAT,R.string.default_date_format);
+                                     
+diff --git a/alps/frameworks/base/services/core/java/com/android/server/BatteryService.java b/alps/frameworks/base/services/core/java/com/android/server/BatteryService.java
+index 7fe746f..5d59f28 100755
+--- a/alps/frameworks/base/services/core/java/com/android/server/BatteryService.java
++++ b/alps/frameworks/base/services/core/java/com/android/server/BatteryService.java
+@@ -238,6 +238,7 @@ public final class BatteryService extends SystemService {
+                     public void onChange(boolean selfChange) {
+                         synchronized (mLock) {
+                             updateBatteryWarningLevelLocked();
++                            if(mLed!=null) mLed.updateLightsLocked();//add for control the led lights
+                         }
+                     }
+                 };
+@@ -246,6 +247,12 @@ public final class BatteryService extends SystemService {
+                         Settings.Global.LOW_POWER_MODE_TRIGGER_LEVEL),
+                         false, obs, UserHandle.USER_ALL);
+                 updateBatteryWarningLevelLocked();
++
++				// add begin for controlling led notification light by lych
++				resolver.registerContentObserver(
++                    Settings.System.getUriFor(Settings.System.LED_NOTIFICATION_LIGHT_MODE),
++					false, obs, UserHandle.USER_ALL);
++				// add end for controlling led notification light by lych
+             }
+         }
+     }
+@@ -848,6 +855,16 @@ public final class BatteryService extends SystemService {
+                 //Get led status in IPO mode
+                 getIpoLedStatus();
+             }
++
++			// add for control the led notification by lych
++			boolean led_disAbled=Settings.System.getInt(mContext.getContentResolver(),
++			                            Settings.System.LED_NOTIFICATION_LIGHT_MODE, 1)==0;
++			if(led_disAbled){
++				mBatteryLight.turnOff();
++				return;
++			}
++			// add end for control the led notification by lych
++
+             if (level < mLowBatteryWarningLevel) {
+                 if (status == BatteryManager.BATTERY_STATUS_CHARGING) {
+                     updateLedStatus();
+diff --git a/alps/frameworks/base/services/core/java/com/android/server/notification/NotificationManagerService.java b/alps/frameworks/base/services/core/java/com/android/server/notification/NotificationManagerService.java
+old mode 100644
+new mode 100755
+index ac8b705..83c0800
+--- a/alps/frameworks/base/services/core/java/com/android/server/notification/NotificationManagerService.java
++++ b/alps/frameworks/base/services/core/java/com/android/server/notification/NotificationManagerService.java
+@@ -1034,6 +1034,10 @@ public class NotificationManagerService extends SystemService {
+ 
+         publishBinderService(Context.NOTIFICATION_SERVICE, mService);
+         publishLocalService(NotificationManagerInternal.class, mInternalService);
++
++		getContext().getContentResolver().registerContentObserver(
++                    Settings.System.getUriFor(Settings.System.LED_NOTIFICATION_LIGHT_MODE), false,
++                    mLedNotifcationObserver);
+     }
+ 
+     private void sendRegisteredOnlyBroadcast(String action) {
+@@ -3208,10 +3212,13 @@ public class NotificationManagerService extends SystemService {
+             }
+         }
+ 
++		boolean led_disAbled=Settings.System.getInt(getContext().getContentResolver(),
++                                         Settings.System.LED_NOTIFICATION_LIGHT_MODE, 1)==0;
++
+         // Don't flash while we are in a call or screen is on
+         // if (mLedNotification == null || mInCall || mScreenOn) {
+         /// M: Add DM/PPL lock related.
+-        if (ledNotification == null || mInCall || /*mScreenOn ||*/ mDmLock || mPplLock) {
++        if (ledNotification == null || mInCall || /*mScreenOn ||*/ mDmLock || mPplLock || led_disAbled) {
+             mNotificationLight.turnOff();
+             mStatusBar.notificationLightOff();
+         } else {
+@@ -3863,4 +3870,11 @@ public class NotificationManagerService extends SystemService {
+ 
+         return isBlocked;
+     }
++
++	final private ContentObserver mLedNotifcationObserver = new ContentObserver(mHandler) {
++        @Override
++        public void onChange(boolean selfChange) {
++            updateLightsLocked();
++        }
++    };
+ }
+diff --git a/alps/packages/apps/Settings/res/values-zh-rCN/strings.xml b/alps/packages/apps/Settings/res/values-zh-rCN/strings.xml
+index f8f444d..0911e16 100755
+--- a/alps/packages/apps/Settings/res/values-zh-rCN/strings.xml
++++ b/alps/packages/apps/Settings/res/values-zh-rCN/strings.xml
+@@ -2896,4 +2896,6 @@
+ 	<string name="zzz_gesture_dialog_warnning">打开此功能将会消耗更多电量.</string>
+ 	<string name="smart_gensture_reset_title">恢复默认状态</string>
+    
++    <string name="led_notification_title">通知指示灯开关</string>
++
+ </resources>
+diff --git a/alps/packages/apps/Settings/res/values/strings.xml b/alps/packages/apps/Settings/res/values/strings.xml
+index 6e288e6..31b775b 100755
+--- a/alps/packages/apps/Settings/res/values/strings.xml
++++ b/alps/packages/apps/Settings/res/values/strings.xml
+@@ -7034,4 +7034,7 @@
+    
+ 	<string name="flip_mute_calls_title">Flip to mute</string>
+ 	<string name="flip_mute_calls_summary">Turn over the phone to mute incoming call</string>
++
++	<string name="led_notification_title">LED Notification</string>
++
+ </resources>
+diff --git a/alps/packages/apps/Settings/res/xml/display_settings.xml b/alps/packages/apps/Settings/res/xml/display_settings.xml
+old mode 100644
+new mode 100755
+index ac02bcd..6092a27
+--- a/alps/packages/apps/Settings/res/xml/display_settings.xml
++++ b/alps/packages/apps/Settings/res/xml/display_settings.xml
+@@ -33,6 +33,12 @@
+                 android:summary="@string/auto_brightness_summary"
+                 android:persistent="false" />
+ 
++		<!-- add for led notification light by lych -->
++        <SwitchPreference
++                android:key="led_notification"
++                android:title="@string/led_notification_title"
++                android:persistent="false" />
++
+         <!-- Hide night mode for now
+         <ListPreference
+             android:key="night_mode"
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/DisplaySettings.java b/alps/packages/apps/Settings/src/com/android/settings/DisplaySettings.java
+old mode 100644
+new mode 100755
+index 446aa56..89e4bd8
+--- a/alps/packages/apps/Settings/src/com/android/settings/DisplaySettings.java
++++ b/alps/packages/apps/Settings/src/com/android/settings/DisplaySettings.java
+@@ -92,6 +92,11 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+     private SwitchPreference mTapToWakePreference;
+     private SwitchPreference mAutoBrightnessPreference;
+ 
++	// add begin for controlling led notification light by lych
++	private static final String KEY_LED_NOTIFICATION = "led_notification";
++	private SwitchPreference mLedNotifcation;
++	// add end for controlling led notification light by lych
++
+     ///M: MTK feature
+     private DisplaySettingsExt mDisplaySettingsExt;
+ 
+@@ -206,6 +211,11 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+             mNightModePreference.setValue(String.valueOf(currentNightMode));
+             mNightModePreference.setOnPreferenceChangeListener(this);
+         }
++
++		// add begin for controlling led notification light by lych
++		mLedNotifcation = (SwitchPreference) findPreference(KEY_LED_NOTIFICATION);
++        mLedNotifcation.setOnPreferenceChangeListener(this);
++		// add end for controlling led notification light by lych
+     }
+ 
+     private static boolean allowAllRotations(Context context) {
+@@ -391,6 +401,13 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+             int value = Settings.Secure.getInt(getContentResolver(), DOUBLE_TAP_TO_WAKE, 0);
+             mTapToWakePreference.setChecked(value != 0);
+         }
++
++		// add begin for controlling led notification light by lych
++		if(mLedNotifcation != null){
++			int value=Settings.System.getInt(getContentResolver(), Settings.System.LED_NOTIFICATION_LIGHT_MODE, 1);
++            mLedNotifcation.setChecked(value != 0);
++		}
++		// add end for controlling led notification light by lych
+     }
+ 
+     private void updateScreenSaverSummary() {
+@@ -459,6 +476,12 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+                 Log.e(TAG, "could not persist night mode setting", e);
+             }
+         }
++		// add begin for controlling led notification light by lych
++        if (preference == mLedNotifcation) {
++            boolean value = (Boolean) objValue;
++            Settings.System.putInt(getContentResolver(), Settings.System.LED_NOTIFICATION_LIGHT_MODE, value ? 1 : 0);
++        }
++		// add end for controlling led notification light by lych
+         return true;
+     }
+ 
+-- 
+1.7.9.5
+

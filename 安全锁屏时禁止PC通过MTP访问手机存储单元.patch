@@ -1,0 +1,80 @@
+From 2b4fa16be28a2bfb28f6034e637bfd2a63b2b479 Mon Sep 17 00:00:00 2001
+From: zhangjuntao <zhang.juntao@eastaeon.com>
+Date: Thu, 17 Mar 2016 15:57:45 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=910019606=E5=AE?=
+ =?UTF-8?q?=89=E5=85=A8=E9=94=81=E5=B1=8F=E6=97=B6=E7=A6=81=E6=AD=A2PC=E9=80?=
+ =?UTF-8?q?=9A=E8=BF=87MTP=E8=AE=BF=E9=97=AE=E6=89=8B=E6=9C=BA=E5=AD=98=E5=82?=
+ =?UTF-8?q?=A8=E5=8D=95=E5=85=83?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../com/android/providers/media/MtpService.java    |   39 +++++++++++++++++++-
+ 1 file changed, 38 insertions(+), 1 deletion(-)
+
+diff --git a/alps/packages/providers/MediaProvider/src/com/android/providers/media/MtpService.java b/alps/packages/providers/MediaProvider/src/com/android/providers/media/MtpService.java
+index c6e2286..2ad41b7 100755
+--- a/alps/packages/providers/MediaProvider/src/com/android/providers/media/MtpService.java
++++ b/alps/packages/providers/MediaProvider/src/com/android/providers/media/MtpService.java
+@@ -38,6 +38,8 @@ import com.mediatek.storage.StorageManagerEx;
+ import java.io.File;
+ import java.util.HashMap;
+ 
++import android.app.KeyguardManager;  //Eastaeon:MTP mode lock screen prohibit the use of phone memory
++
+ public class MtpService extends Service {
+     private static final String TAG = "MtpService";
+     private static final boolean LOGD = true;
+@@ -151,12 +153,47 @@ public class MtpService extends Service {
+ 
+     private void updateDisabledStateLocked() {
+         final boolean isCurrentUser = UserHandle.myUserId() == ActivityManager.getCurrentUser();
+-        mMtpDisabled = !mUnlocked || !isCurrentUser;
++        
++        //Eastaeon:MTP mode lock screen prohibit the use of phone memory @{
++        //mMtpDisabled = !mUnlocked || !isCurrentUser;
++        final KeyguardManager keyguardManager = (KeyguardManager) getSystemService(
++                Context.KEYGUARD_SERVICE);
++        mMtpDisabled = (keyguardManager.isKeyguardLocked() && keyguardManager.isKeyguardSecure()) || !mUnlocked || !isCurrentUser;
++        //@}
+         if (LOGD) {
+             Log.d(TAG, "updating state; isCurrentUser=" + isCurrentUser + ", mMtpLocked="
+                     + mMtpDisabled);
+         }
+     }
++    
++    //Eastaeon:MTP mode lock screen prohibit the use of phone memory @{
++    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
++        @Override
++        public void onReceive(Context context, Intent intent) {
++           final String action = intent.getAction();
++            if (Intent.ACTION_USER_PRESENT.equals(action)) {
++                // If the media scanner is running, it may currently be calling
++                // sendObjectAdded/Removed, which also synchronizes on mBinder
++                // (and in addition to that, all the native MtpServer methods
++                // lock the same Mutex). If it happens to be in an mtp device
++                // write(), it may block for some time, so process this broadcast
++                // in a thread.
++                new Thread(new Runnable() {
++                    @Override
++                    public void run() {
++                        synchronized (mBinder) {
++                            // Unhide the storage units when the user has unlocked the lockscreen
++                         if (mMtpDisabled) {
++                                addStorageDevicesLocked();
++                                mMtpDisabled = false;
++                         }
++                        }
++                    }
++                }, "addStorageDevices").start();
++            }
++        }
++    };
++    //@}
+ 
+     /**
+      * Manage {@link #mServer}, creating only when running as the current user.
+-- 
+1.7.9.5
+

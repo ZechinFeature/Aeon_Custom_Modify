@@ -1,0 +1,31 @@
+From 5d9cd7ea12579cd8cdf6d8ba62cd9c328767e286 Mon Sep 17 00:00:00 2001
+From: chehongbin <che.hongbin@eastaeon.com>
+Date: Mon, 14 Nov 2016 09:48:30 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=E7=B4=A7=E6=80=A5=E6=8B=A8=E5?=
+ =?UTF-8?q?=8F=B7=E9=BB=98=E8=AE=A4=E6=B7=BB=E5=8A=A0112?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../src/com/android/phone/EmergencyDialer.java     |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/alps/packages/services/Telephony/src/com/android/phone/EmergencyDialer.java b/alps/packages/services/Telephony/src/com/android/phone/EmergencyDialer.java
+index 8f466f0..390cc88 100644
+--- a/alps/packages/services/Telephony/src/com/android/phone/EmergencyDialer.java
++++ b/alps/packages/services/Telephony/src/com/android/phone/EmergencyDialer.java
+@@ -190,6 +190,10 @@ public class EmergencyDialer extends Activity implements View.OnClickListener,
+         setContentView(R.layout.emergency_dialer);
+ 
+         mDigits = (EditText) findViewById(R.id.digits);
++        //chb 20161114 add for defalut EmergencyDialer  start
++        mDigits.setText("112");
++        mDigits.setSelection(3);
++        //chb 20161114 add for defalut EmergencyDialer end
+         mDigits.setKeyListener(DialerKeyListener.getInstance());
+         mDigits.setOnClickListener(this);
+         mDigits.setOnKeyListener(this);
+-- 
+1.7.9.5
+

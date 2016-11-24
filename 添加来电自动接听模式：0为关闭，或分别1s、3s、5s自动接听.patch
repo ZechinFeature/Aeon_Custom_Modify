@@ -1,0 +1,252 @@
+From 42c96bf679f00c4a5cfbf645a33a81a05b0175a7 Mon Sep 17 00:00:00 2001
+From: liuyuanchang <liu.yuanchang@eastaeon.com>
+Date: Thu, 1 Sep 2016 09:44:06 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=E6=B7=BB=E5=8A=A0=E6=9D=A5=E7?=
+ =?UTF-8?q?=94=B5=E8=87=AA=E5=8A=A8=E6=8E=A5=E5=90=AC=E6=A8=A1=E5=BC=8F=EF=BC?=
+ =?UTF-8?q?=9A0=E4=B8=BA=E5=85=B3=E9=97=AD=EF=BC=8C=E6=88=96=E5=88=86=E5=88=AB?=
+ =?UTF-8?q?1s=E3=80=813s=E3=80=815s=E8=87=AA=E5=8A=A8=E6=8E=A5=E5=90=AC?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Conflicts:
+
+	alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
+	alps/packages/services/Telephony/res/values/strings.xml
+---
+ alps/frameworks/base/api/current.txt               |    1 +
+ alps/frameworks/base/api/system-current.txt        |    1 +
+ .../base/core/java/android/provider/Settings.java  |    2 ++
+ .../SettingsProvider/res/values/defaults.xml       |    1 +
+ .../android/providers/settings/DatabaseHelper.java |    2 ++
+ .../android/incallui/AnswerBySwingReceiver.java    |   15 +++++++-
+ .../services/Telephony/res/values/arrays.xml       |   15 ++++++++
+ .../services/Telephony/res/values/strings.xml      |    8 +++++
+ .../Telephony/res/xml/phone_account_settings.xml   |   10 ++++++
+ .../settings/PhoneAccountSettingsFragment.java     |   38 ++++++++++++++++++++
+ 10 files changed, 92 insertions(+), 1 deletion(-)
+ mode change 100644 => 100755 alps/packages/services/Telephony/res/values/arrays.xml
+
+diff --git a/alps/frameworks/base/api/current.txt b/alps/frameworks/base/api/current.txt
+index d050484..72224d8 100644
+--- a/alps/frameworks/base/api/current.txt
++++ b/alps/frameworks/base/api/current.txt
+@@ -26537,6 +26537,7 @@ package android.provider {
+     method public static android.net.Uri getUriFor(android.net.Uri, java.lang.String);
+     method protected static boolean putString(android.content.ContentResolver, android.net.Uri, java.lang.String, java.lang.String);
+     field public static final java.lang.String ANSWER_BY_SWING_MODE = "answer_by_swing";
++    field public static final java.lang.String AUTO_ANSWER_MODE = "auto_answer_mode";
+     field public static final java.lang.String AUTO_TAKE_CALLS_CONTACTS_MODE = "auto_take_calls_contacts";
+     field public static final java.lang.String AUTO_TAKE_CALLS_MMS_MODE = "auto_take_calls_mms";
+     field public static final java.lang.String EMERGENCY_CALL_LOCK_MODE = "emergency_call_lock";
+diff --git a/alps/frameworks/base/api/system-current.txt b/alps/frameworks/base/api/system-current.txt
+index f68f716..1b83a31 100644
+--- a/alps/frameworks/base/api/system-current.txt
++++ b/alps/frameworks/base/api/system-current.txt
+@@ -28596,6 +28596,7 @@ package android.provider {
+     method public static android.net.Uri getUriFor(android.net.Uri, java.lang.String);
+     method protected static boolean putString(android.content.ContentResolver, android.net.Uri, java.lang.String, java.lang.String);
+     field public static final java.lang.String ANSWER_BY_SWING_MODE = "answer_by_swing";
++    field public static final java.lang.String AUTO_ANSWER_MODE = "auto_answer_mode";
+     field public static final java.lang.String AUTO_TAKE_CALLS_CONTACTS_MODE = "auto_take_calls_contacts";
+     field public static final java.lang.String AUTO_TAKE_CALLS_MMS_MODE = "auto_take_calls_mms";
+     field public static final java.lang.String EMERGENCY_CALL_LOCK_MODE = "emergency_call_lock";
+diff --git a/alps/frameworks/base/core/java/android/provider/Settings.java b/alps/frameworks/base/core/java/android/provider/Settings.java
+index f6592c7..bba9eee 100644
+--- a/alps/frameworks/base/core/java/android/provider/Settings.java
++++ b/alps/frameworks/base/core/java/android/provider/Settings.java
+@@ -1263,6 +1263,8 @@ public final class Settings {
+ 	public static final String AUTO_TAKE_CALLS_CONTACTS_MODE = "auto_take_calls_contacts";
+ 	public static final String EMERGENCY_CALL_LOCK_MODE = "emergency_call_lock";
+ 
++	public static final String AUTO_ANSWER_MODE="auto_answer_mode"; // add by lych
++
+         protected static boolean putString(ContentResolver resolver, Uri uri,
+                 String name, String value) {
+             // The database will take care of replacing duplicates.
+diff --git a/alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml b/alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
+index b4c3da1..0872795 100755
+--- a/alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
++++ b/alps/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
+@@ -221,4 +221,5 @@
+ 
+ 	<!-- Default for Settings.Secure.NFC_PAYMENT_COMPONENT -->
+ 	<string name="def_nfc_payment_component"></string>
++	<integer name="def_auto_anser_mode">0</integer>
+   </resources>
+diff --git a/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java b/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+index 12589e4..032dc87 100755
+--- a/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
++++ b/alps/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+@@ -2407,6 +2407,8 @@ class DatabaseHelper extends SQLiteOpenHelper {
+ 		loadIntegerSetting(stmt, Settings.System.EMERGENCY_CALL_LOCK_MODE,
+ 		           R.integer.def_emergency_call_lock);
+ 
++		loadIntegerSetting(stmt, Settings.System.AUTO_ANSWER_MODE,R.integer.def_auto_anser_mode);// add by lych for auto answer
++
+             loadBooleanSetting(stmt, Settings.System.SCREEN_BRIGHTNESS_MODE,
+                     R.bool.def_screen_brightness_automatic_mode);
+ 
+diff --git a/alps/packages/apps/InCallUI/src/com/android/incallui/AnswerBySwingReceiver.java b/alps/packages/apps/InCallUI/src/com/android/incallui/AnswerBySwingReceiver.java
+index a8b3e1e..8e53dd2 100755
+--- a/alps/packages/apps/InCallUI/src/com/android/incallui/AnswerBySwingReceiver.java
++++ b/alps/packages/apps/InCallUI/src/com/android/incallui/AnswerBySwingReceiver.java
+@@ -21,7 +21,7 @@ import android.telephony.PhoneStateListener;
+ import android.telephony.SubscriptionManager;
+ import android.telecom.TelecomManager;
+ import android.telecom.VideoProfile;
+-
++import android.os.Handler;
+ public class AnswerBySwingReceiver extends BroadcastReceiver {
+ 	private static final String TAG = "whhAnswerBySwingReceiver";
+ 	private static Context mContext;
+@@ -44,6 +44,19 @@ public class AnswerBySwingReceiver extends BroadcastReceiver {
+ 	
+ 	private void checkAnswerBySwing(Context context, Intent intent) {
+ 		boolean answerBySwing = (Settings.System.getInt(context.getContentResolver(),Settings.System.ANSWER_BY_SWING_MODE, 0) != 0);
++		int autoAnswer=Settings.System.getInt(mContext.getContentResolver(),
++					                             Settings.System.AUTO_ANSWER_MODE, 0);
++		if(autoAnswer>0){
++			Handler mAutoHandler=new Handler();
++			mAutoHandler.postDelayed(new Runnable() {
++				@Override
++				public void run() {
++					// TODO Auto-generated method stub
++					AnswerCall();
++				}
++			},autoAnswer);
++		}
++
+ 		tm = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
+ 		if(!answerBySwing){
+ 			Log.d(TAG, "Answer By Swing off !");
+diff --git a/alps/packages/services/Telephony/res/values/arrays.xml b/alps/packages/services/Telephony/res/values/arrays.xml
+old mode 100644
+new mode 100755
+index 8187ff3..227b7eb
+--- a/alps/packages/services/Telephony/res/values/arrays.xml
++++ b/alps/packages/services/Telephony/res/values/arrays.xml
+@@ -29,4 +29,19 @@
+         <item>"9"</item>
+     </string-array>
+ 
++	<!-- Begin:lych String arrays for auto answer -->
++	<string-array name="auto_answer_mode_entries">
++        <item>@string/auto_answer_off</item>
++        <item>@string/auto_answer_1s</item>
++        <item>@string/auto_answer_3s</item>
++        <item>@string/auto_answer_5s</item>
++    </string-array>
++
++	<string-array name="auto_answer_mode_entryvalues" translatable="false">
++        <item>0</item>
++        <item>1000</item>
++        <item>3000</item>
++        <item>5000</item>
++    </string-array>
++	<!-- End:lych String arrays for auto answer -->
+ </resources>
+diff --git a/alps/packages/services/Telephony/res/values/strings.xml b/alps/packages/services/Telephony/res/values/strings.xml
+index 660f5e6..713f6dd 100755
+--- a/alps/packages/services/Telephony/res/values/strings.xml
++++ b/alps/packages/services/Telephony/res/values/strings.xml
+@@ -1301,4 +1301,12 @@
+ 	<string name="emergency_call_lock_summary">Long press the volume up key in lock screen.</string> 
+     <string name="speed_dial_title">Speed Dial </string>
+     <string name="speed_dial_summery">Define Keys Speed Dial </string>
++
++	<!-- Begin:lych String arrays for auto answer -->
++	<string name="auto_answer_title">Auto answer calling</string>
++	<string name="auto_answer_off">off</string>
++	<string name="auto_answer_1s">1s</string>
++	<string name="auto_answer_3s">3s</string>
++	<string name="auto_answer_5s">5s</string>
++	<!-- End:lych String arrays for auto answer -->
+ </resources>
+diff --git a/alps/packages/services/Telephony/res/xml/phone_account_settings.xml b/alps/packages/services/Telephony/res/xml/phone_account_settings.xml
+index 7e2fb8c..a8e5e4c 100755
+--- a/alps/packages/services/Telephony/res/xml/phone_account_settings.xml
++++ b/alps/packages/services/Telephony/res/xml/phone_account_settings.xml
+@@ -94,6 +94,16 @@
+             android:summary="@string/sip_receive_calls_summary"
+             android:persistent="true"/>
+     </PreferenceCategory>
++
++	<!-- Begin:lych String arrays for auto answer -->
++	<ListPreference
++		android:key="key_auto_answer_mode"
++		android:title="@string/auto_answer_title"
++		android:persistent="true"
++		android:entries="@array/auto_answer_mode_entries"
++		android:entryValues="@array/auto_answer_mode_entryvalues"/>
++	<!-- End:lych String arrays for auto answer -->
++
+ 	<CheckBoxPreference
+         android:key="button_auto_record_key"
+         android:title="@string/auto_recording_title"
+diff --git a/alps/packages/services/Telephony/src/com/android/phone/settings/PhoneAccountSettingsFragment.java b/alps/packages/services/Telephony/src/com/android/phone/settings/PhoneAccountSettingsFragment.java
+index 56ec935..673583d 100755
+--- a/alps/packages/services/Telephony/src/com/android/phone/settings/PhoneAccountSettingsFragment.java
++++ b/alps/packages/services/Telephony/src/com/android/phone/settings/PhoneAccountSettingsFragment.java
+@@ -235,6 +235,7 @@ public class PhoneAccountSettingsFragment extends PreferenceFragment
+         ///M: make sure update default phoneAccount in time @{
+         updateDefaultOutgoingAccountPreference();
+         /// @}
++		initAutoAnswer(); //add by lych for auto answer
+ 		initAutoRecord(); // add by lych 20151211
+         initPreferences(); 
+         updateState();
+@@ -269,6 +270,14 @@ public class PhoneAccountSettingsFragment extends PreferenceFragment
+             }).start();
+             return true;
+         }
++		//Begin:lych for auto answer
++		else if(pref ==mAutoAnswerMode){
++			int value=Integer.valueOf(objValue.toString());
++			updateAutoAutoAnswerMode(value);
++			return true;
++		}
++		//End:lych for auto answer
++
+ 		/// add by lych 20151211
+ 		else if (pref == mAutoRecording){
+ 			updateAutoRecord((boolean)objValue);
+@@ -793,6 +802,35 @@ public class PhoneAccountSettingsFragment extends PreferenceFragment
+             }
+         }
+     };
++
++	// Begin:lych for auto answer
++    private static final String KEY_AUTO_ANSWER_MODE="key_auto_answer_mode";
++    private ListPreference mAutoAnswerMode;
++	private void initAutoAnswer(){
++		mAutoAnswerMode = (ListPreference) getPreferenceScreen().findPreference(KEY_AUTO_ANSWER_MODE);
++		mAutoAnswerMode.setOnPreferenceChangeListener(this);
++		int autoAnswer=Settings.System.getInt(getActivity().getContentResolver(),
++					                             Settings.System.AUTO_ANSWER_MODE, 0);
++		int valueIndex=mAutoAnswerMode.findIndexOfValue(autoAnswer+"");
++		if(valueIndex==-1){
++			Settings.System.putInt(getActivity().getContentResolver(),
++				                      Settings.System.AUTO_ANSWER_MODE, 0);
++			valueIndex=mAutoAnswerMode.findIndexOfValue(0+"");
++		}
++		mAutoAnswerMode.setValueIndex(valueIndex);
++		mAutoAnswerMode.setSummary(mAutoAnswerMode.getEntry());
++		Log.d("lych", "PhoneAccountSettingsFragment>>initAutoAnswer autoAnswer: " + autoAnswer);
++	}
++	private void updateAutoAutoAnswerMode(int value){
++		boolean autoRec = !mAutoRecording.isChecked();
++		Settings.System.putInt(getActivity().getContentResolver(),
++			                      Settings.System.AUTO_ANSWER_MODE, value);
++		mAutoAnswerMode.setValueIndex(mAutoAnswerMode.findIndexOfValue(value+""));
++		mAutoAnswerMode.setSummary(mAutoAnswerMode.getEntry());
++		Log.d("lych", "PhoneAccountSettingsFragment>>updateAutoAutoAnswerMode value: " + value);
++	}
++    //End:lych for auto answer
++
+ 	// add begin for auto record by lych 20151211
+     private static final String BUTTON_AUTO_RECORD_KEY="button_auto_record_key";
+     private CheckBoxPreference mAutoRecording;
+-- 
+1.7.9.5
+

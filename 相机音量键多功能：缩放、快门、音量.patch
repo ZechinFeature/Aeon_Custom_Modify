@@ -1,0 +1,403 @@
+From fc605c66882c03ab12470504c5632dba66cee80a Mon Sep 17 00:00:00 2001
+From: "Xia.Fei" <xia.fei@eastaeon.com>
+Date: Thu, 17 Mar 2016 10:46:01 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82][Camera]=E7=9B=B8=E6=9C=BA=E9?=
+ =?UTF-8?q?=9F=B3=E9=87=8F=E9=94=AE=E5=A4=9A=E5=8A=9F=E8=83=BD=EF=BC=9A=E7=BC?=
+ =?UTF-8?q?=A9=E6=94=BE=E3=80=81=E5=BF=AB=E9=97=A8=E3=80=81=E9=9F=B3=E9=87=8F?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../packages/apps/Camera/res/values-vi/strings.xml |    7 +++
+ .../apps/Camera/res/values-zh-rCN/strings.xml      |    8 +++
+ .../packages/apps/Camera/res/values/arrays.xml     |   13 +++++
+ .../packages/apps/Camera/res/values/strings.xml    |    9 ++++
+ .../apps/Camera/res/xml/camera_preferences.xml     |    9 ++++
+ .../src/com/android/camera/CameraActivity.java     |   52 ++++++++++++++++++--
+ .../src/com/android/camera/actor/PhotoActor.java   |    8 +++
+ .../com/android/camera/bridge/CameraAppUiImpl.java |    7 +++
+ .../com/android/camera/manager/ZoomManager.java    |   38 ++++++++++++++
+ .../com/mediatek/camera/platform/ICameraAppUi.java |    8 +++
+ .../mediatek/camera/setting/SettingConstants.java  |   16 +++++-
+ .../mediatek/camera/setting/SettingDataBase.java   |    6 +++
+ 12 files changed, 175 insertions(+), 6 deletions(-)
+
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values-vi/strings.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values-vi/strings.xml
+index 56c1e4f..766d53d 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values-vi/strings.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values-vi/strings.xml
+@@ -210,4 +210,11 @@
+     <string name="video_reach_size_limit" msgid="6179877322015552390">"Đã đạt tới giới hạn kích thước."</string>
+     <string name="pano_dialog_title" msgid="5755531234434437697">"Toàn cảnh"</string>
+     <string name="panorama_guide_choose_direction">Di chuyển thiết bị về hướng chụp của bạn</string>  
++
++    <!-- START. For Camera_Volume_Response, By Xia.Fei, 20160317 -->
++    <string name="pref_camera_volume_response_title">Các phím âm lượng</string>
++    <string name="pref_camera_volume_response_entry_zoom">Thu phóng</string>
++    <string name="pref_camera_volume_response_entry_shoot">Bắn</string>
++    <string name="pref_camera_volume_response_entry_volume">Âm lượng</string>
++    <!-- END. For Camera_Volume_Response, By Xia.Fei, 20160317 -->
+ </resources>
+\ No newline at end of file
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values-zh-rCN/strings.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values-zh-rCN/strings.xml
+index 488a768..ad20070 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values-zh-rCN/strings.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values-zh-rCN/strings.xml
+@@ -246,4 +246,12 @@
+     <string name="pref_camera_shutter_sound_entry_off">关</string>
+     <string name="pref_camera_shutter_sound_entry_on">开</string>
+     <!-- END. For Shutter Sound, By Xia.Fei -->
++
++    <!-- START. For Camera_Volume_Response, By Xia.Fei, 20160317 -->
++    <!-- Volume Response properties -->
++    <string name="pref_camera_volume_response_title">音量键功能</string>
++    <string name="pref_camera_volume_response_entry_zoom">缩放</string>
++    <string name="pref_camera_volume_response_entry_shoot">快门</string>
++    <string name="pref_camera_volume_response_entry_volume">音量</string>
++    <!-- END. For Camera_Volume_Response, By Xia.Fei, 20160317 -->
+ </resources>
+\ No newline at end of file
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/arrays.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/arrays.xml
+index 4475270..6e5a099 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/arrays.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/arrays.xml
+@@ -840,4 +840,17 @@
+         <item>on</item>
+     </string-array>
+     <!-- END. For Shutter Sound, By Xia.Fei -->
++
++    <!-- START. For Camera_Volume_Response, By Xia.Fei, 20160317 -->
++    <string-array name="pref_camera_volume_response_entries">
++        <item>@string/pref_camera_volume_response_entry_zoom</item>
++        <item>@string/pref_camera_volume_response_entry_shoot</item>
++        <item>@string/pref_camera_volume_response_entry_volume</item>
++    </string-array>
++    <string-array name="pref_camera_volume_response_entryvalues" translatable="false">
++        <item>zoom</item>
++        <item>shoot</item>
++        <item>volume</item>
++    </string-array>
++    <!-- END. For Camera_Volume_Response, By Xia.Fei, 20160317 -->
+ </resources>
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/strings.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/strings.xml
+index 4fa549b..2b79f3a 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/strings.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/values/strings.xml
+@@ -398,4 +398,13 @@
+     <string name="pref_camera_shutter_sound_entry_off">Off</string>
+     <string name="pref_camera_shutter_sound_entry_on">On</string>
+     <!-- END. For Shutter Sound, By Xia.Fei -->
++
++    <!-- START. For Camera_Volume_Response, By Xia.Fei, 20160317 -->
++    <!-- Volume Response properties -->
++    <string name="pref_camera_volume_response_default" translatable="false">zoom</string>
++    <string name="pref_camera_volume_response_title">Volume keys</string>
++    <string name="pref_camera_volume_response_entry_zoom">Zoom</string>
++    <string name="pref_camera_volume_response_entry_shoot">Shoot</string>
++    <string name="pref_camera_volume_response_entry_volume">Volume</string>
++    <!-- END. For Camera_Volume_Response, By Xia.Fei, 20160317 -->
+ </resources>
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/xml/camera_preferences.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/xml/camera_preferences.xml
+index c5acd9e..4c496cc 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/xml/camera_preferences.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/xml/camera_preferences.xml
+@@ -139,6 +139,15 @@
+         camera:entries="@array/pref_camera_antibanding_entries"
+         camera:entryValues="@array/pref_camera_antibanding_entryvalues" />
+ 
++    <!-- START. For Camera_Volume_Response, By Xia.Fei, 20160317 -->
++    <ListPreference
++        camera:key="pref_volume_response_key"
++        camera:defaultValue="@string/pref_camera_volume_response_default"
++        camera:title="@string/pref_camera_volume_response_title"
++        camera:entries="@array/pref_camera_volume_response_entries"
++        camera:entryValues="@array/pref_camera_volume_response_entryvalues"/>
++    <!-- END. For Camera_Volume_Response, By Xia.Fei, 20160317 -->
++
+     <ListPreference
+         camera:key="pref_camera_zsd_key"
+         camera:defaultValue="@string/pref_camera_zsd_default"
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/CameraActivity.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/CameraActivity.java
+index 6b973f6..c80a799 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/CameraActivity.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/CameraActivity.java
+@@ -731,9 +731,30 @@ public class CameraActivity extends ActivityBase implements
+                 && mCameraAppUi.performSettingClick()) {
+             return true;
+         }
+-        if (!mCameraActor.onKeyDown(keyCode, event)) {
+-            return super.onKeyDown(keyCode, event);
++
++        //START. For Camera_Volume_Response, By Xia.Fei, 20160317
++        String volumeMode = mISettingCtrl.getSettingValue(SettingConstants.KEY_VOLUME_RESPONESE);
++        switch (keyCode) {
++        case KeyEvent.KEYCODE_VOLUME_UP:
++        case KeyEvent.KEYCODE_VOLUME_DOWN:
++            if ("zoom".equals(volumeMode)){
++                Log.d(TAG,"onKeyDown zoom.");
++                if (!mCameraAppUi.getZoomManager().onKeyDown(keyCode,event)){
++                    return super.onKeyDown(keyCode, event);
++                }
++            }
++            else if ("volume".equals(volumeMode)){
++                return super.onKeyDown(keyCode, event);
++            }
++            break;
++        default:
++            if (!mCameraActor.onKeyDown(keyCode, event)) {
++                return super.onKeyDown(keyCode, event);
++            }
++            break;
+         }
++        //END. For Camera_Volume_Response, By Xia.Fei, 20160317
++
+         return true;
+     }
+ 
+@@ -748,9 +769,32 @@ public class CameraActivity extends ActivityBase implements
+         if (mPaused) {
+             return true;
+         }
+-        if (!mCameraActor.onKeyUp(keyCode, event)) {
+-            return super.onKeyUp(keyCode, event);
++
++        //START. For Camera_Volume_Response, By Xia.Fei, 20160317
++        String volumeMode = mISettingCtrl.getSettingValue(SettingConstants.KEY_VOLUME_RESPONESE);
++        switch (keyCode) {
++        case KeyEvent.KEYCODE_VOLUME_DOWN:
++        case KeyEvent.KEYCODE_VOLUME_UP:
++            if ("zoom".equals(volumeMode)){
++                Log.d(TAG,"onKeyUp zoom.");
++                if (!mCameraAppUi.getZoomManager().onKeyUp(keyCode,event)){
++                    return super.onKeyUp(keyCode, event);
++                }
++            }
++            else{
++                if (!mCameraActor.onKeyUp(keyCode, event)) {
++                    return super.onKeyUp(keyCode, event);
++                }
++            }
++            break;
++        default:
++            if (!mCameraActor.onKeyUp(keyCode, event)) {
++                return super.onKeyUp(keyCode, event);
++            }
++            break;
+         }
++        //END. For Camera_Volume_Response, By Xia.Fei, 20160317
++
+         return true;
+     }
+ 
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/actor/PhotoActor.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/actor/PhotoActor.java
+index a4dee31..2060a25 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/actor/PhotoActor.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/actor/PhotoActor.java
+@@ -527,6 +527,14 @@ public class PhotoActor extends CameraActor implements FocusManager.Listener,
+ 
+         case KeyEvent.KEYCODE_VOLUME_UP:
+         case KeyEvent.KEYCODE_VOLUME_DOWN:
++            //START. For Camera_Volume_Response, By Xia.Fei, 20160317
++            String volumeMode = mCameraActivity.getISettingCtrl().getSettingValue(SettingConstants.KEY_VOLUME_RESPONESE);
++            Log.d(TAG,"onKeyUp shoot");
++            if (!"shoot".equals(volumeMode)){
++                break;
++            }
++            //END. For Camera_Volume_Response, By Xia.Fei, 20160317
++
+             if (mIsInitialized) {
+                 onShutterButtonClick(null);
+                 return true;
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/bridge/CameraAppUiImpl.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/bridge/CameraAppUiImpl.java
+index 169dd9d..6312201 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/bridge/CameraAppUiImpl.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/bridge/CameraAppUiImpl.java
+@@ -1056,6 +1056,13 @@ public class CameraAppUiImpl implements ICameraAppUi {
+         mZoomManager.setZoomParameter();
+     }
+ 
++    //START. For Camera_Volume_Response, By Xia.Fei, 20160317
++    @Override
++    public ZoomManager getZoomManager(){
++        return mZoomManager;
++    }
++    //END. For Camera_Volume_Response, By Xia.Fei, 20160317
++
+     public void checkViewManagerConfiguration() {
+         for (ViewManager manager : mViewManagers) {
+             manager.checkConfiguration();
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/manager/ZoomManager.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/manager/ZoomManager.java
+index 2ac77e3..b8ee642 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/manager/ZoomManager.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/android/camera/manager/ZoomManager.java
+@@ -48,6 +48,11 @@ import com.android.camera.R;
+ import android.view.MotionEvent;
+ import android.view.View;
+ 
++//START. For Camera_Volume_Response, By Xia.Fei, 20160317
++import com.mediatek.camera.setting.SettingConstants;
++import android.view.KeyEvent;
++//END. For Camera_Volume_Response, By Xia.Fei, 20160317
++
+ public class ZoomManager extends ViewManager implements
+         CameraActivity.Resumable, GestureDispatcher.GestureDispatcherListener {
+     private static final String TAG = "ZoomManager";
+@@ -342,4 +347,37 @@ public class ZoomManager extends ViewManager implements
+         return ratio;
+     }
+ 
++    //START. For Camera_Volume_Response, By Xia.Fei, 20160317
++    public boolean onKeyDown(int keyCode, KeyEvent event) {
++        Log.d(TAG,"onKeyDown.");
++        return true;
++    }
++    public boolean onKeyUp(int keyCode, KeyEvent event) {
++        Log.d(TAG,"onKeyUp.");
++        int mZoomIndex;
++        String volumeMode = getContext().getISettingCtrl().getSettingValue(SettingConstants.KEY_VOLUME_RESPONESE);
++        if ("zoom".equals(volumeMode)){
++            switch (keyCode) {
++            case KeyEvent.KEYCODE_VOLUME_UP:
++                mZoomIndex = findZoomIndex(mLastZoomRatio);
++                mZoomIndex++;
++                if (mZoomIndex > mZoomRatios.size()-1)
++                    mZoomIndex = mZoomRatios.size()-1;
++                performZoom(mZoomIndex,true);
++                break;
++            case KeyEvent.KEYCODE_VOLUME_DOWN:
++                mZoomIndex = findZoomIndex(mLastZoomRatio);
++                mZoomIndex--;
++                if (mZoomIndex < 0)
++                    mZoomIndex = 0;
++                performZoom(mZoomIndex,true);
++                break;
++            default:
++                break;
++            }
++        }
++        return true;
++    }
++    //END. For Camera_Volume_Response, By Xia.Fei, 20160317
++
+ }
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/platform/ICameraAppUi.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/platform/ICameraAppUi.java
+index 4a934ff..82012cc 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/platform/ICameraAppUi.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/platform/ICameraAppUi.java
+@@ -48,6 +48,10 @@ import android.widget.ImageView;
+ 
+ import com.mediatek.camera.ICameraMode.CameraModeType;
+ 
++//START. For Camera_Volume_Response, By Xia.Fei, 20160317
++import com.android.camera.manager.ZoomManager;
++//END. For Camera_Volume_Response, By Xia.Fei, 20160317
++
+ public interface ICameraAppUi {
+ 
+     public enum CommonUiType {
+@@ -297,4 +301,8 @@ public interface ICameraAppUi {
+ 
+     public boolean isNeedBackToVFBMode();
+ 
++    //START. For Camera_Volume_Response, By Xia.Fei, 20160317
++    public ZoomManager getZoomManager();
++    //END. For Camera_Volume_Response, By Xia.Fei, 20160317
++
+ }
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingConstants.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingConstants.java
+index f69166e..0d32ce7 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingConstants.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingConstants.java
+@@ -49,7 +49,8 @@ public class SettingConstants {
+     public static final String KEY_LOCAL_VERSION                    = "pref_local_version_key";
+     
+     //SETTING_COUNT = ROW_xxx_nums + 1. For Shutter Sound, By Xia.Fei
+-    public static final int SETTING_COUNT = 62;
++    //For Camera_Volume_Response, Plus 1 again, By Xia.Fei, 20160317
++    public static final int SETTING_COUNT = 63;
+     // setting key
+     public static final String KEY_CAMERA_ID                 = "pref_camera_id_key";
+     public static final String KEY_JPEG_QUALITY              = "pref_camera_jpegquality_key";
+@@ -122,6 +123,12 @@ public class SettingConstants {
+     public static final String KEY_CAMERA_SHUTTER_SOUND        = "pref_shutter_sound_key";
+     public static final int ROW_SETTING_CAMERA_SHUTTER_SOUND = 61;//camera, set SETTING_COUNT = 62
+     //END. For Shutter Sound, By Xia.Fei
++
++    //START. For Camera_Volume_Response, By Xia.Fei, 20160317
++    public static final int ROW_SETTING_VOLUME_RESPONSE = 62;    //set SETTING_COUNT = 63
++    public static final String KEY_VOLUME_RESPONESE = "pref_volume_response_key";
++    //END. For Camera_Volume_Response, By Xia.Fei, 20160317
++
+     // setting index
+     public static final int ROW_SETTING_FACE_BEAUTY               = 0;
+     public static final int ROW_SETTING_PANORAMA                  = 1;
+@@ -260,6 +267,7 @@ public class SettingConstants {
+         SETTING_TYPE[ROW_SETTING_MULTI_FACE_MODE]           = BOTH_IN_PARAMETER_AND_PREFERENCE;
+         SETTING_TYPE[ROW_SETTING_FAST_AF]                   = BOTH_IN_PARAMETER_AND_PREFERENCE;
+         SETTING_TYPE[ROW_SETTING_DISTANCE]                  = BOTH_IN_PARAMETER_AND_PREFERENCE;
++        SETTING_TYPE[ROW_SETTING_VOLUME_RESPONSE]           = ONLY_IN_PEFERENCE;//For Camera_Volume_Response, By Xia.Fei, 20160317
+     }
+     
+     // setting key and index
+@@ -330,6 +338,7 @@ public class SettingConstants {
+         KEYS_FOR_SETTING[ROW_SETTING_NORMAL]                = KEY_NORMAL;
+         KEYS_FOR_SETTING[ROW_SETTING_OBJECT_TRACKING]       = KEY_OBJECT_TRACKING;
+         KEYS_FOR_SETTING[ROW_SETTING_HEARTBEAT_MONITOR]     = KEY_HEARTBEAT_MONITOR;
++        KEYS_FOR_SETTING[ROW_SETTING_VOLUME_RESPONSE]       = KEY_VOLUME_RESPONESE;//For Camera_Volume_Response, By Xia.Fei, 20160317
+         KEYS_FOR_SETTING[ROW_SETTING_DNG]                   = KEY_DNG;
+     };
+     
+@@ -379,6 +388,7 @@ public class SettingConstants {
+         ROW_SETTING_PICTURE_RATIO,//camera
+         ROW_SETTING_ISO,//camera
+         ROW_SETTING_FACEBEAUTY_PROPERTIES,//camera:Cfb
++        ROW_SETTING_VOLUME_RESPONSE,//For Camera_Volume_Response, By Xia.Fei, 20160317
+     };
+     
+     public static final int[] SETTING_GROUP_VIDEO_FOR_TAB = new int[]{
+@@ -486,7 +496,9 @@ public class SettingConstants {
+         ROW_SETTING_MULTI_FACE_MODE,// vFB Camera
+         ROW_SETTING_HDR, 
+         ROW_SETTING_SMILE_SHOT, 
+-        ROW_SETTING_ASD, };
++        ROW_SETTING_ASD,
++        ROW_SETTING_VOLUME_RESPONSE,//For Camera_Volume_Response, By Xia.Fei, 20160317
++    };
+     
+     // Video all setting items for final user.
+     public static final int[] SETTING_GROUP_VIDEO_FOR_UI = new int[] {
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingDataBase.java b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingDataBase.java
+index 680855b..2b7b190 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingDataBase.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/src/com/mediatek/camera/setting/SettingDataBase.java
+@@ -220,6 +220,10 @@ public class SettingDataBase {
+         MATRIX_RESTRICTION_STATE[SettingConstants.ROW_SETTING_HEARTBEAT_MONITOR]     = new int[]{
+                 STATE_R0, STATE_R1, STATE_R1, STATE_R1, STATE_R1, STATE_R1,
+                 STATE_R1, STATE_R1, STATE_R1, STATE_R1, STATE_R1};//55 gesture shot
++        MATRIX_RESTRICTION_STATE[SettingConstants. ROW_SETTING_VOLUME_RESPONSE]      = new int[]{
++                STATE_E0, STATE_E0, STATE_E0, STATE_E0, STATE_E0,
++                STATE_E0, STATE_E0,  STATE_E0, STATE_E0, STATE_E0,
++                STATE_E0, STATE_E0, STATE_E0, STATE_E0, STATE_E0};//62 //For Camera_Volume_Response, By Xia.Fei, 20160317
+         MATRIX_RESTRICTION_STATE[SettingConstants.ROW_SETTING_DNG]                   = new int[]{
+                 STATE_E0, STATE_R0, STATE_R0, STATE_R0, STATE_E0, STATE_R0,
+                 STATE_R0, STATE_R0, STATE_E0, STATE_E0, STATE_R0};
+@@ -310,6 +314,7 @@ public class SettingDataBase {
+         RESET_STATE_VALUE[SettingConstants.ROW_SETTING_GESTURE_SHOT]         = new String[]{"off", "on"};
+         RESET_STATE_VALUE[SettingConstants.ROW_SETTING_MUTE_RECORDING_SOUND] = new String[]{"0", "1"};
+         RESET_STATE_VALUE[SettingConstants.ROW_SETTING_HEARTBEAT_MONITOR]    = new String[]{"true", "false"};
++        RESET_STATE_VALUE[SettingConstants.ROW_SETTING_VOLUME_RESPONSE]      = new String[]{"zoom"};//For Camera_Volume_Response, By Xia.Fei, 20160317
+         RESET_STATE_VALUE[SettingConstants.ROW_SETTING_DNG] = new String[]{"off", "on"};
+     }
+     
+@@ -367,6 +372,7 @@ public class SettingDataBase {
+         DEFAULT_VALUE_FOR_SETTING_ID[SettingConstants.ROW_SETTING_HDR]                   = R.string.pref_camera_hdr_default;
+         DEFAULT_VALUE_FOR_SETTING_ID[SettingConstants.ROW_SETTING_ASD]                   = R.string.pref_asd_default;
+         DEFAULT_VALUE_FOR_SETTING_ID[SettingConstants.ROW_SETTING_GESTURE_SHOT]          = R.string.pref_gesture_shot_default;
++        DEFAULT_VALUE_FOR_SETTING_ID[SettingConstants.ROW_SETTING_VOLUME_RESPONSE]       = R.string.pref_camera_volume_response_default;//For Camera_Volume_Response, By Xia.Fei, 20160317
+         DEFAULT_VALUE_FOR_SETTING_ID[SettingConstants.ROW_SETTING_DNG] = R.string.pref_dng_default;
+     }
+     
+-- 
+1.7.9.5
+

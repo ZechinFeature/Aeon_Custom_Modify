@@ -1,0 +1,466 @@
+From e20ac72dc6ae1bf5aa66b60e9a2c6dea8f9c7efc Mon Sep 17 00:00:00 2001
+From: wangjian <wang.jian@eastaeon.com>
+Date: Mon, 14 Mar 2016 17:19:32 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=20Data=20Roaming=20=E5=A2=9E?=
+ =?UTF-8?q?=E5=8A=A0=E5=A4=9A=E9=80=89?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../telephony/gsm/GsmServiceStateTracker.java      |   60 +++++-
+ .../services/Telephony/res/values/strings.xml      |   14 +-
+ .../services/Telephony/res/xml/network_setting.xml |   10 +
+ .../com/android/phone/MobileNetworkSettings.java   |  222 ++++++++++++++++++--
+ 4 files changed, 288 insertions(+), 18 deletions(-)
+ mode change 100644 => 100755 alps/packages/services/Telephony/res/xml/network_setting.xml
+
+diff --git a/alps/frameworks/opt/telephony/src/java/com/android/internal/telephony/gsm/GsmServiceStateTracker.java b/alps/frameworks/opt/telephony/src/java/com/android/internal/telephony/gsm/GsmServiceStateTracker.java
+index 1ceaab3..54ef531 100755
+--- a/alps/frameworks/opt/telephony/src/java/com/android/internal/telephony/gsm/GsmServiceStateTracker.java
++++ b/alps/frameworks/opt/telephony/src/java/com/android/internal/telephony/gsm/GsmServiceStateTracker.java
+@@ -565,6 +565,15 @@ final class GsmServiceStateTracker extends ServiceStateTracker {
+     };
+     //[ALPS01577029]-END
+ 
++	//DATA_ROAMING_AEON-START
++	private ContentObserver mDataRoamingAeonObserver = new ContentObserver(new Handler()) {
++        @Override
++        public void onChange(boolean selfChange) {
++            Rlog.i("GsmServiceStateTracker", "onRoamingChange");
++            onRoamingChange();
++        }
++    };
++	//DATA_ROAMING_AEON-END
+     public GsmServiceStateTracker(GSMPhone phone) {
+         super(phone, phone.mCi, new CellInfoGsm());
+ 
+@@ -709,7 +718,7 @@ final class GsmServiceStateTracker extends ServiceStateTracker {
+         mCr.unregisterContentObserver(mAutoTimeZoneObserver);
+         mCr.unregisterContentObserver(mMsicFeatureConfigObserver);   //[ALPS01577029]
+         mCr.unregisterContentObserver(mDataConnectionSettingObserver);
+-
++		mCr.unregisterContentObserver(mDataRoamingAeonObserver);
+         try {
+             if (mServiceStateExt.isImeiLocked())
+                 mCi.unregisterForIMEILock(this);
+@@ -784,6 +793,23 @@ final class GsmServiceStateTracker extends ServiceStateTracker {
+                 pollState();
+                 // Signal strength polling stops when radio is off
+                 queueNextSignalStrengthPoll();
++				//DATA_ROAMING_AEON-START      
++				String contentUri;
++				if(TelephonyManager.getDefault().getSimCount() == 1){
++					contentUri = Settings.Global.DATA_ROAMING;
++				}else{
++					int phoneSubId = mPhone.getSubId();
++					contentUri = Settings.Global.DATA_ROAMING + phoneSubId;
++				}
++				log("ServiceState ontentUri = "+contentUri);
++				ContentResolver mCr = mPhone.getContext().getContentResolver();
++				if(mCr != null && mDataRoamingAeonObserver != null){
++					mCr.unregisterContentObserver(mDataRoamingAeonObserver);
++					mCr.registerContentObserver(
++						Settings.Global.getUriFor(contentUri), true,
++						mDataRoamingAeonObserver);        
++				}
++				//DATA_ROAMING_AEON-START
+                 break;
+             case EVENT_RADIO_STATE_CHANGED:
+                 log("handle EVENT_RADIO_STATE_CHANGED");
+@@ -2800,6 +2826,7 @@ final class GsmServiceStateTracker extends ServiceStateTracker {
+         }
+ 
+         if (hasVoiceRoamingOn) {
++			onRoamingChange();  //DATA_ROAMING_AEON 
+             mVoiceRoamingOnRegistrants.notifyRegistrants();
+         }
+ 
+@@ -2856,6 +2883,37 @@ final class GsmServiceStateTracker extends ServiceStateTracker {
+         // TODO: Add GsmCellIdenity updating, see CdmaLteServiceStateTracker.
+     }
+ 
++	//DATA_ROAMING_AEON-START
++	private void onRoamingChange(){
++
++		boolean dataRoamingEnabled = false;
++		int roaming = 2;
++		log("mPhone subid = "+mPhone.getSubId());
++		String contentUri = Settings.Global.DATA_ROAMING;		
++		try{						
++			
++			if (TelephonyManager.getDefault().getSimCount() == 1) {
++				contentUri = Settings.Global.DATA_ROAMING;
++				roaming = Settings.Global.getInt(mPhone.getContext().getContentResolver(), "DATA_ROAMING_AEON");
++			} else {
++				int phoneSubId = mPhone.getSubId();
++				if (CdmaFeatureOptionUtils.isCdmaLteDcSupport()) {
++					phoneSubId = SvlteUtils.getSvlteSubIdBySubId(phoneSubId);
++				}
++				contentUri = Settings.Global.DATA_ROAMING + phoneSubId;
++				roaming = Settings.Global.getInt(mPhone.getContext().getContentResolver(), "DATA_ROAMING_AEON"+mPhone.getSubId());
++			}
++			dataRoamingEnabled = Settings.Global.getInt(mPhone.getContext().getContentResolver(), contentUri) == 1;
++		}catch(SettingNotFoundException e){
++		}
++		boolean allowR = roaming == 1 || (roaming == 2 && currentMccEqualsSimMcc(mNewSS));
++		log("currentMccEqualsSimMcc = "+currentMccEqualsSimMcc(mNewSS));
++		if(allowR != dataRoamingEnabled){
++			//ContentResolver resolver = mPhone.getContext().getContentResolver()
++			Settings.Global.putInt(mPhone.getContext().getContentResolver(), contentUri, allowR ? 1 : 0);
++		}
++	}
++	//DATA_ROAMING_AEON-END
+     /**
+      * Check if GPRS got registered while voice is registered.
+      *
+diff --git a/alps/packages/services/Telephony/res/values/strings.xml b/alps/packages/services/Telephony/res/values/strings.xml
+index 9a6f198..12dc869 100755
+--- a/alps/packages/services/Telephony/res/values/strings.xml
++++ b/alps/packages/services/Telephony/res/values/strings.xml
+@@ -1302,5 +1302,17 @@
+ 	<string name="network_search_other">
+ 		The mobile phone will not select other operators for you in manual selection mode. Sometimes you have to do manual selection again or change back to automatic selection mode when you lost the service of the selected operator. We recommend that you use the \"Select automatically\". Do you want to select network manually?
+ 	</string>
+-
++	    <!-- add by shi.jianing for 'Data Roaming' begin -->
++	<string name="preferred_roaming_mode_dialogtitle">"Roaming Mode"</string>
++	<string-array name="preferred_roaming_mode_choices">
++		<item>"Disable"</item>
++		<item>"National Roaming only"</item>
++		<item>"All Networks"</item>
++	</string-array>
++	<string-array name="preferred_roaming_mode_values">
++		<item>"0"</item>
++		<item>"2"</item>
++		<item>"1"</item>
++	</string-array>
++	<!-- add by shi.jianing for 'Data Roaming' end -->
+ </resources>
+diff --git a/alps/packages/services/Telephony/res/xml/network_setting.xml b/alps/packages/services/Telephony/res/xml/network_setting.xml
+old mode 100644
+new mode 100755
+index 58c19f7..34ec618
+--- a/alps/packages/services/Telephony/res/xml/network_setting.xml
++++ b/alps/packages/services/Telephony/res/xml/network_setting.xml
+@@ -27,6 +27,16 @@
+         android:persistent="false"
+         android:summaryOn="@string/roaming_enable"
+         android:summaryOff="@string/roaming_disable"/>
++	<!-- add by shi.jianing for 'Data Roaming' begin -->
++	<ListPreference
++        android:key="preferred_button_roaming_key"
++        android:dialogTitle="@string/preferred_roaming_mode_dialogtitle"
++        android:summary="@string/roaming_enable"
++        android:entries="@array/preferred_roaming_mode_choices"
++        android:persistent="false"
++        android:entryValues="@array/preferred_roaming_mode_values"
++        android:title="@string/roaming" />
++	<!-- add by shi.jianing for 'Data Roaming' end -->
+ 
+     <ListPreference
+         android:key="preferred_network_mode_key"
+diff --git a/alps/packages/services/Telephony/src/com/android/phone/MobileNetworkSettings.java b/alps/packages/services/Telephony/src/com/android/phone/MobileNetworkSettings.java
+index f00375c..cda7cc5 100755
+--- a/alps/packages/services/Telephony/src/com/android/phone/MobileNetworkSettings.java
++++ b/alps/packages/services/Telephony/src/com/android/phone/MobileNetworkSettings.java
+@@ -80,7 +80,11 @@ import android.widget.TabHost.OnTabChangeListener;
+ import android.widget.TabHost.TabContentFactory;
+ import android.widget.TabHost.TabSpec;
+ import android.widget.TabHost;
+-
++// add by shi.jianing for 'Data Roaming' begin
++import android.content.ContentResolver;
++import android.database.ContentObserver;
++import android.provider.Settings.SettingNotFoundException;
++// add by shi.jianing for 'Data Roaming' end
+ /**
+  * "Mobile network settings" screen.  This preference screen lets you
+  * enable/disable mobile data, and control data roaming and other
+@@ -124,8 +128,15 @@ public class MobileNetworkSettings extends PreferenceActivity implements
+             "com.android.settings.Settings$WirelessSettingsActivity";
+ 
+     private SubscriptionManager mSubscriptionManager;
+-    private TelephonyManager mTelephonyManager;
+ 
++	// add by shi.jianing for 'Data Roaming' begin
++    private ListPreference mButtonPreferredDataRoam;
++    private static final String BUTTON_PREFERED_ROAMING_KEY = "preferred_button_roaming_key";
++    private static final int MODE_DISABLE_ROAMING = 0;
++    private static final int MODE_NATIONAL_ROAMING_AEON = 2;
++    private static final int MODE_ALL_NETWORK_ROAMING_AEON = 1;
++    private static final int preferredRoamingMode = 2;
++    // add by shi.jianing for 'Data Roaming' end
+     //UI objects
+     private ListPreference mButtonPreferredNetworkMode;
+     private ListPreference mButtonEnabledNetworks;
+@@ -155,7 +166,8 @@ public class MobileNetworkSettings extends PreferenceActivity implements
+ 
+     /// Add for C2K OM features
+     private CdmaNetworkSettings mCdmaNetworkSettings;
+-
++	 private TelephonyManager mTelephonyManager;
++	public static String ROAMING_KEY = "DATA_ROAMING_AEON";
+     private final PhoneStateListener mPhoneStateListener = new PhoneStateListener() {
+         /*
+          * Enable/disable the 'Enhanced 4G LTE Mode' when in/out of a call
+@@ -228,7 +240,27 @@ public class MobileNetworkSettings extends PreferenceActivity implements
+         /// @}
+         if (preference.getKey().equals(BUTTON_4G_LTE_KEY)) {
+             return true;
+-        } else if (mGsmUmtsOptions != null &&
++        } // add by shi.jianing for 'Data Roaming' begin
++        else if (preference == mButtonPreferredDataRoam) {
++            try {
++                int settingsRoamingMode;
++				String contentUri;
++				if(TelephonyManager.getDefault().getSimCount() == 1){
++					contentUri = ROAMING_KEY;
++				}else{
++					contentUri = ROAMING_KEY + mPhone.getSubId();
++				}
++                settingsRoamingMode = Settings.Global.getInt(
++						mPhone.getContext().getContentResolver(),
++                        contentUri, preferredRoamingMode);
++				
++                Log.d("wangjian", "onPreferencdTreeClick: settingsRoamingMode = " + settingsRoamingMode);
++                mButtonPreferredDataRoam.setValue(Integer.toString(settingsRoamingMode));
++            } catch (Exception e){
++            }
++            return true;
++        // add by shi.jianing for 'Data Roaming' end
++        }else if (mGsmUmtsOptions != null &&
+                 mGsmUmtsOptions.preferenceTreeClick(preference) == true) {
+             return true;
+         } else if (mCdmaOptions != null &&
+@@ -491,12 +523,26 @@ public class MobileNetworkSettings extends PreferenceActivity implements
+         PreferenceScreen prefSet = getPreferenceScreen();
+ 
+         mButtonDataRoam = (SwitchPreference) prefSet.findPreference(BUTTON_ROAMING_KEY);
++		mButtonPreferredDataRoam = (ListPreference) prefSet.findPreference(BUTTON_PREFERED_ROAMING_KEY); // add by shi.jianing for 'Data Roaming'
+         mButtonPreferredNetworkMode = (ListPreference) prefSet.findPreference(
+                 BUTTON_PREFERED_NETWORK_MODE);
+         mButtonEnabledNetworks = (ListPreference) prefSet.findPreference(
+                 BUTTON_ENABLED_NETWORKS_KEY);
+-        mButtonDataRoam.setOnPreferenceChangeListener(this);
+-
++        //mButtonDataRoam.setOnPreferenceChangeListener(this);
++
++		// add by shi.jianing for 'Data Roaming' begin
++		if(mButtonDataRoam != null){
++			prefSet.removePreference(mButtonDataRoam);
++		}			
++		mButtonPreferredDataRoam.setOnPreferenceChangeListener(this);
++		
++		//Get the 'Data Roaming' from Settings.System and displays it
++        //int settingsRoamingMode = Settings.Global.getInt(this.getContentResolver(),
++        //        "DATA_ROAMING_AEON", preferredRoamingMode);
++        //mButtonPreferredDataRoam.setValue(Integer.toString(settingsRoamingMode));
++		//UpdatePreferredRoamingModeSummary(settingsRoamingMode);
++		// add by shi.jianing for 'Data Roaming' end	
++		
+         mLteDataServicePref = prefSet.findPreference(BUTTON_CDMA_LTE_DATA_SERVICE_KEY);
+ 
+         // Initialize mActiveSubInfo
+@@ -555,12 +601,38 @@ public class MobileNetworkSettings extends PreferenceActivity implements
+ 
+         // upon resumption from the sub-activity, make sure we re-enable the
+         // preferences.
+-        // getPreferenceScreen().setEnabled(true);
+-
+-        // Set UI state in onResume because a user could go home, launch some
+-        // app to change this setting's backend, and re-launch this settings app
+-        // and the UI state would be inconsistent with actual state
+-        mButtonDataRoam.setChecked(mPhone.getDataRoamingEnabled());
++        // getPreferenceScreen().setEnabled(true)
++		
++		//add by shi.jianing for 'Data Roaming' begin
++		//if ("true".equalsIgnoreCase(SystemProperties.get("def.additional.data.roaming", "false"))) {
++            if (mButtonPreferredDataRoam != null) {
++                try {
++					 String contentUri;
++					if(TelephonyManager.getDefault().getSimCount() == 1){
++						contentUri = ROAMING_KEY;
++					}else{
++						contentUri = ROAMING_KEY + mPhone.getSubId();
++					}
++                    int settingsRoamingMode;
++                    final ContentResolver resolver = this.getContentResolver();
++                    settingsRoamingMode = Settings.Global.getInt(resolver,
++                            contentUri, preferredRoamingMode);
++                    Log.d("wangjian",
++                            "mButtonPreferredDataRoam != null and the settingsRoamingMode = "
++                                    + settingsRoamingMode+",mPhone subid = "+mPhone.getSubId());
++                    mButtonPreferredDataRoam.setValue(Integer
++                            .toString(settingsRoamingMode));
++                    UpdatePreferredRoamingModeSummary(settingsRoamingMode);
++                } catch (Exception e) {
++                }
++            }		
++		//} else {
++			// Set UI state in onResume because a user could go home, launch some
++			// app to change this setting's backend, and re-launch this settings app
++			// and the UI state would be inconsistent with actual state
++		//	mButtonDataRoam.setChecked(mPhone.getDataRoamingEnabled());
++		//}
++		//modify by shi.jianing for 'Data Roaming' end
+ 
+         if (getPreferenceScreen().findPreference(BUTTON_PREFERED_NETWORK_MODE) != null
+                 || getPreferenceScreen().findPreference(BUTTON_ENABLED_NETWORKS_KEY) != null)  {
+@@ -589,6 +661,35 @@ public class MobileNetworkSettings extends PreferenceActivity implements
+         if (DBG) log("onResume:-");
+ 
+     }
++	 // add by shi.jianing for 'Data Roaming' begin
++    private void UpdatePreferredRoamingModeSummary(int RoamingMode) {
++       switch(RoamingMode) {
++       case 0:
++				mButtonPreferredDataRoam.setSummary("Disable");
++				break;
++       case 1:
++				mButtonPreferredDataRoam.setSummary("All Networks");	
++				break;
++       case 2:
++               mButtonPreferredDataRoam.setSummary("National Roaming only");
++               break;
++       default:
++               mButtonPreferredDataRoam.setSummary(R.string.roaming_enable);
++       }
++    }
++
++    private void setDataRoaming(int roamingState) {
++        int simCount = TelephonyManager.getDefault().getSimCount();
++        //mSubscriptionManager.setDataRoaming(roamingState,  mPhone.getSubId());
++		Log.d(LOG_TAG, "setDataRoaming:  simCount = " + simCount+", SubId = "+mPhone.getSubId());
++        if(simCount == 1){
++            Settings.Global.putInt(this.getContentResolver(), ROAMING_KEY, roamingState);
++        } else {
++            Settings.Global.putInt(this.getContentResolver(), ROAMING_KEY + mPhone.getSubId(), roamingState);
++        }
++        mPhone.setDataRoamingEnabled(roamingState != 0);
++    }
++    // add by shi.jianing for 'Data Roaming' end
+ 
+     private boolean hasActiveSubscriptions() {
+         return mActiveSubInfos.size() > 0;
+@@ -606,7 +707,8 @@ public class MobileNetworkSettings extends PreferenceActivity implements
+ 
+         if (prefSet != null) {
+             prefSet.removeAll();
+-            prefSet.addPreference(mButtonDataRoam);
++            //prefSet.addPreference(mButtonDataRoam);
++			prefSet.addPreference(mButtonPreferredDataRoam);
+             prefSet.addPreference(mButtonPreferredNetworkMode);
+             prefSet.addPreference(mButtonEnabledNetworks);
+             prefSet.addPreference(mButton4glte);
+@@ -789,8 +891,18 @@ public class MobileNetworkSettings extends PreferenceActivity implements
+         }
+ 
+         // Get the networkMode from Settings.System and displays it
+-        mButtonDataRoam.setChecked(mPhone.getDataRoamingEnabled());
+-
++       // mButtonDataRoam.setChecked(mPhone.getDataRoamingEnabled());
++	   String contentUri;
++	   if(TelephonyManager.getDefault().getSimCount() == 1){
++		   contentUri = ROAMING_KEY;
++	   }else{
++		   contentUri = ROAMING_KEY + mPhone.getSubId();
++	   }
++	   Log.d("wangjian", "contentUri = " + contentUri);
++	   int settingsRoamingMode = Settings.Global.getInt(this.getContentResolver(),
++                contentUri, preferredRoamingMode);
++        mButtonPreferredDataRoam.setValue(Integer.toString(settingsRoamingMode));
++		UpdatePreferredRoamingModeSummary(settingsRoamingMode);
+         mButtonEnabledNetworks.setValue(Integer.toString(settingsNetworkMode));
+         mButtonPreferredNetworkMode.setValue(Integer.toString(settingsNetworkMode));
+         UpdatePreferredNetworkModeSummary(settingsNetworkMode);
+@@ -942,7 +1054,85 @@ public class MobileNetworkSettings extends PreferenceActivity implements
+                 mPhone.setPreferredNetworkType(modemNetworkMode, mHandler
+                         .obtainMessage(MyHandler.MESSAGE_SET_PREFERRED_NETWORK_TYPE));
+             }
+-        } else if (preference == mButtonEnabledNetworks) {
++        }// add by shi.jianing for 'Data Roaming' begin
++        else if (preference == mButtonPreferredDataRoam) {
++            mButtonPreferredDataRoam.setValue((String) objValue);
++            final int buttonRoamingMode;
++            buttonRoamingMode = Integer.valueOf((String) objValue).intValue();
++            String contentUri;
++			if(TelephonyManager.getDefault().getSimCount() == 1){
++				contentUri = ROAMING_KEY;
++			}else{
++				contentUri = ROAMING_KEY + mPhone.getSubId();
++			}
++            final int settingsRoamingMode;     
++            settingsRoamingMode = Settings.Global.getInt(
++                    mPhone.getContext().getContentResolver(),
++                    contentUri, preferredRoamingMode);
++            
++            Log.d(LOG_TAG, "onPreferenceChange: buttonRoamingMode = "
++                    + buttonRoamingMode + " settingsRoamingMode = "
++                    + settingsRoamingMode);
++            if (settingsRoamingMode != buttonRoamingMode) {
++                switch (buttonRoamingMode) {
++                    case MODE_DISABLE_ROAMING:
++                        setDataRoaming(MODE_DISABLE_ROAMING);
++                        UpdatePreferredRoamingModeSummary(buttonRoamingMode);
++                        Log.d(LOG_TAG, "MODE_DISABLE_ROAMING--> ");
++                        break;
++                    case MODE_NATIONAL_ROAMING_AEON:
++                        new AlertDialog.Builder(this)
++                                .setMessage(
++                                        getResources().getString(R.string.roaming_warning))
++                                .setTitle(android.R.string.dialog_alert_title)
++                                .setIcon(android.R.drawable.ic_dialog_alert)
++                                .setPositiveButton(android.R.string.yes,
++                                        new AlertDialog.OnClickListener() {
++                                            public void onClick(DialogInterface dialog, int which) {
++                                                setDataRoaming(MODE_NATIONAL_ROAMING_AEON);
++                                                UpdatePreferredRoamingModeSummary(MODE_NATIONAL_ROAMING_AEON);
++                                                Log.d(LOG_TAG, "MODE_NATIONAL_ROAMING--> ");
++                                            }
++                                        })
++                                .setNegativeButton(android.R.string.no,
++                                        new AlertDialog.OnClickListener() {
++                                            public void onClick(DialogInterface dialog, int which) {
++                                                mButtonPreferredDataRoam.setValue(Integer
++                                                        .toString(settingsRoamingMode));
++                                            }
++                                        }).show()
++                                .setOnDismissListener(this);
++                        break;
++                    case MODE_ALL_NETWORK_ROAMING_AEON:
++                        // First confirm with a warning dialog about charges
++                        new AlertDialog.Builder(this)
++                                .setMessage(
++                                        getResources().getString(R.string.roaming_warning))
++                                .setTitle(android.R.string.dialog_alert_title)
++                                .setIcon(android.R.drawable.ic_dialog_alert)
++                                .setPositiveButton(android.R.string.yes,
++                                        new AlertDialog.OnClickListener() {
++                                            public void onClick(DialogInterface dialog, int which) {
++                                                setDataRoaming(MODE_ALL_NETWORK_ROAMING_AEON);
++                                                UpdatePreferredRoamingModeSummary(MODE_ALL_NETWORK_ROAMING_AEON);
++                                                Log.d(LOG_TAG, "MODE_ALL_NETWORK_ROAMING--> ");
++                                            }
++                                        })
++                                .setNegativeButton(android.R.string.no,
++                                        new AlertDialog.OnClickListener() {
++                                            public void onClick(DialogInterface dialog, int which) {
++                                                mButtonPreferredDataRoam.setValue(Integer
++                                                        .toString(settingsRoamingMode));
++                                            }
++                                        })
++                                .show()
++                                .setOnDismissListener(this);
++                        break;
++                }
++            }
++        }
++        // add by shi.jianing for 'Data Roaming' end
++		else if (preference == mButtonEnabledNetworks) {
+             mButtonEnabledNetworks.setValue((String) objValue);
+             int buttonNetworkMode;
+             buttonNetworkMode = Integer.valueOf((String) objValue).intValue();
+-- 
+1.7.9.5
+

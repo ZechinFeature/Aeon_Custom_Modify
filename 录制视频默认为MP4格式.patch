@@ -1,0 +1,33 @@
+From 990fe2f36c9d0c04675e5cb583c6a5b756c18136 Mon Sep 17 00:00:00 2001
+From: zhangjuntao <zhang.juntao@eastaeon.com>
+Date: Thu, 10 Mar 2016 11:21:58 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E5=BD=95=E5=88?=
+ =?UTF-8?q?=B6=E8=A7=86=E9=A2=91=E9=BB=98=E8=AE=A4=E4=B8=BAMP4=E6=A0=BC=E5=BC?=
+ =?UTF-8?q?=8F?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../frameworks/av/media/libmedia/MediaProfiles.cpp |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+ mode change 100644 => 100755 alps/frameworks/av/media/libmedia/MediaProfiles.cpp
+
+diff --git a/alps/frameworks/av/media/libmedia/MediaProfiles.cpp b/alps/frameworks/av/media/libmedia/MediaProfiles.cpp
+old mode 100644
+new mode 100755
+index 42829a4..195c7e8
+--- a/alps/frameworks/av/media/libmedia/MediaProfiles.cpp
++++ b/alps/frameworks/av/media/libmedia/MediaProfiles.cpp
+@@ -1948,7 +1948,7 @@ MediaProfiles::createMTKCamcorderProfile(camcorder_quality quality, camcorder_mo
+ 
+     CamcorderProfile *profile = new MediaProfiles::CamcorderProfile;
+     profile->mCameraId = CamId;
+-    profile->mFileFormat = OUTPUT_FORMAT_THREE_GPP;
++    profile->mFileFormat = OUTPUT_FORMAT_MPEG_4;
+     profile->mQuality = quality;
+     profile->mDuration = 30;
+     profile->mVideoCodec = videoCodec;
+-- 
+1.7.9.5
+

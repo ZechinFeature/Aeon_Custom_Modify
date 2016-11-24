@@ -1,0 +1,117 @@
+From ce279e4708002fc84f2c3165b2b633aacb48b6c5 Mon Sep 17 00:00:00 2001
+From: "Xia.Fei" <xia.fei@eastaeon.com>
+Date: Wed, 13 Apr 2016 17:03:27 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82][LED]=E8=AE=BE=E7=BD=AE=E7=9F?=
+ =?UTF-8?q?=AD=E4=BF=A1=E3=80=81=E7=94=B5=E8=AF=9D=E7=AD=89=E9=80=9A=E7=9F=A5?=
+ =?UTF-8?q?LED=E9=97=AA=E7=83=81=E6=97=B6=E9=97=B4=EF=BC=8C=E6=8B=A6=E6=88=AA?=
+ =?UTF-8?q?=E7=AC=AC=E4=B8=89=E6=96=B9APP=E8=AE=BE=E7=BD=AE=E7=9A=84LED=E9=97?=
+ =?UTF-8?q?=AA=E7=83=81=E6=97=B6=E9=97=B4?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../frameworks/base/core/res/res/values/config.xml |   12 ++++++++--
+ .../base/core/res/res/values/symbols.xml           |    5 ++++
+ .../notification/NotificationManagerService.java   |   25 ++++++++++++++++++++
+ 3 files changed, 40 insertions(+), 2 deletions(-)
+ mode change 100644 => 100755 alps/frameworks/base/services/core/java/com/android/server/notification/NotificationManagerService.java
+
+diff --git a/alps/frameworks/base/core/res/res/values/config.xml b/alps/frameworks/base/core/res/res/values/config.xml
+index 23460e2..4ea226d 100755
+--- a/alps/frameworks/base/core/res/res/values/config.xml
++++ b/alps/frameworks/base/core/res/res/values/config.xml
+@@ -874,14 +874,22 @@
+          plus this -->
+     <integer name="config_lowBatteryCloseWarningBump">5</integer>
+ 
++    <!-- START. Modify the led for Mms/Call/... By Xia.Fei, 20160413 -->
+     <!-- Default color for notification LED. -->
+     <color name="config_defaultNotificationColor">#ff00ff00</color>
+ 
+     <!-- Default LED on time for notification LED in milliseconds. -->
+-    <integer name="config_defaultNotificationLedOn">500</integer>
++    <integer name="config_defaultNotificationLedOn">3000</integer>
+ 
+     <!-- Default LED off time for notification LED in milliseconds. -->
+-    <integer name="config_defaultNotificationLedOff">2000</integer>
++    <integer name="config_defaultNotificationLedOff">1000</integer>
++    <!-- END. Modify the led for Mms/Call/... By Xia.Fei, 20160413 -->
++
++    <!-- START. Modify the led for Third-party Apps. By Xia.Fei, 20160413 -->
++    <color name="config_secondaryNotificationColor">#ff00ff00</color>
++    <integer name="config_secondaryNotificationLedOn">1000</integer>
++    <integer name="config_secondaryNotificationLedOff">3000</integer>
++    <!-- END. Modify the led for Third-party Apps. By Xia.Fei, 20160413 -->
+ 
+     <!-- Default value for led color when battery is low on charge -->
+     <integer name="config_notificationsBatteryLowARGB">0xFFFF0000</integer>
+diff --git a/alps/frameworks/base/core/res/res/values/symbols.xml b/alps/frameworks/base/core/res/res/values/symbols.xml
+index b4a858e..f1eb859 100755
+--- a/alps/frameworks/base/core/res/res/values/symbols.xml
++++ b/alps/frameworks/base/core/res/res/values/symbols.xml
+@@ -2325,4 +2325,9 @@
+ 
+   <java-symbol type="drawable" name="platlogo_m" />
+ 
++  <!-- START. Add the led for Third-party Apps. By Xia.Fei, 20160413 -->
++  <java-symbol type="color" name="config_secondaryNotificationColor" />
++  <java-symbol type="integer" name="config_secondaryNotificationLedOn" />
++  <java-symbol type="integer" name="config_secondaryNotificationLedOff" />
++  <!-- END. Add the led for Third-party Apps. By Xia.Fei, 20160413 -->
+ </resources>
+diff --git a/alps/frameworks/base/services/core/java/com/android/server/notification/NotificationManagerService.java b/alps/frameworks/base/services/core/java/com/android/server/notification/NotificationManagerService.java
+old mode 100644
+new mode 100755
+index ac8b705..30846e1
+--- a/alps/frameworks/base/services/core/java/com/android/server/notification/NotificationManagerService.java
++++ b/alps/frameworks/base/services/core/java/com/android/server/notification/NotificationManagerService.java
+@@ -225,6 +225,13 @@ public class NotificationManagerService extends SystemService {
+     private int mDefaultNotificationLedOn;
+ 
+     private int mDefaultNotificationLedOff;
++
++    //START. For Third-party App Led. By Xia.Fei, 20160413.
++    private int mSecondaryNotificationColor;
++    private int mSecondaryNotificationLedOn;
++    private int mSecondaryNotificationLedOff;
++    //END. For Third-party App Led. By Xia.Fei, 20160413.
++
+     private long[] mDefaultVibrationPattern;
+ 
+     private long[] mFallbackVibrationPattern;
+@@ -955,6 +962,15 @@ public class NotificationManagerService extends SystemService {
+         mDefaultNotificationLedOff = resources.getInteger(
+                 R.integer.config_defaultNotificationLedOff);
+ 
++        //START. For Third-party App Led. By Xia.Fei, 20160413.
++        mSecondaryNotificationColor = resources.getColor(
++                R.color.config_secondaryNotificationColor);
++        mSecondaryNotificationLedOn = resources.getInteger(
++                R.integer.config_secondaryNotificationLedOn);
++        mSecondaryNotificationLedOff = resources.getInteger(
++                R.integer.config_secondaryNotificationLedOff);
++        //END. For Third-party App Led. By Xia.Fei, 20160413.
++
+         mDefaultVibrationPattern = getLongArray(resources,
+                 R.array.config_defaultNotificationVibePattern,
+                 VIBRATE_PATTERN_MAXLEN,
+@@ -3224,6 +3240,15 @@ public class NotificationManagerService extends SystemService {
+                 ledOnMS = mDefaultNotificationLedOn;
+                 ledOffMS = mDefaultNotificationLedOff;
+             }
++            //START. For Third-party App Led. By Xia.Fei, 20160413.
++            else{//For Third-party Apps.
++                android.util.Log.e("LED", "NMS >> reset to Secondary");
++                ledARGB = mSecondaryNotificationColor;
++                ledOnMS = mSecondaryNotificationLedOn;
++                ledOffMS = mSecondaryNotificationLedOff;
++            }
++            android.util.Log.e("LED", "NMS >> new >> ARGB = "+ledARGB+", On = "+ledOnMS+", Off = "+ledOffMS);
++            //START. For Third-party App Led. By Xia.Fei, 20160413.
+             if (mNotificationPulseEnabled) {
+                 // pulse repeatedly
+                 mNotificationLight.setFlashing(ledARGB, Light.LIGHT_FLASH_TIMED,
+-- 
+1.7.9.5
+

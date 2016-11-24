@@ -1,0 +1,43 @@
+From 851215313cba372c5e2ecbc1d40de4bf40d8c748 Mon Sep 17 00:00:00 2001
+From: "Xia.Fei" <xia.fei@eastaeon.com>
+Date: Fri, 15 Apr 2016 21:12:27 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82][SettingsLib]=E5=B1=8F=E8=94=BD?=
+ =?UTF-8?q?WiFi=E8=BF=9E=E6=8E=A5=E4=B8=8A=E4=B9=8B=E5=90=8E=E7=9A=84=E6=A3=80?=
+ =?UTF-8?q?=E6=B5=8B=EF=BC=8C=E8=AE=A9=E2=80=9C=E5=B7=B2=E8=BF=9E=E6=8E=A5=EF?=
+ =?UTF-8?q?=BC=8C=E6=97=A0=E7=BD=91=E7=BB=9C=E2=80=9D=E6=98=BE=E7=A4=BA=E4=B8?=
+ =?UTF-8?q?=BA=E2=80=9C=E5=B7=B2=E8=BF=9E=E6=8E=A5=E2=80=9D?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../com/android/settingslib/wifi/AccessPoint.java  |    3 +++
+ 1 file changed, 3 insertions(+)
+ mode change 100644 => 100755 alps/frameworks/base/packages/SettingsLib/src/com/android/settingslib/wifi/AccessPoint.java
+
+diff --git a/alps/frameworks/base/packages/SettingsLib/src/com/android/settingslib/wifi/AccessPoint.java b/alps/frameworks/base/packages/SettingsLib/src/com/android/settingslib/wifi/AccessPoint.java
+old mode 100644
+new mode 100755
+index d189a6c..fac53a2
+--- a/alps/frameworks/base/packages/SettingsLib/src/com/android/settingslib/wifi/AccessPoint.java
++++ b/alps/frameworks/base/packages/SettingsLib/src/com/android/settingslib/wifi/AccessPoint.java
+@@ -832,6 +832,7 @@ public class AccessPoint implements Comparable<AccessPoint>, Cloneable {
+             }
+         }
+ 
++        /* //START. Remove Network Capabilities Check. By Xia.Fei, 20160415.
+         // Case when there is wifi connected without internet connectivity.
+         final ConnectivityManager cm = (ConnectivityManager)
+                 context.getSystemService(Context.CONNECTIVITY_SERVICE);
+@@ -851,6 +852,8 @@ public class AccessPoint implements Comparable<AccessPoint>, Cloneable {
+                 return context.getString(R.string.wifi_connected_no_internet);
+             }
+         }
++        //END. Remove Network Capabilities Check. By Xia.Fei, 20160415.
++        */
+ 
+         String[] formats = context.getResources().getStringArray((ssid == null)
+                 ? R.array.wifi_status : R.array.wifi_status_with_ssid);
+-- 
+1.7.9.5
+

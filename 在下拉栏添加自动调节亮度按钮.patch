@@ -1,0 +1,88 @@
+From 7712a45c0804c00c05b4f0451e14d4d292759e68 Mon Sep 17 00:00:00 2001
+From: wenhonghuan <wen.honghuan@eastaeon.com>
+Date: Tue, 25 Oct 2016 10:33:01 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=E5=9C=A8=E4=B8=8B=E6=8B=89=E6?=
+ =?UTF-8?q?=A0=8F=E6=B7=BB=E5=8A=A0=E8=87=AA=E5=8A=A8=E8=B0=83=E8=8A=82=E4=BA?=
+ =?UTF-8?q?=AE=E5=BA=A6=E6=8C=89=E9=92=AE?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../res/layout/status_bar_toggle_slider.xml        |   13 ++++---------
+ .../systemui/settings/BrightnessController.java    |    3 ++-
+ 2 files changed, 6 insertions(+), 10 deletions(-)
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/res/layout/status_bar_toggle_slider.xml
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/src/com/android/systemui/settings/BrightnessController.java
+
+diff --git a/alps/frameworks/base/packages/SystemUI/res/layout/status_bar_toggle_slider.xml b/alps/frameworks/base/packages/SystemUI/res/layout/status_bar_toggle_slider.xml
+old mode 100644
+new mode 100755
+index 062e6cb..568f85c
+--- a/alps/frameworks/base/packages/SystemUI/res/layout/status_bar_toggle_slider.xml
++++ b/alps/frameworks/base/packages/SystemUI/res/layout/status_bar_toggle_slider.xml
+@@ -22,14 +22,11 @@
+     >
+     <CheckBox
+         android:id="@+id/toggle"
+-        android:layout_width="48dp"
+-        android:layout_height="0dp"
++        android:layout_width="40dp"
++        android:layout_height="58dp"
+         android:layout_alignParentStart="true"
+-        android:layout_alignParentTop="true"
+-        android:layout_alignParentBottom="true"
+         android:button="@null"
+         android:background="@*android:drawable/switch_track_material"
+-        android:visibility="gone"
+         />
+     <com.android.systemui.settings.ToggleSeekBar
+         android:id="@+id/slider"
+@@ -37,9 +34,8 @@
+         android:layout_height="wrap_content"
+         android:layout_toEndOf="@id/toggle"
+         android:layout_centerVertical="true"
+-        android:layout_alignParentStart="true"
+         android:layout_alignParentEnd="true"
+-        android:paddingStart="20dp"
++        android:paddingStart="50dp"
+         android:paddingEnd="20dp"
+         android:paddingTop="16dp"
+         android:paddingBottom="16dp"
+@@ -54,9 +50,8 @@
+         android:layout_alignEnd="@id/toggle"
+         android:layout_centerVertical="true"
+         android:gravity="center"
+-        android:paddingTop="26dp"
++        android:paddingTop="36dp"
+         android:textColor="#666666"
+         android:textSize="12sp"
+-        android:visibility="gone"
+         />
+ </merge>
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/settings/BrightnessController.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/settings/BrightnessController.java
+old mode 100644
+new mode 100755
+index 77c27fa..5d6bc23
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/settings/BrightnessController.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/settings/BrightnessController.java
+@@ -199,6 +199,7 @@ public class BrightnessController implements ToggleSlider.Listener {
+     @Override
+     public void onChanged(ToggleSlider view, boolean tracking, boolean automatic, int value,
+             boolean stopTracking) {
++		setMode(automatic ? Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC: Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);
+         updateIcon(mAutomatic);
+         if (mExternalChange) return;
+ 
+@@ -269,7 +270,7 @@ public class BrightnessController implements ToggleSlider.Listener {
+ 
+     /** Fetch the brightness mode from the system settings and update the icon */
+     private void updateMode() {
+-        if (mAutomaticAvailable) {
++        if (true/*mAutomaticAvailable*/) {
+             int automatic;
+             automatic = Settings.System.getIntForUser(mContext.getContentResolver(),
+                     Settings.System.SCREEN_BRIGHTNESS_MODE,
+-- 
+1.7.9.5
+

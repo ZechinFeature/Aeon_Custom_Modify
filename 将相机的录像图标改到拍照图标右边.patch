@@ -1,0 +1,199 @@
+From a1501330dc22ae0e8438a7e67058f46663f1fa44 Mon Sep 17 00:00:00 2001
+From: buxinchun <bu.xinchun@eastaeon.com>
+Date: Wed, 8 Jun 2016 20:11:19 +0800
+Subject: [PATCH] =?UTF-8?q?[Camera][=E9=9C=80=E6=B1=82]=20=E5=B0=86=E7=9B=B8?=
+ =?UTF-8?q?=E6=9C=BA=E7=9A=84=E5=BD=95=E5=83=8F=E5=9B=BE=E6=A0=87=E6=94=B9=E5?=
+ =?UTF-8?q?=88=B0=E6=8B=8D=E7=85=A7=E5=9B=BE=E6=A0=87=E5=8F=B3=E8=BE=B9.?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../res/layout-land/camera_shutter_photo_video.xml |   17 ++++++++---------
+ .../res/layout-land/camera_shutter_slow_video.xml  |   14 +++++++-------
+ .../res/layout-port/camera_shutter_photo_video.xml |   17 ++++++++---------
+ .../res/layout-port/camera_shutter_slow_video.xml  |   16 +++++++++-------
+ .../apps/Camera/res_ext/values-land/styles.xml     |   10 +++++++---
+ .../apps/Camera/res_ext/values-port/styles.xml     |    6 +++++-
+ 6 files changed, 44 insertions(+), 36 deletions(-)
+
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/layout-land/camera_shutter_photo_video.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/layout-land/camera_shutter_photo_video.xml
+index d4fb711..16e4543 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/layout-land/camera_shutter_photo_video.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/layout-land/camera_shutter_photo_video.xml
+@@ -4,21 +4,20 @@
+     style="@style/ShutterGroup"
+     android:splitMotionEvents="false">
+     <com.android.camera.ui.ShutterButton
+-        android:id="@+id/shutter_button_photo"
++        android:id="@+id/shutter_button_video"
+         style="@style/ShutterButton"
+-        android:layout_marginTop="120dp"
+-        android:src="@drawable/btn_photo"
+-        android:contentDescription="@string/accessibility_shutter_button" />
++        android:src="@drawable/btn_video"
++        android:layout_height="42dp"
++        android:layout_marginBottom="@dimen/shutter_sperator"
++        android:contentDescription="@string/accessibility_video_shutter_button" />
+     <!-- 
+     <ImageView style="@style/ShutterButtonSeperator"
+         android:layout_height="1dp"
+         android:layout_weight="0" />
+      -->
+     <com.android.camera.ui.ShutterButton
+-        android:id="@+id/shutter_button_video"
++        android:id="@+id/shutter_button_photo"
+         style="@style/ShutterButton"
+-        android:layout_height="42dp"
+-        android:layout_marginBottom="100dp"
+-        android:src="@drawable/btn_video"
+-        android:contentDescription="@string/accessibility_video_shutter_button"/>
++        android:src="@drawable/btn_photo"
++        android:contentDescription="@string/accessibility_shutter_button"/>
+ </LinearLayout>
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/layout-land/camera_shutter_slow_video.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/layout-land/camera_shutter_slow_video.xml
+index c38c681..8c73e58 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/layout-land/camera_shutter_slow_video.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/layout-land/camera_shutter_slow_video.xml
+@@ -4,20 +4,20 @@
+     style="@style/ShutterGroup"
+     android:splitMotionEvents="false">
+     <com.android.camera.ui.ShutterButton
+-        android:id="@+id/shutter_button_photo"
++        android:id="@+id/shutter_button_slow_video"
+         style="@style/ShutterButton"
+         android:layout_height="0dp"
+         android:layout_weight="1"
+-        android:src="@drawable/btn_photo"
+-        android:contentDescription="@string/accessibility_shutter_button" />
++        android:src="@drawable/btn_slow_video"
++        android:contentDescription="@string/accessibility_video_shutter_button" />
+     <ImageView style="@style/ShutterButtonSeperator"
+         android:layout_height="1dp"
+         android:layout_weight="0" />
+-       <com.android.camera.ui.ShutterButton
+-        android:id="@+id/shutter_button_slow_video"
++    <com.android.camera.ui.ShutterButton
++        android:id="@+id/shutter_button_photo"
+         style="@style/ShutterButton"
+         android:layout_height="0dp"
+         android:layout_weight="1"
+-        android:src="@drawable/btn_slow_video"
+-        android:contentDescription="@string/accessibility_video_shutter_button"/>
++        android:src="@drawable/btn_photo"
++        android:contentDescription="@string/accessibility_shutter_button"/>
+ </LinearLayout>
+\ No newline at end of file
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/layout-port/camera_shutter_photo_video.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/layout-port/camera_shutter_photo_video.xml
+index 3b0b6c7..c38cf1d 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/layout-port/camera_shutter_photo_video.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/layout-port/camera_shutter_photo_video.xml
+@@ -4,12 +4,10 @@
+     style="@style/ShutterGroup"
+     android:splitMotionEvents="false">
+     <com.android.camera.ui.ShutterButton
+-        android:id="@+id/shutter_button_video"
++        android:id="@+id/shutter_button_photo"
+         style="@style/ShutterButton"
+-        android:layout_width="42dp"
+-        android:layout_marginStart="100dp"
+-        android:src="@drawable/btn_video"
+-        android:contentDescription="@string/accessibility_video_shutter_button"/>
++        android:src="@drawable/btn_photo"
++        android:contentDescription="@string/accessibility_shutter_button"/>
+ 
+     <!-- 
+     <ImageView style="@style/ShutterButtonSeperator"
+@@ -18,9 +16,10 @@
+      -->
+ 
+     <com.android.camera.ui.ShutterButton
+-        android:id="@+id/shutter_button_photo"
++        android:id="@+id/shutter_button_video"
+         style="@style/ShutterButton"
+-        android:layout_marginEnd="120dp"
+-        android:src="@drawable/btn_photo"
+-        android:contentDescription="@string/accessibility_shutter_button" />
++        android:layout_width="42dp"
++        android:layout_marginLeft="@dimen/shutter_sperator"
++        android:src="@drawable/btn_video"
++        android:contentDescription="@string/accessibility_video_shutter_button" />
+ </LinearLayout>
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/layout-port/camera_shutter_slow_video.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/layout-port/camera_shutter_slow_video.xml
+index b129bb6..62b4acb 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/layout-port/camera_shutter_slow_video.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res/layout-port/camera_shutter_slow_video.xml
+@@ -3,21 +3,23 @@
+     android:id="@+id/camera_shutter"
+     style="@style/ShutterGroup"
+     android:splitMotionEvents="false">
+-       <com.android.camera.ui.ShutterButton
+-        android:id="@+id/shutter_button_slow_video"
++    <com.android.camera.ui.ShutterButton
++        android:id="@+id/shutter_button_photo"
+         style="@style/ShutterButton"
+         android:layout_width="0dp"
+         android:layout_weight="1"
+-        android:src="@drawable/btn_slow_video"
+-        android:contentDescription="@string/accessibility_video_shutter_button"/>
++        android:src="@drawable/btn_photo"
++        android:contentDescription="@string/accessibility_shutter_button" />
++
+     <ImageView style="@style/ShutterButtonSeperator"
+         android:layout_width="1dp"
+         android:layout_weight="0" />
++
+     <com.android.camera.ui.ShutterButton
+-        android:id="@+id/shutter_button_photo"
++        android:id="@+id/shutter_button_slow_video"
+         style="@style/ShutterButton"
+         android:layout_width="0dp"
+         android:layout_weight="1"
+-        android:src="@drawable/btn_photo"
+-        android:contentDescription="@string/accessibility_shutter_button" />
++        android:src="@drawable/btn_slow_video"
++        android:contentDescription="@string/accessibility_video_shutter_button"/>
+ </LinearLayout>
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res_ext/values-land/styles.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res_ext/values-land/styles.xml
+index 0e3b64d..e8d0d6c 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res_ext/values-land/styles.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res_ext/values-land/styles.xml
+@@ -147,9 +147,13 @@
+     <style name="ShutterGroup" parent="ScreenMargin">
+         <item name="android:layout_height">wrap_content</item>
+         <item name="android:layout_width">wrap_content</item>
+-        <item name="android:layout_gravity">right|center_vertical</item>
+-        <item name="android:gravity">center</item>
+-        <!-- <item name="android:background">@drawable/bg_shutter_background</item> -->
++        <item name="android:layout_marginTop">100dp</item>
++        <item name="android:layout_gravity">right</item>
++        <item name="android:gravity">center_horizontal</item>
++        <!--
++         <item name="android:layout_gravity">right|center_vertical</item>
++         <item name="android:gravity">center</item>
++         <item name="android:background">@drawable/bg_shutter_background</item> -->
+         <item name="android:background">@color/camera_shutter_button_background</item>
+         <item name="android:orientation">vertical</item>
+     </style>
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res_ext/values-port/styles.xml b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res_ext/values-port/styles.xml
+index 7bf1b5f..f9ab611 100755
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Camera/res_ext/values-port/styles.xml
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Camera/res_ext/values-port/styles.xml
+@@ -172,9 +172,13 @@
+     <style name="ShutterGroup" parent="ScreenMargin">
+         <item name="android:layout_height">wrap_content</item>
+         <item name="android:layout_width">wrap_content</item>
++        <item name="android:layout_marginLeft">140dp</item>
++        <item name="android:layout_gravity">bottom</item>
++        <item name="android:gravity">center_vertical</item>
++        <!-- 
+         <item name="android:layout_gravity">bottom|center_horizontal</item>
+         <item name="android:gravity">center</item>
+-        <!-- <item name="android:background">@drawable/bg_shutter_background</item> -->
++        <item name="android:background">@drawable/bg_shutter_background</item> -->
+         <item name="android:background">@color/camera_shutter_button_background</item>
+         <item name="android:orientation">horizontal</item>
+     </style>
+-- 
+1.7.9.5
+

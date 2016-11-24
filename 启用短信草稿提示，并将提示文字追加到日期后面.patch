@@ -1,0 +1,79 @@
+From e59071d6bcb8eed7c77da4b91d243ec28c9d83a3 Mon Sep 17 00:00:00 2001
+From: "Xia.Fei" <xia.fei@eastaeon.com>
+Date: Wed, 6 Apr 2016 15:46:21 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82][Mms]=E5=90=AF=E7=94=A8=E7=9F?=
+ =?UTF-8?q?=AD=E4=BF=A1=E8=8D=89=E7=A8=BF=E6=8F=90=E7=A4=BA=EF=BC=8C=E5=B9=B6?=
+ =?UTF-8?q?=E5=B0=86=E6=8F=90=E7=A4=BA=E6=96=87=E5=AD=97=E8=BF=BD=E5=8A=A0=E5?=
+ =?UTF-8?q?=88=B0=E6=97=A5=E6=9C=9F=E5=90=8E=E9=9D=A2?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+这里也可直接释放MTK的注释，让提示文字添加到from后面。
+这里为避免form有多个号码时，提示文字被折叠起来的情况出现，将提示文字append到date后面了。
+---
+ .../com/android/mms/ui/ConversationListItem.java   |   19 ++++++++++++++++++-
+ .../com/android/mms/widget/MmsWidgetService.java   |    4 ++--
+ 2 files changed, 20 insertions(+), 3 deletions(-)
+ mode change 100644 => 100755 alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ConversationListItem.java
+ mode change 100644 => 100755 alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/widget/MmsWidgetService.java
+
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ConversationListItem.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ConversationListItem.java
+old mode 100644
+new mode 100755
+index ba23ea1..41bfa95
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ConversationListItem.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/ui/ConversationListItem.java
+@@ -369,7 +369,24 @@ public class ConversationListItem extends RelativeLayout implements Contact.Upda
+             mDateView.setVisibility(VISIBLE);
+             String dateStr = MessageUtils.formatTimeStampStringExtend(
+                     context, conversation.getDate());
+-            mDateView.setText(dateStr);
++
++            //START. By XiaFei. Append the "Draft" to the date text.
++            int color = android.R.styleable.Theme_textColorSecondary;
++            SpannableStringBuilder buf = new SpannableStringBuilder(dateStr);
++            if (mConversation.hasDraft()) {
++                // buf.append(mContext.getResources().getString(R.string.draft_separator));
++                int before = buf.length();
++                buf.append(",  " + mContext.getResources().getString(R.string.has_draft));
++                int size = android.R.style.TextAppearance_Small;
++                buf.setSpan(new TextAppearanceSpan(mContext, size, color), before + 1,
++                        buf.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
++                buf.setSpan(new ForegroundColorSpan(
++                        mContext.getResources().getColor(R.drawable.text_color_red)),
++                        before + 1, buf.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
++            }
++            //这里不能使用buf.toString，否则文字将丢失上面添加的颜色效果.
++            mDateView.setText(buf);
++            //END. By XiaFei. Append the "Draft" to the date text.
+         }
+         /// @}
+ 
+diff --git a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/widget/MmsWidgetService.java b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/widget/MmsWidgetService.java
+old mode 100644
+new mode 100755
+index d2f88a1..751b33a
+--- a/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/widget/MmsWidgetService.java
++++ b/alps/vendor/mediatek/proprietary/packages/apps/Mms/src/com/android/mms/widget/MmsWidgetService.java
+@@ -278,7 +278,7 @@ public class MmsWidgetService extends RemoteViewsService {
+                 SpannableStringBuilder from = addColor(conv.getRecipients().formatNames(", "),
+                         color);
+ 
+-                /** M: do not show draft flag
++                ///** M: do not show draft flag
+                 if (conv.hasDraft()) {
+                     from.append(mContext.getResources().getString(R.string.draft_separator));
+                     int before = from.length();
+@@ -290,7 +290,7 @@ public class MmsWidgetService extends RemoteViewsService {
+                             mContext.getResources().getColor(R.drawable.text_color_red)),
+                             before, from.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+                 }
+-                */
++                //*/
+ 
+                 // Unread messages are shown in bold
+                 if (conv.hasUnreadMessages()) {
+-- 
+1.7.9.5
+

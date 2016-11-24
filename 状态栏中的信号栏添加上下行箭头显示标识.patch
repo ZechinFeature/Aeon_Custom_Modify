@@ -1,0 +1,268 @@
+From 8393809349b73437589776d0886651256d689097 Mon Sep 17 00:00:00 2001
+From: chengjianfeng <cheng.jianfeng@eastaeon.com>
+Date: Thu, 22 Sep 2016 18:05:06 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=E7=8A=B6=E6=80=81=E6=A0=8F=E4?=
+ =?UTF-8?q?=B8=AD=E7=9A=84=E4=BF=A1=E5=8F=B7=E6=A0=8F=E6=B7=BB=E5=8A=A0=E4=B8?=
+ =?UTF-8?q?=8A=E4=B8=8B=E8=A1=8C=E7=AE=AD=E5=A4=B4=E6=98=BE=E7=A4=BA=E6=A0=87?=
+ =?UTF-8?q?=E8=AF=86]?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../SystemUI/res/drawable/stat_sys_signal_in.xml   |   25 +++++++++++
+ .../res/drawable/stat_sys_signal_inout.xml         |   28 ++++++++++++
+ .../SystemUI/res/drawable/stat_sys_signal_out.xml  |   25 +++++++++++
+ .../SystemUI/res/layout/mobile_signal_group.xml    |   31 ++++++++-----
+ .../systemui/statusbar/SignalClusterView.java      |   47 +++++++++++++++++++-
+ 5 files changed, 143 insertions(+), 13 deletions(-)
+ create mode 100755 alps/frameworks/base/packages/SystemUI/res/drawable/stat_sys_signal_in.xml
+ create mode 100755 alps/frameworks/base/packages/SystemUI/res/drawable/stat_sys_signal_inout.xml
+ create mode 100755 alps/frameworks/base/packages/SystemUI/res/drawable/stat_sys_signal_out.xml
+ mode change 100644 => 100755 alps/frameworks/base/packages/SystemUI/res/layout/mobile_signal_group.xml
+
+diff --git a/alps/frameworks/base/packages/SystemUI/res/drawable/stat_sys_signal_in.xml b/alps/frameworks/base/packages/SystemUI/res/drawable/stat_sys_signal_in.xml
+new file mode 100755
+index 0000000..192f5df
+--- /dev/null
++++ b/alps/frameworks/base/packages/SystemUI/res/drawable/stat_sys_signal_in.xml
+@@ -0,0 +1,25 @@
++<!--
++    Copyright (C) 2014 The Android Open Source Project
++
++    Licensed under the Apache License, Version 2.0 (the "License");
++    you may not use this file except in compliance with the License.
++    You may obtain a copy of the License at
++
++    http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing, software
++    distributed under the License is distributed on an "AS IS" BASIS,
++    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++    See the License for the specific language governing permissions and
++    limitations under the License.
++    -->
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="9dp"
++    android:height="18dp"
++    android:viewportWidth="46.0"
++    android:viewportHeight="56.0">
++
++    <path
++        android:fillColor="#FFA9A9A9"
++        android:pathData="M27,40 L17,27 L37,27z"/>
++</vector>
+diff --git a/alps/frameworks/base/packages/SystemUI/res/drawable/stat_sys_signal_inout.xml b/alps/frameworks/base/packages/SystemUI/res/drawable/stat_sys_signal_inout.xml
+new file mode 100755
+index 0000000..1e7a1a7
+--- /dev/null
++++ b/alps/frameworks/base/packages/SystemUI/res/drawable/stat_sys_signal_inout.xml
+@@ -0,0 +1,28 @@
++<!--
++    Copyright (C) 2014 The Android Open Source Project
++
++    Licensed under the Apache License, Version 2.0 (the "License");
++    you may not use this file except in compliance with the License.
++    You may obtain a copy of the License at
++
++    http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing, software
++    distributed under the License is distributed on an "AS IS" BASIS,
++    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++    See the License for the specific language governing permissions and
++    limitations under the License.
++    -->
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++     android:width="9dp"
++    android:height="18dp"
++    android:viewportWidth="46.0"
++    android:viewportHeight="56.0">
++    <path
++        android:fillColor="#FFA9A9A9"
++        android:pathData="M27,10 L17,23 L37,23z"/>
++
++    <path
++        android:fillColor="#FFA9A9A9"
++        android:pathData="M27,40 L17,27 L37,27z"/>
++</vector>
+diff --git a/alps/frameworks/base/packages/SystemUI/res/drawable/stat_sys_signal_out.xml b/alps/frameworks/base/packages/SystemUI/res/drawable/stat_sys_signal_out.xml
+new file mode 100755
+index 0000000..8861eb9
+--- /dev/null
++++ b/alps/frameworks/base/packages/SystemUI/res/drawable/stat_sys_signal_out.xml
+@@ -0,0 +1,25 @@
++<!--
++    Copyright (C) 2014 The Android Open Source Project
++
++    Licensed under the Apache License, Version 2.0 (the "License");
++    you may not use this file except in compliance with the License.
++    You may obtain a copy of the License at
++
++    http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing, software
++    distributed under the License is distributed on an "AS IS" BASIS,
++    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++    See the License for the specific language governing permissions and
++    limitations under the License.
++    -->
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="9dp"
++    android:height="18dp"
++    android:viewportWidth="46.0"
++    android:viewportHeight="56.0">
++    <path
++        android:fillColor="#FFA9A9A9"
++        android:pathData="M27,10 L17,23 L37,23z"/>
++
++</vector>
+diff --git a/alps/frameworks/base/packages/SystemUI/res/layout/mobile_signal_group.xml b/alps/frameworks/base/packages/SystemUI/res/layout/mobile_signal_group.xml
+old mode 100644
+new mode 100755
+index 6ae5cf3..2ea5bbc
+--- a/alps/frameworks/base/packages/SystemUI/res/layout/mobile_signal_group.xml
++++ b/alps/frameworks/base/packages/SystemUI/res/layout/mobile_signal_group.xml
+@@ -22,26 +22,35 @@
+     xmlns:systemui="http://schemas.android.com/apk/res-auto"
+     android:id="@+id/mobile_combo"
+     android:layout_width="wrap_content"
+-    android:layout_height="wrap_content"
+-    >
++    android:layout_height="wrap_content">
+     <com.android.systemui.statusbar.AnimatedImageView
+         android:theme="@style/DualToneLightTheme"
+         android:id="@+id/mobile_signal"
+         android:layout_height="wrap_content"
+         android:layout_width="wrap_content"
+-        systemui:hasOverlappingRendering="false"
+-        />
++        systemui:hasOverlappingRendering="false"/>
+     <com.android.systemui.statusbar.AnimatedImageView
+         android:theme="@style/DualToneDarkTheme"
+         android:id="@+id/mobile_signal_dark"
+         android:layout_height="wrap_content"
+         android:layout_width="wrap_content"
+         android:alpha="0.0"
+-        systemui:hasOverlappingRendering="false"
+-        />
+-    <ImageView
+-        android:id="@+id/mobile_type"
+-        android:layout_height="wrap_content"
+-        android:layout_width="wrap_content"
+-        />
++        systemui:hasOverlappingRendering="false"/>
++   <RelativeLayout 
++		android:layout_width="wrap_content"
++		android:layout_height="wrap_content">
++	   <ImageView
++			android:id="@+id/mobile_type"
++			android:layout_height="wrap_content"
++			android:layout_width="wrap_content"
++			android:layout_marginLeft="7dp"
++			android:layout_marginTop="0dp"/>
++	   <ImageView
++			android:id="@+id/data_inout"
++			android:layout_height="wrap_content"
++			android:layout_width="wrap_content"
++			android:layout_marginLeft="20dp"
++			android:layout_marginTop="1dp"
++			android:tag="data_inout"/>
++	</RelativeLayout>
+ </FrameLayout>
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/SignalClusterView.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/SignalClusterView.java
+index 1f04015f..13374a52 100755
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/SignalClusterView.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/SignalClusterView.java
+@@ -290,6 +290,38 @@ public class SignalClusterView
+ 
+         apply();
+     }
++	//add by lxs
++static final int[] DATA_ACTIVITY = {
++R.drawable.stat_sys_signal_in,
++R.drawable.stat_sys_signal_out,
++R.drawable.stat_sys_signal_inout
++};
++//add end
++
++//add by lxs
++public void setDataActivityMTK(boolean in, boolean out, int subId) {
++Log.d(TAG, "setDataActivityMTK(in= " + in + "), out= " + out);
++
++
++int imgDataActivityID=0;
++if(in&&out){
++imgDataActivityID=DATA_ACTIVITY[2];
++
++}else if(out){
++imgDataActivityID=DATA_ACTIVITY[1];
++
++}else if(in){
++imgDataActivityID=DATA_ACTIVITY[0];
++
++}else {
++imgDataActivityID=0;
++
++}
++PhoneState state = getState(subId);
++state.mDataActivityId = imgDataActivityID;
++}
++//add end 
++
+     ///M: Support[Network Type on StatusBar]. Add one more parameter networkType.
+     @Override
+     public void setMobileDataIndicators(IconState statusIcon, IconState qsIcon, int statusType,
+@@ -323,7 +355,7 @@ public class SignalClusterView
+                 state.mMobileDescription, state.mMobileTypeDescription,
+                 state.mIsMobileTypeIconWide);
+         /// M: Support "Operator plugin's ISignalClusterExt". @}
+-
++  setDataActivityMTK(activityIn, activityOut, subId);
+         apply();
+     }
+ 
+@@ -634,6 +666,9 @@ public class SignalClusterView
+         private int mSignalBackgroundIconId;
+ 
+         /// @ }
++		private ImageView mDataActivityInOut;
++
++        private int mDataActivityId = 0;
+ 
+         /// M: Add for CT 6M. @ {
+         private ImageView mMobileDataActivity;
+@@ -665,6 +700,7 @@ public class SignalClusterView
+             mMobileDark     = (ImageView) root.findViewById(R.id.mobile_signal_dark);
+             mMobileType     = (ImageView) root.findViewById(R.id.mobile_type);
+             mNetworkType    = (ImageView) root.findViewById(R.id.network_type);
++			mDataActivityInOut = (ImageView) root.findViewById(R.id.data_inout);
+             /// M: Add for CT 6M. adjust data and activity icon. @{
+             if (FeatureOptionUtils.isMTK_CT6M_SUPPORT()) {
+                // add primary sim card
+@@ -710,7 +746,13 @@ public class SignalClusterView
+                         ad.start();
+                     }
+                 }
+-
++			if (mDataActivityId!=0) {
++				mDataActivityInOut.setImageResource(mDataActivityId);
++				mDataActivityInOut.setVisibility(View.VISIBLE);
++				} else {
++					mDataActivityInOut.setImageDrawable(null);
++					mDataActivityInOut.setVisibility(View.GONE);
++				}
+                 mMobileDark.setImageResource(mMobileStrengthId);
+                 Drawable mobileDarkDrawable = mMobileDark.getDrawable();
+                 if (mobileDarkDrawable instanceof Animatable) {
+@@ -750,6 +792,7 @@ public class SignalClusterView
+                         (mMobileVisible ? "VISIBLE" : "GONE"), mMobileStrengthId, mMobileTypeId));
+ 
+             mMobileType.setVisibility(mMobileTypeId != 0 ? View.VISIBLE : View.GONE);
++
+             /// M: Add for CT6M. set data activity and primary sim icon visibility. @{
+             if (FeatureOptionUtils.isMTK_CT6M_SUPPORT()) {
+                 if (mDataActivity != TelephonyManager.DATA_ACTIVITY_NONE
+-- 
+1.7.9.5
+

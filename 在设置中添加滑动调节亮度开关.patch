@@ -1,0 +1,248 @@
+From 9fb2e803e838be8b315ccb660b15ee1c1e4827dc Mon Sep 17 00:00:00 2001
+From: wangjian <wang.jian@eastaeon.com>
+Date: Mon, 21 Mar 2016 13:49:42 +0800
+Subject: [PATCH] =?UTF-8?q?[=E9=9C=80=E6=B1=82]=20=E5=9C=A8=E8=AE=BE=E7=BD=AE?=
+ =?UTF-8?q?=E4=B8=AD=E6=B7=BB=E5=8A=A0=E6=BB=91=E5=8A=A8=E8=B0=83=E8=8A=82=E4?=
+ =?UTF-8?q?=BA=AE=E5=BA=A6=E5=BC=80=E5=85=B3?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../statusbar/phone/NavigationBarView.java         |   24 ++++++++++++++---
+ .../systemui/statusbar/policy/KeyButtonView.java   |   21 +++++++++++++--
+ alps/packages/apps/Settings/res/values/strings.xml |    2 ++
+ .../apps/Settings/res/xml/display_settings.xml     |    6 ++++-
+ .../src/com/android/settings/DisplaySettings.java  |   27 ++++++++++++++++----
+ 5 files changed, 69 insertions(+), 11 deletions(-)
+
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/NavigationBarView.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/NavigationBarView.java
+index d2fede2..55a7f4d 100755
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/NavigationBarView.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/phone/NavigationBarView.java
+@@ -77,6 +77,11 @@ import android.os.UserHandle;
+ public class NavigationBarView extends LinearLayout {
+     final static boolean DEBUG = false;
+     final static String TAG = "PhoneStatusBar/NavigationBarView";
++	// add for check sliding_brightness_mode Setting
++	private static final String SLIDEING_BRIGHTNESS_MODE = "sliding_brightness_mode";
++    private static final int SLIDEING_BRIGHTNESS_ON = 1;
++    private static final int SLIDEING_BRIGHTNESS_OFF = 0;
++	// end 
+     /// M: add for multi window @{
+     private final static String ACTION_FLOADWINDOW_SHOW = "com.android.systemui.FLOATWINDOW_SHOW";
+     private final static int MSG_RESTORE_SHOW = 1025;
+@@ -287,6 +292,7 @@ public class NavigationBarView extends LinearLayout {
+         notifyVerticalChangedListener(mVertical);
+     }
+ 	int layout_direction = -1;
++	int SlidingbrightnessMode = 0; 
+     @Override
+     public boolean onTouchEvent(MotionEvent event) {
+         if (mTaskSwitchHelper.onTouchEvent(event)) {
+@@ -303,7 +309,8 @@ public class NavigationBarView extends LinearLayout {
+ 		switch (key) {
+ 		case MotionEvent.ACTION_DOWN:
+ 			layout_direction = getResources().getConfiguration().orientation;
+-			
++			SlidingbrightnessMode = Settings.System.getInt(mContext.getContentResolver(),
++                    SLIDEING_BRIGHTNESS_MODE, SLIDEING_BRIGHTNESS_OFF); 
+ 			break;
+ 		case MotionEvent.ACTION_MOVE:
+ 			currResult = layout_direction == 1 ? (int) (event.getRawX() *mMaximumBacklight/720) :
+@@ -931,19 +938,30 @@ public class NavigationBarView extends LinearLayout {
+         Log.d(TAG, "setDisabledFlags showFloatWindow is " + !disableFloat);
+     }
+     /// @}
++	
+ 	 private void setBrightness(int brightness) {
+         try {
+-            mPower.setTemporaryScreenBrightnessSettingOverride(brightness);
++			if(SlidingbrightnessMode == SLIDEING_BRIGHTNESS_ON){
++				mPower.setTemporaryScreenBrightnessSettingOverride(brightness);
++			}else{
++				Log.d("wangjian","SlidingbrightnessMode is off");
++			}
++            
+         } catch (RemoteException ex) {
+         }
+     }
+ 	private void saveToSettings(final int val){
+-		 AsyncTask.execute(new Runnable() {
++		if(SlidingbrightnessMode == SLIDEING_BRIGHTNESS_ON){
++			AsyncTask.execute(new Runnable() {
+                public void run() {
+                    Settings.System.putIntForUser(mContext.getContentResolver(),
+                            Settings.System.SCREEN_BRIGHTNESS, val,
+                            UserHandle.USER_CURRENT);
+                }
+           });
++		}else{
++				//Log.d("wangjian","SlidingbrightnessMode is off");
++		}
++		 
+ 	}
+ }
+diff --git a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/policy/KeyButtonView.java b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/policy/KeyButtonView.java
+index 5d572b1..facd722 100755
+--- a/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/policy/KeyButtonView.java
++++ b/alps/frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/policy/KeyButtonView.java
+@@ -48,6 +48,9 @@ import android.os.AsyncTask;
+ import android.os.UserHandle;
+ public class KeyButtonView extends ImageView{
+ 
++	private static final String SLIDEING_BRIGHTNESS_MODE = "sliding_brightness_mode";
++    private static final int SLIDEING_BRIGHTNESS_ON = 1;
++    private static final int SLIDEING_BRIGHTNESS_OFF = 0;
+     private long mDownTime;
+     private int mCode;
+     private int mTouchSlop;
+@@ -141,6 +144,7 @@ public class KeyButtonView extends ImageView{
+     }
+ 	int layout_direction = -1;
+     boolean needPressed = false;
++	int SlidingbrightnessMode = 0; 
+     public boolean onTouchEvent(MotionEvent ev) {
+         final int action = ev.getAction();
+         int x, y;
+@@ -155,6 +159,8 @@ public class KeyButtonView extends ImageView{
+         switch (action) {
+             case MotionEvent.ACTION_DOWN:
+ 				layout_direction = mContext.getResources().getConfiguration().orientation;
++				SlidingbrightnessMode = Settings.System.getInt(mContext.getContentResolver(),
++                    SLIDEING_BRIGHTNESS_MODE, SLIDEING_BRIGHTNESS_OFF); 
+                 mDownTime = SystemClock.uptimeMillis();
+                 setPressed(true);
+ 				needPressed = true;
+@@ -253,20 +259,31 @@ public class KeyButtonView extends ImageView{
+         setPressed(false);
+         mGestureAborted = true;
+     }
++	 
+ 	private void setBrightness(int brightness) {
+         try {
+-            mPower.setTemporaryScreenBrightnessSettingOverride(brightness);
++			if(SlidingbrightnessMode == SLIDEING_BRIGHTNESS_ON){
++				mPower.setTemporaryScreenBrightnessSettingOverride(brightness);
++			}else{
++				Log.d("wangjian","SlidingbrightnessMode is off");
++			}
++            
+         } catch (RemoteException ex) {
+         }
+     }
+ 	private void saveToSettings(final int val){
+-		 AsyncTask.execute(new Runnable() {
++		if(SlidingbrightnessMode == SLIDEING_BRIGHTNESS_ON){
++			AsyncTask.execute(new Runnable() {
+                public void run() {
+                    Settings.System.putIntForUser(mContext.getContentResolver(),
+                            Settings.System.SCREEN_BRIGHTNESS, val,
+                            UserHandle.USER_CURRENT);
+                }
+           });
++		}else{
++			//Log.d("wangjian","SlidingbrightnessMode is off");
++		}
++		 
+ 	}
+ }
+ 
+diff --git a/alps/packages/apps/Settings/res/values/strings.xml b/alps/packages/apps/Settings/res/values/strings.xml
+index 39bf0f4..f702ca7 100755
+--- a/alps/packages/apps/Settings/res/values/strings.xml
++++ b/alps/packages/apps/Settings/res/values/strings.xml
+@@ -7035,4 +7035,6 @@
+ 	<string name="data_service_enable">Enable</string>
+ 	<string name="data_service_disable">Disable</string>
+ 	<string name="data_service_message">Mobile data connection enabled by default. Enabling mobile data connection may incur additional charges from operator, if you do not have an unlimited data plan.</string>
++	<string name="sliding_brightness_title">Adjust brightness level on navigation bar</string>
++	<string name="sliding_brightness_summary">Slide over navigation bar to adjust the brightness</string>
+ </resources>
+diff --git a/alps/packages/apps/Settings/res/xml/display_settings.xml b/alps/packages/apps/Settings/res/xml/display_settings.xml
+index f14b7ed..59ba8c7 100755
+--- a/alps/packages/apps/Settings/res/xml/display_settings.xml
++++ b/alps/packages/apps/Settings/res/xml/display_settings.xml
+@@ -25,7 +25,11 @@
+                 settings:keywords="@string/keywords_display_brightness_level">
+             <intent android:action="android.intent.action.SHOW_BRIGHTNESS_DIALOG" />
+         </PreferenceScreen>
+-
++		<SwitchPreference
++				android:key="sliding_brightness"
++				android:title="@string/sliding_brightness_title"
++				android:summary="@string/sliding_brightness_summary"
++				android:persistent="false"/>
+         <SwitchPreference
+                 android:key="auto_brightness"
+                 android:title="@string/auto_brightness_title"
+diff --git a/alps/packages/apps/Settings/src/com/android/settings/DisplaySettings.java b/alps/packages/apps/Settings/src/com/android/settings/DisplaySettings.java
+index 1e10102..fde2932 100755
+--- a/alps/packages/apps/Settings/src/com/android/settings/DisplaySettings.java
++++ b/alps/packages/apps/Settings/src/com/android/settings/DisplaySettings.java
+@@ -77,9 +77,11 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+     private static final String KEY_AUTO_BRIGHTNESS = "auto_brightness";
+     private static final String KEY_AUTO_ROTATE = "auto_rotate";
+     private static final String KEY_NIGHT_MODE = "night_mode";
+-
++	private static final String KEY_SLIDING_BRIGHTNESS = "sliding_brightness";
+     private static final int DLG_GLOBAL_CHANGE_WARNING = 1;
+-
++	private static final String SLIDEING_BRIGHTNESS_MODE = "sliding_brightness_mode";
++	private static final int SLIDEING_BRIGHTNESS_ON = 1;
++	private static final int SLIDEING_BRIGHTNESS_OFF = 0;
+     private WarnedListPreference mFontSizePref;
+ 
+     private final Configuration mCurConfig = new Configuration();
+@@ -91,7 +93,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+     private SwitchPreference mDozePreference;
+     private SwitchPreference mTapToWakePreference;
+     private SwitchPreference mAutoBrightnessPreference;
+-
++	private SwitchPreference mSlidingBrightnessPreference;
+     ///M: MTK feature
+     private DisplaySettingsExt mDisplaySettingsExt;
+ 
+@@ -136,7 +138,10 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+         } else {
+             removePreference(KEY_AUTO_BRIGHTNESS);
+         }
+-
++		//add sliding Brightness mode
++		mSlidingBrightnessPreference = (SwitchPreference) findPreference(KEY_SLIDING_BRIGHTNESS);
++		mSlidingBrightnessPreference.setOnPreferenceChangeListener(this);
++		//add end
+         if (isLiftToWakeAvailable(activity)) {
+             mLiftToWakePreference = (SwitchPreference) findPreference(KEY_LIFT_TO_WAKE);
+             mLiftToWakePreference.setOnPreferenceChangeListener(this);
+@@ -377,7 +382,13 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+                     SCREEN_BRIGHTNESS_MODE, SCREEN_BRIGHTNESS_MODE_MANUAL);
+             mAutoBrightnessPreference.setChecked(brightnessMode != SCREEN_BRIGHTNESS_MODE_MANUAL);
+         }
+-
++		//  Update sliding brightness mode
++		if(mSlidingBrightnessPreference != null){
++			int SlidingbrightnessMode = Settings.System.getInt(getContentResolver(),
++                    SLIDEING_BRIGHTNESS_MODE, SLIDEING_BRIGHTNESS_OFF);
++			Log.d("wangjian","SlidingbrightnessMode = "+SlidingbrightnessMode);
++            mSlidingBrightnessPreference.setChecked(SlidingbrightnessMode != SLIDEING_BRIGHTNESS_OFF);
++		}
+         // Update lift-to-wake if it is available.
+         if (mLiftToWakePreference != null) {
+             int value = Settings.Secure.getInt(getContentResolver(), WAKE_GESTURE_ENABLED, 0);
+@@ -441,6 +452,12 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
+             Settings.System.putInt(getContentResolver(), SCREEN_BRIGHTNESS_MODE,
+                     auto ? SCREEN_BRIGHTNESS_MODE_AUTOMATIC : SCREEN_BRIGHTNESS_MODE_MANUAL);
+         }
++		if (preference == mSlidingBrightnessPreference) {
++            boolean sliding_mode = (Boolean) objValue;
++			Log.d("wangjian","sliding_mode = "+sliding_mode);
++            Settings.System.putInt(getContentResolver(), SLIDEING_BRIGHTNESS_MODE,
++                    sliding_mode ? SLIDEING_BRIGHTNESS_ON : SLIDEING_BRIGHTNESS_OFF);
++        }
+         if (preference == mLiftToWakePreference) {
+             boolean value = (Boolean) objValue;
+             Settings.Secure.putInt(getContentResolver(), WAKE_GESTURE_ENABLED, value ? 1 : 0);
+-- 
+1.7.9.5
+

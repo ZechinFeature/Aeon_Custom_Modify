@@ -1,0 +1,40 @@
+From 72d427357e40fd0afc1276b2a4159b763d010890 Mon Sep 17 00:00:00 2001
+From: "zheng.wenhua" <zheng.wenhua@eastaeon.com>
+Date: Thu, 7 Apr 2016 09:10:31 +0800
+Subject: [PATCH] =?UTF-8?q?=E3=80=90=E9=9C=80=E6=B1=82=E3=80=91=E5=A3=81=E7=BA?=
+ =?UTF-8?q?=B8=E5=9B=BA=E5=AE=9A=E4=B8=8D=E5=8A=A8=EF=BC=8C=E4=B8=8D=E9=9A=8F?=
+ =?UTF-8?q?=E7=9D=80workspace=E7=9A=84=E6=BB=91=E5=8A=A8=E8=80=8C=E6=BB=91=E5?=
+ =?UTF-8?q?=8A=A8?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ .../src/com/android/launcher3/Workspace.java       |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/alps/packages/apps/Launcher3/src/com/android/launcher3/Workspace.java b/alps/packages/apps/Launcher3/src/com/android/launcher3/Workspace.java
+index 05b435f..bd3a691 100755
+--- a/alps/packages/apps/Launcher3/src/com/android/launcher3/Workspace.java
++++ b/alps/packages/apps/Launcher3/src/com/android/launcher3/Workspace.java
+@@ -1444,7 +1444,7 @@ public class Workspace extends PagedView
+ 
+         @Override
+         public void doFrame(long frameTimeNanos) {
+-            updateOffset(false);
++           // updateOffset(false);
+         }
+ 
+         private void updateOffset(boolean force) {
+@@ -1554,7 +1554,7 @@ public class Workspace extends PagedView
+         public void syncWithScroll() {
+             float offset = wallpaperOffsetForCurrentScroll();
+             mWallpaperOffset.setFinalX(offset);
+-            updateOffset(true);
++           // updateOffset(true);
+         }
+ 
+         public float getCurrX() {
+-- 
+1.7.9.5
+
